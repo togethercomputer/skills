@@ -215,5 +215,6 @@ Check `error_file_id` for per-request failures:
 
 - **Full API reference**: See [references/api-reference.md](references/api-reference.md)
 - **Runnable script**: See [scripts/batch_workflow.py](scripts/batch_workflow.py) — complete upload → create → poll → download pipeline (v2 SDK)
+- **Runnable script (TypeScript)**: See [scripts/batch_workflow.ts](scripts/batch_workflow.ts) — minimal OpenAPI `x-codeSamples` extraction for list/create/retrieve/cancel (TypeScript SDK)
 - **Official docs**: [Batch Inference](https://docs.together.ai/docs/batch-inference)
 - **API reference**: [Batch API](https://docs.together.ai/reference/batch-create)
