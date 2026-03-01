@@ -224,5 +224,6 @@ numpy, pandas, matplotlib, scikit-learn, scipy, seaborn, plotly, bokeh, requests
 ## Resources
 
 - **Runnable script**: See [scripts/execute_with_session.py](scripts/execute_with_session.py) — execute code with session reuse and chart generation (v2 SDK)
+- **Runnable script (TypeScript)**: See [scripts/execute_with_session.ts](scripts/execute_with_session.ts) — minimal OpenAPI `x-codeSamples` extraction for execute + sessions list (TypeScript SDK)
 - **Official docs**: [Together Code Interpreter](https://docs.together.ai/docs/together-code-interpreter)
 - **API reference**: [TCI API](https://docs.together.ai/reference/tci-execute)
