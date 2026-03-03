@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This repository contains 13 agent skills for the Together AI platform. Each skill is a self-contained directory following the [Agent Skills specification](https://agentskills.io/specification).
+This repository contains 12 agent skills for the Together AI platform. Each skill is a self-contained directory following the [Agent Skills specification](https://agentskills.io/specification).
 
 ## Skill registry
 
@@ -14,7 +14,6 @@ This repository contains 13 agent skills for the Together AI platform. Each skil
 - **together-batch-inference**: Process large volumes of inference requests asynchronously at up to 50% lower cost via Together AI's Batch API. Supports up to 50K requests per batch, 100MB max file size. Use when users need batch processing, offline inference, bulk data classification, synthetic data generation, or cost-optimized large-scale LLM workloads.
 - **together-evaluations**: Evaluate LLM outputs using Together AI's LLM-as-a-Judge framework with Classify, Score, and Compare evaluation types. Supports Together models and external providers (OpenAI, Anthropic, Google) as judges. Use when users want to evaluate model quality, benchmark outputs, compare models A/B, grade responses, or assess LLM performance.
 - **together-code-interpreter**: Execute Python code in a sandboxed environment via Together Code Interpreter (TCI). $0.03 per session, 60-minute lifespan, stateful sessions with pre-installed data science packages. Use when users need to run Python code remotely, execute computations, data analysis, generate plots, RL training environments, or agentic code execution workflows.
-- **together-code-sandbox**: Spin up full VM sandboxes with Docker support via Together Code Sandbox (powered by CodeSandbox). Sizes from Pico (2 CPU, 1GB) to XLarge (64 CPU, 128GB). Memory snapshots, sub-3-second cloning, browser connectivity. Use when users need full VM environments, Docker containers, dev servers, persistent sandboxes, or compute environments beyond simple Python execution.
 - **together-dedicated-endpoints**: Deploy models on dedicated single-tenant GPU endpoints via Together AI for predictable performance, no rate limits, autoscaling, and custom hardware. Use when users need dedicated inference endpoints, always-on model hosting, production deployments with SLAs, or scaling beyond serverless limits.
 - **together-dedicated-containers**: Deploy custom Dockerized inference workloads on Together AI's managed GPU infrastructure using Dedicated Container Inference (DCI). Tools include Jig CLI for building/deploying, Sprocket SDK for request handling, and a private container registry. Use when users need custom model serving, containerized inference, Docker-based GPU workloads, or workloads beyond standard model endpoints.
 - **together-gpu-clusters**: Provision on-demand and reserved GPU clusters (Instant Clusters) on Together AI with H100, H200, and B200 hardware. Supports Kubernetes and Slurm orchestration, tcloud CLI, Terraform, and SkyPilot. Use when users need GPU clusters, distributed training, multi-node compute, HPC workloads, or large-scale ML infrastructure.

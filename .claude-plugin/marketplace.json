@@ -41,10 +41,6 @@
         "description": "Execute Python code in a sandboxed environment via Together Code Interpreter (TCI). Stateful sessions with data science packages."
       },
       {
-        "name": "together-code-sandbox",
-        "description": "Spin up full VM sandboxes with Docker support via Together Code Sandbox. Memory snapshots, sub-3-second cloning."
-      },
-      {
         "name": "together-dedicated-endpoints",
         "description": "Deploy models on dedicated single-tenant GPU endpoints via Together AI. Autoscaling, no rate limits, predictable latency."
       },

@@ -1,6 +1,6 @@
 # Together AI Skills for Coding Agents
 
-A collection of 13 agent skills that provide comprehensive knowledge of the [Together AI](https://together.ai) platform — inference, training, embeddings, audio, video, images, function calling, and infrastructure.
+A collection of 12 agent skills that provide comprehensive knowledge of the [Together AI](https://together.ai) platform — inference, training, embeddings, audio, video, images, function calling, and infrastructure.
 
 Each skill teaches AI coding agents how to use a specific Together AI product, including API patterns, SDK usage (Python and TypeScript), CLI commands, direct API usage, model selection, and best practices. Skills include runnable Python scripts (using the **Together Python v2 SDK**), TypeScript examples, and CLI/API workflow guidance.
 
@@ -30,7 +30,6 @@ Each skill contains:
 | **together-batch-inference** | Process large volumes of inference requests asynchronously at up to 50% lower cost via Together AI's Batch API. | `batch_workflow.py` |
 | **together-evaluations** | Evaluate LLM outputs using Together AI's LLM-as-a-Judge framework with Classify, Score, and Compare evaluation types. | `run_evaluation.py` |
 | **together-code-interpreter** | Execute Python code in a sandboxed environment via Together Code Interpreter (TCI). | `execute_with_session.py` |
-| **together-code-sandbox** | Spin up full VM sandboxes with Docker support via Together Code Sandbox (powered by CodeSandbox). | — |
 | **together-dedicated-endpoints** | Deploy models on dedicated single-tenant GPU endpoints via Together AI for predictable performance, no rate limits, a... | `manage_endpoint.py` |
 | **together-dedicated-containers** | Deploy custom Dockerized inference workloads on Together AI's managed GPU infrastructure using Dedicated Container In... | `sprocket_hello_world.py` |
 | **together-gpu-clusters** | Provision on-demand and reserved GPU clusters (Instant Clusters) on Together AI with H100, H200, and B200 hardware. | — |
