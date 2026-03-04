@@ -13,6 +13,30 @@ Deploy models as dedicated endpoints with custom hardware and scaling. Benefits 
 - 179+ models supported, including fine-tuned and custom models
 - Autoscaling, speculative decoding, and prompt caching
 
+## Installation
+
+```shell
+# Python (recommended)
+uv init  # optional, if starting a new project
+uv add together
+```
+
+```shell
+# or with pip
+pip install together
+```
+
+```shell
+# TypeScript / JavaScript
+npm install together-ai
+```
+
+Set your API key:
+
+```shell
+export TOGETHER_API_KEY=<your-api-key>
+```
+
 ## Workflow
 
 1. Select a model and check hardware options

@@ -14,6 +14,30 @@ Send inference requests to 100+ open-source models via Together AI's serverless 
 - Endpoints: `/v1/chat/completions` (chat), `/v1/completions` (text)
 - SDKs: `pip install together` (Python), `npm install together-ai` (TypeScript)
 
+## Installation
+
+```shell
+# Python (recommended)
+uv init  # optional, if starting a new project
+uv add together
+```
+
+```shell
+# or with pip
+pip install together
+```
+
+```shell
+# TypeScript / JavaScript
+npm install together-ai
+```
+
+Set your API key:
+
+```shell
+export TOGETHER_API_KEY=<your-api-key>
+```
+
 ## Quick Start
 
 ### Basic Chat Completion

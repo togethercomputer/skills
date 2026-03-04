@@ -14,6 +14,30 @@ Execute Python code in sandboxed sessions via a simple API call. Sessions persis
 - Session lifespan: 60 minutes (reusable)
 - Also available as an MCP server via Smithery
 
+## Installation
+
+```shell
+# Python (recommended)
+uv init  # optional, if starting a new project
+uv add together
+```
+
+```shell
+# or with pip
+pip install together
+```
+
+```shell
+# TypeScript / JavaScript
+npm install together-ai
+```
+
+Set your API key:
+
+```shell
+export TOGETHER_API_KEY=<your-api-key>
+```
+
 ## Quick Start
 
 ### Execute Code

@@ -13,6 +13,30 @@ Generate images from text prompts and edit existing images via the Together AI A
 - Response: URL or base64-encoded image
 - Models: FLUX.1 family, Kontext, Seedream, Stable Diffusion, and more
 
+## Installation
+
+```shell
+# Python (recommended)
+uv init  # optional, if starting a new project
+uv add together
+```
+
+```shell
+# or with pip
+pip install together
+```
+
+```shell
+# TypeScript / JavaScript
+npm install together-ai
+```
+
+Set your API key:
+
+```shell
+export TOGETHER_API_KEY=<your-api-key>
+```
+
 ## Quick Start
 
 ### Text-to-Image

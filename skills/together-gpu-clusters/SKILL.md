@@ -15,6 +15,30 @@ Provision GPU clusters on Together AI for distributed training, large-scale infe
 - **Management**: tcloud CLI, Terraform, SkyPilot, REST API
 - **Networking**: InfiniBand for high-bandwidth inter-node communication
 
+## Installation
+
+```shell
+# Python (recommended)
+uv init  # optional, if starting a new project
+uv add together
+```
+
+```shell
+# or with pip
+pip install together
+```
+
+```shell
+# TypeScript / JavaScript
+npm install together-ai
+```
+
+Set your API key:
+
+```shell
+export TOGETHER_API_KEY=<your-api-key>
+```
+
 ## Workflow
 
 1. Choose hardware and cluster size

@@ -14,6 +14,30 @@ Process thousands of requests asynchronously at up to 50% cost discount. Ideal f
 - Content generation and summarization
 - Dataset transformations
 
+## Installation
+
+```shell
+# Python (recommended)
+uv init  # optional, if starting a new project
+uv add together
+```
+
+```shell
+# or with pip
+pip install together
+```
+
+```shell
+# TypeScript / JavaScript
+npm install together-ai
+```
+
+Set your API key:
+
+```shell
+export TOGETHER_API_KEY=<your-api-key>
+```
+
 ## Workflow
 
 1. Prepare a `.jsonl` batch file with requests

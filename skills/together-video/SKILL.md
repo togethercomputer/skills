@@ -13,6 +13,30 @@ Generate videos asynchronously — submit a job, poll for completion, download t
 - Async workflow: create job → poll status → download video
 - 15+ models from Google, OpenAI, MiniMax, Kuaishou, ByteDance, PixVerse, Vidu
 
+## Installation
+
+```shell
+# Python (recommended)
+uv init  # optional, if starting a new project
+uv add together
+```
+
+```shell
+# or with pip
+pip install together
+```
+
+```shell
+# TypeScript / JavaScript
+npm install together-ai
+```
+
+Set your API key:
+
+```shell
+export TOGETHER_API_KEY=<your-api-key>
+```
+
 ## Quick Start
 
 ### Text-to-Video

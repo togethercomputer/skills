@@ -16,6 +16,30 @@ Together AI provides text-to-speech and speech-to-text capabilities.
 **STT** — Transcribe audio to text:
 - Endpoint: `/v1/audio/transcriptions`
 
+## Installation
+
+```shell
+# Python (recommended)
+uv init  # optional, if starting a new project
+uv add together
+```
+
+```shell
+# or with pip
+pip install together
+```
+
+```shell
+# TypeScript / JavaScript
+npm install together-ai
+```
+
+Set your API key:
+
+```shell
+export TOGETHER_API_KEY=<your-api-key>
+```
+
 ## TTS Quick Start
 
 ### Basic Speech Generation

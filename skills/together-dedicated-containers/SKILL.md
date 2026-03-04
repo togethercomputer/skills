@@ -15,6 +15,30 @@ Run custom Dockerized inference workloads on Together's managed GPU infrastructu
 - **Container Registry**: `registry.together.xyz` for storing images
 - **Queue API**: Async job submission with priority and progress tracking
 
+## Installation
+
+```shell
+# Python (recommended)
+uv init  # optional, if starting a new project
+uv add together
+```
+
+```shell
+# or with pip
+pip install together
+```
+
+```shell
+# TypeScript / JavaScript
+npm install together-ai
+```
+
+Set your API key:
+
+```shell
+export TOGETHER_API_KEY=<your-api-key>
+```
+
 ## Workflow
 
 1. Write inference code using Sprocket SDK (`setup()` + `predict()`)

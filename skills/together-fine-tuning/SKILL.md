@@ -15,6 +15,30 @@ Fine-tune models on Together AI with a complete workflow: prepare data, upload, 
 - **DPO (Preference)**: Trains on preferred vs non-preferred output pairs
 - **VLM fine-tuning**: Fine-tune vision-language models on image+text data
 
+## Installation
+
+```shell
+# Python (recommended)
+uv init  # optional, if starting a new project
+uv add together
+```
+
+```shell
+# or with pip
+pip install together
+```
+
+```shell
+# TypeScript / JavaScript
+npm install together-ai
+```
+
+Set your API key:
+
+```shell
+export TOGETHER_API_KEY=<your-api-key>
+```
+
 ## Quick Start
 
 ### 1. Prepare Data

@@ -15,6 +15,30 @@ Evaluate LLM outputs using an LLM-as-a-Judge framework. Three evaluation types:
 
 Supports Together AI models and external providers (OpenAI, Anthropic, Google) as judge models.
 
+## Installation
+
+```shell
+# Python (recommended)
+uv init  # optional, if starting a new project
+uv add together
+```
+
+```shell
+# or with pip
+pip install together
+```
+
+```shell
+# TypeScript / JavaScript
+npm install together-ai
+```
+
+Set your API key:
+
+```shell
+export TOGETHER_API_KEY=<your-api-key>
+```
+
 ## Quick Start
 
 ### Classify Evaluation
