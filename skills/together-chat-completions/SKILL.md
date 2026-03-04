@@ -48,7 +48,7 @@ from together import Together
 client = Together()
 
 response = client.chat.completions.create(
-    model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    model="openai/gpt-oss-20b",
     messages=[{"role": "user", "content": "What are some fun things to do in NYC?"}],
 )
 print(response.choices[0].message.content)
@@ -59,7 +59,7 @@ import Together from "together-ai";
 const together = new Together();
 
 const response = await together.chat.completions.create({
-  model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+  model: "openai/gpt-oss-20b",
   messages: [{ role: "user", content: "What are some fun things to do in NYC?" }],
 });
 console.log(response.choices[0].message.content);
@@ -69,7 +69,7 @@ console.log(response.choices[0].message.content);
 curl -X POST "https://api.together.xyz/v1/chat/completions" \
   -H "Authorization: Bearer $TOGETHER_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"model":"meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo","messages":[{"role":"user","content":"What are some fun things to do in NYC?"}]}'
+  -d '{"model":"openai/gpt-oss-20b","messages":[{"role":"user","content":"What are some fun things to do in NYC?"}]}'
 ```
 
 ### Streaming
@@ -78,7 +78,7 @@ Set `stream=True` to receive tokens incrementally:
 
 ```python
 stream = client.chat.completions.create(
-    model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    model="openai/gpt-oss-20b",
     messages=[{"role": "user", "content": "Write a haiku about coding"}],
     stream=True,
 )
@@ -91,7 +91,7 @@ import Together from "together-ai";
 const together = new Together();
 
 const stream = await together.chat.completions.create({
-  model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+  model: "openai/gpt-oss-20b",
   messages: [
     { role: "user", content: "What are some fun things to do in New York?" },
   ],
@@ -108,7 +108,7 @@ curl -X POST "https://api.together.xyz/v1/chat/completions" \
   -H "Authorization: Bearer $TOGETHER_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    "model": "openai/gpt-oss-20b",
     "messages": [
       {"role": "user", "content": "What are some fun things to do in New York?"}
     ],
@@ -122,7 +122,7 @@ Pass conversation history in the `messages` array with alternating `user`/`assis
 
 ```python
 response = client.chat.completions.create(
-    model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    model="openai/gpt-oss-20b",
     messages=[
         {"role": "system", "content": "You are a helpful travel guide."},
         {"role": "user", "content": "What should I do in Paris?"},
@@ -144,7 +144,7 @@ async def main():
     client = AsyncTogether()
     tasks = [
         client.chat.completions.create(
-            model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+            model="openai/gpt-oss-20b",
             messages=[{"role": "user", "content": msg}],
         )
         for msg in ["Hello", "How are you?", "Tell me a joke"]
@@ -192,7 +192,7 @@ client = OpenAI(
     api_key="YOUR_TOGETHER_API_KEY",
 )
 response = client.chat.completions.create(
-    model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    model="openai/gpt-oss-20b",
     messages=[{"role": "user", "content": "Hello!"}],
 )
 ```
@@ -203,7 +203,7 @@ For non-chat models, use `/v1/completions`:
 
 ```python
 response = client.completions.create(
-    model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    model="openai/gpt-oss-20b",
     prompt="The quick brown fox",
     max_tokens=50,
 )
@@ -385,7 +385,7 @@ class VoiceNote(BaseModel):
     actionItems: list[str] = Field(description="Action items")
 
 response = client.chat.completions.create(
-    model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    model="openai/gpt-oss-20b",
     messages=[
         {"role": "system", "content": f"Respond in JSON: {json.dumps(VoiceNote.model_json_schema())}"},
         {"role": "user", "content": "Summarize: Meeting about Q4 planning..."},
@@ -410,7 +410,7 @@ curl -X POST "https://api.together.xyz/v1/chat/completions" \
         "content": "Good morning! Today is going to be a busy day. First, I need to make a quick breakfast. While cooking, I will also check my emails."
       }
     ],
-    "model": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    "model": "openai/gpt-oss-20b",
     "response_format": {
       "type": "json_schema",
       "schema": {
@@ -432,7 +432,7 @@ Model outputs valid JSON, structure guided by prompt only:
 
 ```python
 response = client.chat.completions.create(
-    model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    model="openai/gpt-oss-20b",
     messages=[
         {"role": "system", "content": "Respond in JSON with keys: name, age, city"},
         {"role": "user", "content": "Tell me about yourself"},
@@ -447,7 +447,7 @@ Constrain output to match a regex:
 
 ```python
 response = client.chat.completions.create(
-    model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    model="openai/gpt-oss-20b",
     messages=[{"role": "user", "content": "Classify sentiment: I loved the movie!"}],
     response_format={"type": "regex", "pattern": "(positive|neutral|negative)"},
 )

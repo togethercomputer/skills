@@ -92,7 +92,7 @@ def delete_endpoint(endpoint_id: str):
 
 
 if __name__ == "__main__":
-    MODEL = "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
+    MODEL = "openai/gpt-oss-20b"
     HARDWARE = "1x_nvidia_a100_80gb_sxm"
 
     # 1. List available hardware

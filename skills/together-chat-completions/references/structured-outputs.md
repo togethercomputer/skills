@@ -15,7 +15,7 @@ class VoiceNote(BaseModel):
     actionItems: list[str] = Field(description="Action items")
 
 response = client.chat.completions.create(
-    model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    model="openai/gpt-oss-20b",
     messages=[
         {"role": "system", "content": f"Respond in JSON: {json.dumps(VoiceNote.model_json_schema())}"},
         {"role": "user", "content": transcript},
@@ -51,7 +51,7 @@ const extract = await together.chat.completions.create({
     },
     { role: "user", content: transcript },
   ],
-  model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+  model: "openai/gpt-oss-20b",
   response_format: { type: "json_schema", schema: jsonSchema },
 });
 
@@ -75,7 +75,7 @@ curl -X POST "https://api.together.xyz/v1/chat/completions" \
         "content": "Good morning! Today is going to be a busy day. First, I need to make a quick breakfast. While cooking, I will also check my emails."
       }
     ],
-    "model": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    "model": "openai/gpt-oss-20b",
     "response_format": {
       "type": "json_schema",
       "schema": {
@@ -97,7 +97,7 @@ Model outputs valid JSON but structure is guided by prompt only.
 
 ```python
 response = client.chat.completions.create(
-    model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    model="openai/gpt-oss-20b",
     messages=[
         {"role": "system", "content": "Respond in JSON with keys: name, age, city"},
         {"role": "user", "content": "Tell me about yourself"},
@@ -111,7 +111,7 @@ curl -X POST "https://api.together.xyz/v1/chat/completions" \
   -H "Authorization: Bearer $TOGETHER_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    "model": "openai/gpt-oss-20b",
     "messages": [
       {"role": "system", "content": "Respond in JSON with keys: name, age, city"},
       {"role": "user", "content": "Tell me about yourself"}

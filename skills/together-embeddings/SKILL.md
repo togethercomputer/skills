@@ -206,7 +206,7 @@ reranked = client.rerank.create(
 # 4. Use top results as context for LLM
 context = "\n".join([candidates[r.index].text for r in reranked.results])
 response = client.chat.completions.create(
-    model="meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    model="openai/gpt-oss-20b",
     messages=[
         {"role": "system", "content": f"Answer based on this context:\n{context}"},
         {"role": "user", "content": "How does photosynthesis work?"},

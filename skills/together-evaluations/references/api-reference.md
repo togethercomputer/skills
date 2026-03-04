@@ -24,7 +24,7 @@ eval = client.evals.create(
     labels=["good", "bad", "neutral"],
     pass_labels=["good"],
     model_to_evaluate={
-        "model": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+        "model": "openai/gpt-oss-20b",
         "model_source": "serverless",
         "input_template": "{{prompt}}",
     },
@@ -47,7 +47,7 @@ curl -X POST "https://api.together.xyz/v1/evaluation" \
       "labels": ["Toxic", "Non-toxic"],
       "pass_labels": ["Non-toxic"],
       "model_to_evaluate": {
-        "model": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+        "model": "openai/gpt-oss-20b",
         "model_source": "serverless",
         "input_template": "{{prompt}}"
       },
@@ -91,7 +91,7 @@ curl -X POST "https://api.together.xyz/v1/evaluation" \
       "max_score": 10.0,
       "pass_threshold": 7.0,
       "model_to_evaluate": {
-        "model": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+        "model": "openai/gpt-oss-20b",
         "model_source": "serverless",
         "input_template": "{{prompt}}"
       },
@@ -138,7 +138,7 @@ curl -X POST "https://api.together.xyz/v1/evaluation" \
         "temperature": 0.7
       },
       "model_b": {
-        "model": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+        "model": "openai/gpt-oss-20b",
         "model_source": "serverless",
         "system_template": "Respond to the following comment. You can be informal but maintain a respectful tone.",
         "input_template": "Here'\''s a comment I saw online. How would you respond to it?\n\n{{prompt}}",
@@ -156,7 +156,7 @@ curl -X POST "https://api.together.xyz/v1/evaluation" \
 
 ```python
 {
-    "model": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    "model": "openai/gpt-oss-20b",
     "model_source": "serverless",  # "serverless", "dedicated", "external"
     "system_template": "You are a helpful assistant.",
     "input_template": "{{prompt}}",
@@ -290,7 +290,7 @@ together evals create \
   --judge-system-template "You are an expert at identifying toxic content." \
   --labels "Toxic,Non-toxic" \
   --pass-labels "Non-toxic" \
-  --model-to-evaluate meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo \
+  --model-to-evaluate openai/gpt-oss-20b \
   --model-to-evaluate-source serverless \
   --input-data-file-path file-abc123
 ```
@@ -306,7 +306,7 @@ together evals create \
   --min-score 1.0 \
   --max-score 10.0 \
   --pass-threshold 7.0 \
-  --model-to-evaluate meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo \
+  --model-to-evaluate openai/gpt-oss-20b \
   --model-to-evaluate-source serverless \
   --input-data-file-path file-abc123
 ```
@@ -321,7 +321,7 @@ together evals create \
   --judge-system-template "Please assess which model has smarter and more helpful responses." \
   --model-a Qwen/Qwen2.5-72B-Instruct-Turbo \
   --model-a-source serverless \
-  --model-b meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo \
+  --model-b openai/gpt-oss-20b \
   --model-b-source serverless \
   --input-data-file-path file-abc123
 ```

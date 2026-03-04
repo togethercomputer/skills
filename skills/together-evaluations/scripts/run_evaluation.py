@@ -57,7 +57,7 @@ def run_classify_evaluation():
             labels=["positive", "negative", "neutral"],
             pass_labels=["positive"],
             model_to_evaluate={
-                "model": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+                "model": "openai/gpt-oss-20b",
                 "model_source": "serverless",
                 "input_template": "{{prompt}}",
             },
