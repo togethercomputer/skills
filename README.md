@@ -32,7 +32,7 @@ Each skill contains:
 | **together-code-interpreter** | Execute Python code in a sandboxed environment via Together Code Interpreter (TCI). | `execute_with_session.py` |
 | **together-dedicated-endpoints** | Deploy models on dedicated single-tenant GPU endpoints via Together AI for predictable performance, no rate limits, a... | `deploy_finetuned.py`, `manage_endpoint.py`, `upload_custom_model.py` |
 | **together-dedicated-containers** | Deploy custom Dockerized inference workloads on Together AI's managed GPU infrastructure using Dedicated Container In... | `queue_client.py`, `sprocket_hello_world.py` |
-| **together-gpu-clusters** | Provision on-demand and reserved GPU clusters (Instant Clusters) on Together AI with H100, H200, and B200 hardware. | — |
+| **together-gpu-clusters** | Provision on-demand and reserved GPU clusters (Instant Clusters) on Together AI with H100, H200, B200, L40, and RTX-6... | `manage_cluster.py`, `manage_storage.py` |
 <!-- END_SKILLS_TABLE -->
 
 ## Installation
