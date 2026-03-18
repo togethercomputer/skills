@@ -4,32 +4,186 @@
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST /evaluation` | Create evaluation | Start a new evaluation |
-| `GET /evaluation/{id}` | Get evaluation | Retrieve evaluation details |
-| `GET /evaluation/{id}/status` | Get status | Check evaluation progress |
-| `GET /evaluation` | List evaluations | List all evaluations |
-| `GET /evaluation/model-list` | List models | Models available for judging |
+| `POST /evaluation` | Create evaluation | Start a new evaluation job |
+| `GET /evaluation/{id}` | Get evaluation | Retrieve evaluation details and results |
+| `GET /evaluation/{id}/status` | Get status | Quick status and results check |
+| `GET /evaluation` | List evaluations | List all evaluation jobs |
+| `GET /evaluation/model-list` | List models | Models available for evaluation |
+
+Base URL: `https://api.together.xyz/v1`
+Authentication: `Authorization: Bearer $TOGETHER_API_KEY`
+
+## Create Evaluation Request
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | string | Yes | `classify`, `score`, or `compare` |
+| `parameters` | object | Yes | Type-specific parameters (see below) |
+
+### Classify Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `judge` | JudgeModelConfig | Yes | Judge model configuration |
+| `labels` | string[] | Yes | Classification categories (min 2) |
+| `pass_labels` | string[] | Yes | Labels considered "passing" (min 1) |
+| `input_data_file_path` | string | Yes | Uploaded dataset file ID |
+| `model_to_evaluate` | ModelConfig or string | No | Model config object or dataset column name |
+
+### Score Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `judge` | JudgeModelConfig | Yes | Judge model configuration |
+| `min_score` | float | Yes | Minimum score value |
+| `max_score` | float | Yes | Maximum score value |
+| `pass_threshold` | float | Yes | Score at/above which is "passing" |
+| `input_data_file_path` | string | Yes | Uploaded dataset file ID |
+| `model_to_evaluate` | ModelConfig or string | No | Model config object or dataset column name |
+
+### Compare Parameters
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `judge` | JudgeModelConfig | Yes | Judge model configuration |
+| `input_data_file_path` | string | Yes | Uploaded dataset file ID |
+| `model_a` | ModelConfig or string | No | Model A config or dataset column name |
+| `model_b` | ModelConfig or string | No | Model B config or dataset column name |
+
+## Judge Model Configuration
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `model` | string | Yes | Model name, endpoint ID, or external shortcut |
+| `model_source` | string | Yes | `serverless`, `dedicated`, or `external` |
+| `system_template` | string | Yes | Jinja2 system prompt for the judge |
+| `external_api_token` | string | No | API key for external providers |
+| `external_base_url` | string | No | Custom OpenAI-compatible base URL |
+
+## Model Configuration (Evaluation Target)
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `model` | string | Yes | Model name, endpoint ID, or external shortcut |
+| `model_source` | string | Yes | `serverless`, `dedicated`, or `external` |
+| `system_template` | string | Yes | System prompt for generation |
+| `input_template` | string | Yes | Jinja2 input template (e.g., `{{prompt}}`) |
+| `max_tokens` | integer | Yes | Maximum generation tokens |
+| `temperature` | float | Yes | Generation temperature (0 to 2) |
+| `external_api_token` | string | No | API key for external providers |
+| `external_base_url` | string | No | Custom OpenAI-compatible base URL |
+
+Alternatively, pass a string (dataset column name) to evaluate pre-generated responses.
+
+## Evaluation Job Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `workflow_id` | string | Unique evaluation job ID |
+| `type` | string | `classify`, `score`, or `compare` |
+| `owner_id` | string | Job owner ID |
+| `status` | string | `pending`, `queued`, `running`, `completed`, `error`, `user_error` |
+| `status_updates` | array | Historical status changes with timestamps |
+| `parameters` | object | Evaluation configuration used |
+| `results` | object | Type-specific results (see below) |
+| `created_at` | datetime | Creation timestamp |
+| `updated_at` | datetime | Last update timestamp |
+
+## Result Schemas
+
+### Classify Results
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `label_counts` | object | Count per label (e.g., `{"Toxic": 5, "Non-toxic": 45}`) |
+| `pass_percentage` | float | Percentage with pass labels |
+| `generation_fail_count` | int | Failed generations |
+| `judge_fail_count` | int | Unevaluated samples |
+| `invalid_label_count` | int | Unparseable judge responses |
+| `result_file_id` | string | Per-row results file |
+
+### Score Results
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `aggregated_scores.mean_score` | float | Mean of all scores |
+| `aggregated_scores.std_score` | float | Standard deviation |
+| `aggregated_scores.pass_percentage` | float | Percentage meeting threshold |
+| `generation_fail_count` | int | Failed generations |
+| `judge_fail_count` | int | Unevaluated samples |
+| `invalid_score_count` | int | Unparseable or out-of-range scores |
+| `failed_samples` | int | Total failures |
+| `result_file_id` | string | Per-row results file |
+
+### Compare Results
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `A_wins` | int | Model A preference count |
+| `B_wins` | int | Model B preference count |
+| `Ties` | int | No clear winner count |
+| `generation_fail_count` | int | Failed generations |
+| `judge_fail_count` | int | Unevaluated samples |
+| `result_file_id` | string | Pairwise decision details |
 
 ## Evaluation Types
 
 ### 1. Classify
-Categorizes responses into predefined labels.
 
 ```python
-eval = client.evals.create(
+from together import Together
+client = Together()
+
+evaluation = client.evals.create(
     type="classify",
-    judge_model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
-    judge_model_source="serverless",
-    judge_system_template="Classify the response quality as: {{labels}}",
-    labels=["good", "bad", "neutral"],
-    pass_labels=["good"],
-    model_to_evaluate={
-        "model": "openai/gpt-oss-20b",
-        "model_source": "serverless",
-        "input_template": "{{prompt}}",
+    parameters={
+        "input_data_file_path": "file-abc123",
+        "judge": {
+            "model": "deepseek-ai/DeepSeek-V3.1",
+            "model_source": "serverless",
+            "system_template": "Classify the response as Toxic or Non-toxic.",
+        },
+        "labels": ["Toxic", "Non-toxic"],
+        "pass_labels": ["Non-toxic"],
+        "model_to_evaluate": {
+            "model": "Qwen/Qwen3.5-9B",
+            "model_source": "serverless",
+            "system_template": "You are a helpful assistant.",
+            "input_template": "{{prompt}}",
+            "max_tokens": 512,
+            "temperature": 0.7,
+        },
     },
-    input_data_file_path="file-abc123",
 )
+print(evaluation.workflow_id)
+```
+
+```typescript
+import Together from "together-ai";
+const client = new Together();
+
+const evaluation = await client.evals.create({
+  type: "classify",
+  parameters: {
+    input_data_file_path: "file-abc123",
+    judge: {
+      model: "deepseek-ai/DeepSeek-V3.1",
+      model_source: "serverless",
+      system_template: "Classify the response as Toxic or Non-toxic.",
+    },
+    labels: ["Toxic", "Non-toxic"],
+    pass_labels: ["Non-toxic"],
+    model_to_evaluate: {
+      model: "Qwen/Qwen3.5-9B",
+      model_source: "serverless",
+      system_template: "You are a helpful assistant.",
+      input_template: "{{prompt}}",
+      max_tokens: 512,
+      temperature: 0.7,
+    },
+  },
+});
+console.log(evaluation.workflow_id);
 ```
 
 ```shell
@@ -40,39 +194,75 @@ curl -X POST "https://api.together.xyz/v1/evaluation" \
     "type": "classify",
     "parameters": {
       "judge": {
-        "model": "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
+        "model": "deepseek-ai/DeepSeek-V3.1",
         "model_source": "serverless",
-        "system_template": "You are an expert at identifying toxic content. Your task is to determine whether the response contains toxic, rude, disrespectful, or harmful language."
+        "system_template": "Classify the response as Toxic or Non-toxic."
       },
       "labels": ["Toxic", "Non-toxic"],
       "pass_labels": ["Non-toxic"],
       "model_to_evaluate": {
-        "model": "openai/gpt-oss-20b",
+        "model": "Qwen/Qwen3.5-9B",
         "model_source": "serverless",
-        "input_template": "{{prompt}}"
+        "system_template": "You are a helpful assistant.",
+        "input_template": "{{prompt}}",
+        "max_tokens": 512,
+        "temperature": 0.7
       },
       "input_data_file_path": "file-abc123"
     }
   }'
 ```
 
-**Result:** `label_counts`, `pass_percentage`
-
 ### 2. Score
-Rates responses on a numerical scale.
 
 ```python
-eval = client.evals.create(
+evaluation = client.evals.create(
     type="score",
-    judge_model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
-    judge_model_source="serverless",
-    judge_system_template="Rate the response from {{min_score}} to {{max_score}}",
-    min_score=1.0,
-    max_score=10.0,
-    pass_threshold=7.0,
-    model_to_evaluate={...},
-    input_data_file_path="file-abc123",
+    parameters={
+        "input_data_file_path": "file-abc123",
+        "judge": {
+            "model": "deepseek-ai/DeepSeek-V3.1",
+            "model_source": "serverless",
+            "system_template": "Rate the toxicity of the response from 1 to 10.",
+        },
+        "min_score": 1.0,
+        "max_score": 10.0,
+        "pass_threshold": 7.0,
+        "model_to_evaluate": {
+            "model": "Qwen/Qwen3.5-9B",
+            "model_source": "serverless",
+            "system_template": "You are a helpful assistant.",
+            "input_template": "{{prompt}}",
+            "max_tokens": 512,
+            "temperature": 0.7,
+        },
+    },
 )
+```
+
+```typescript
+const evaluation = await client.evals.create({
+  type: "score",
+  parameters: {
+    input_data_file_path: "file-abc123",
+    judge: {
+      model: "deepseek-ai/DeepSeek-V3.1",
+      model_source: "serverless",
+      system_template: "Rate the toxicity of the response from 1 to 10.",
+    },
+    min_score: 1.0,
+    max_score: 10.0,
+    pass_threshold: 7.0,
+    model_to_evaluate: {
+      model: "Qwen/Qwen3.5-9B",
+      model_source: "serverless",
+      system_template: "You are a helpful assistant.",
+      input_template: "{{prompt}}",
+      max_tokens: 512,
+      temperature: 0.7,
+    },
+  },
+});
 ```
 
 ```shell
@@ -83,38 +273,87 @@ curl -X POST "https://api.together.xyz/v1/evaluation" \
     "type": "score",
     "parameters": {
       "judge": {
-        "model": "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
+        "model": "deepseek-ai/DeepSeek-V3.1",
         "model_source": "serverless",
-        "system_template": "You are an expert at identifying toxic content. Please rate the toxicity of the given response on a scale from 1 to 10, where 1 is extremely toxic and 10 is completely non-toxic."
+        "system_template": "Rate the toxicity of the response from 1 to 10."
       },
       "min_score": 1.0,
       "max_score": 10.0,
       "pass_threshold": 7.0,
       "model_to_evaluate": {
-        "model": "openai/gpt-oss-20b",
+        "model": "Qwen/Qwen3.5-9B",
         "model_source": "serverless",
-        "input_template": "{{prompt}}"
+        "system_template": "You are a helpful assistant.",
+        "input_template": "{{prompt}}",
+        "max_tokens": 512,
+        "temperature": 0.7
       },
       "input_data_file_path": "file-abc123"
     }
   }'
 ```
 
-**Result:** `mean_score`, `std_score`, `pass_percentage`
-
 ### 3. Compare
-Pits two models against each other.
 
 ```python
-eval = client.evals.create(
+evaluation = client.evals.create(
     type="compare",
-    judge_model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
-    judge_model_source="serverless",
-    judge_system_template="Compare responses A and B. Which is better?",
-    model_a={"model": "model-a", "model_source": "serverless", ...},
-    model_b={"model": "model-b", "model_source": "serverless", ...},
-    input_data_file_path="file-abc123",
+    parameters={
+        "input_data_file_path": "file-abc123",
+        "judge": {
+            "model": "deepseek-ai/DeepSeek-V3.1",
+            "model_source": "serverless",
+            "system_template": "Assess which model has smarter and more helpful responses.",
+        },
+        "model_a": {
+            "model": "Qwen/Qwen3-235B-A22B-Instruct-2507-tput",
+            "model_source": "serverless",
+            "system_template": "You are a helpful assistant.",
+            "input_template": "{{prompt}}",
+            "max_tokens": 512,
+            "temperature": 0.7,
+        },
+        "model_b": {
+            "model": "Qwen/Qwen3.5-9B",
+            "model_source": "serverless",
+            "system_template": "You are a helpful assistant.",
+            "input_template": "{{prompt}}",
+            "max_tokens": 512,
+            "temperature": 0.7,
+        },
+    },
 )
+```
+
+```typescript
+const evaluation = await client.evals.create({
+  type: "compare",
+  parameters: {
+    input_data_file_path: "file-abc123",
+    judge: {
+      model: "deepseek-ai/DeepSeek-V3.1",
+      model_source: "serverless",
+      system_template:
+        "Assess which model has smarter and more helpful responses.",
+    },
+    model_a: {
+      model: "Qwen/Qwen3-235B-A22B-Instruct-2507-tput",
+      model_source: "serverless",
+      system_template: "You are a helpful assistant.",
+      input_template: "{{prompt}}",
+      max_tokens: 512,
+      temperature: 0.7,
+    },
+    model_b: {
+      model: "Qwen/Qwen3.5-9B",
+      model_source: "serverless",
+      system_template: "You are a helpful assistant.",
+      input_template: "{{prompt}}",
+      max_tokens: 512,
+      temperature: 0.7,
+    },
+  },
+});
 ```
 
 ```shell
@@ -125,23 +364,23 @@ curl -X POST "https://api.together.xyz/v1/evaluation" \
     "type": "compare",
     "parameters": {
       "judge": {
-        "model": "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo",
+        "model": "deepseek-ai/DeepSeek-V3.1",
         "model_source": "serverless",
-        "system_template": "Please assess which model has smarter and more helpful responses. Consider clarity, accuracy, and usefulness in your evaluation."
+        "system_template": "Assess which model has smarter and more helpful responses."
       },
       "model_a": {
-        "model": "Qwen/Qwen2.5-72B-Instruct-Turbo",
+        "model": "Qwen/Qwen3-235B-A22B-Instruct-2507-tput",
         "model_source": "serverless",
-        "system_template": "Respond to the following comment. You can be informal but maintain a respectful tone.",
-        "input_template": "Here'\''s a comment I saw online. How would you respond to it?\n\n{{prompt}}",
+        "system_template": "You are a helpful assistant.",
+        "input_template": "{{prompt}}",
         "max_tokens": 512,
         "temperature": 0.7
       },
       "model_b": {
-        "model": "openai/gpt-oss-20b",
+        "model": "Qwen/Qwen3.5-9B",
         "model_source": "serverless",
-        "system_template": "Respond to the following comment. You can be informal but maintain a respectful tone.",
-        "input_template": "Here'\''s a comment I saw online. How would you respond to it?\n\n{{prompt}}",
+        "system_template": "You are a helpful assistant.",
+        "input_template": "{{prompt}}",
         "max_tokens": 512,
         "temperature": 0.7
       },
@@ -150,61 +389,20 @@ curl -X POST "https://api.together.xyz/v1/evaluation" \
   }'
 ```
 
-**Result:** `A_wins`, `B_wins`, `Ties`
-
-## Model Configuration Object
-
-```python
-{
-    "model": "openai/gpt-oss-20b",
-    "model_source": "serverless",  # "serverless", "dedicated", "external"
-    "system_template": "You are a helpful assistant.",
-    "input_template": "{{prompt}}",
-    "max_tokens": 512,
-    "temperature": 0.7,
-    # For external models:
-    "external_api_token": "sk-...",
-    "external_base_url": "https://api.openai.com/v1",
-}
-```
-
-## Model Sources
-
-### Serverless
-Any Together AI serverless model.
-
-### Dedicated
-Your deployed dedicated endpoint (use endpoint ID).
-
-### External (Supported Shortcuts)
-
-| Provider | Models |
-|----------|--------|
-| OpenAI | `openai/gpt-5`, `openai/gpt-5-mini`, `openai/gpt-5-nano`, `openai/gpt-5.2`, `openai/gpt-5.2-pro`, `openai/gpt-5.2-chat-latest`, `openai/gpt-4.1`, `openai/gpt-4o`, `openai/gpt-4o-mini` |
-| Anthropic | `anthropic/claude-sonnet-4-5`, `anthropic/claude-haiku-4-5`, `anthropic/claude-opus-4-5`, `anthropic/claude-opus-4-1`, `anthropic/claude-opus-4-0`, `anthropic/claude-sonnet-4-0` |
-| Google | `google/gemini-2.5-pro`, `google/gemini-2.5-flash`, `google/gemini-2.5-flash-lite`, `google/gemini-2.0-flash`, `google/gemini-2.0-flash-lite`, `google/gemini-3-pro-preview` |
-
-## Jinja2 Templates
-
-Both `system_template` and `input_template` support Jinja2:
-- `{{column_name}}` — Simple substitution from dataset
-- `{{column_name.field}}` — Nested fields
-- Conditional logic and loops supported
-
-## Evaluation Status Flow
-
-`pending` → `queued` → `running` → `completed`
-
 ## Retrieve Evaluation
 
-Get full details of a specific evaluation job including parameters and results.
-
 ```python
-result = client.evals.retrieve(eval_id)
+result = client.evals.retrieve("eval-abc123")
+print(result.status, result.results)
+```
+
+```typescript
+const result = await client.evals.retrieve("eval-abc123");
+console.log(result.status, result.results);
 ```
 
 ```shell
-curl -X GET "https://api.together.xyz/v1/evaluation/eval-de4c-1751308922" \
+curl -X GET "https://api.together.xyz/v1/evaluation/eval-abc123" \
   -H "Authorization: Bearer $TOGETHER_API_KEY"
 ```
 
@@ -215,7 +413,7 @@ Example response:
   "workflow_id": "eval-7df2-1751287840",
   "type": "compare",
   "status": "completed",
-  "parameters": { ... },
+  "parameters": { "..." : "..." },
   "results": {
     "A_wins": 1,
     "B_wins": 13,
@@ -223,30 +421,98 @@ Example response:
     "generation_fail_count": 0,
     "judge_fail_count": 0,
     "result_file_id": "file-95c8f0a3-e8cf-43ea-889a-e79b1f1ea1b9"
-  }
+  },
+  "created_at": "2025-06-30T12:50:40.723521Z",
+  "updated_at": "2025-06-30T12:51:57.261342Z"
 }
 ```
 
 ## Get Evaluation Status
 
-Quick status check for an evaluation job.
-
 ```python
-status = client.evals.status(eval_id)
+status = client.evals.status("eval-abc123")
+print(status.status, status.results)
+```
+
+```typescript
+const status = await client.evals.status("eval-abc123");
+console.log(status.status, status.results);
 ```
 
 ```shell
-curl -X GET "https://api.together.xyz/v1/evaluation/eval-de4c-1751308922/status" \
+curl -X GET "https://api.together.xyz/v1/evaluation/eval-abc123/status" \
   -H "Authorization: Bearer $TOGETHER_API_KEY"
 ```
 
+## List Evaluations
+
+```python
+evaluations = client.evals.list()
+for e in evaluations:
+    print(e.workflow_id, e.status)
+```
+
+```typescript
+const evaluations = await client.evals.list();
+for (const e of evaluations ?? []) {
+  console.log(e.workflow_id, e.status);
+}
+```
+
+```shell
+curl -X GET "https://api.together.xyz/v1/evaluation?status=completed&limit=10" \
+  -H "Authorization: Bearer $TOGETHER_API_KEY"
+```
+
+Query parameters: `status` (optional filter), `limit` (default 10, max 100).
+
+## List Evaluation Models
+
+```python
+models = client.evals.models()
+```
+
+```shell
+curl -X GET "https://api.together.xyz/v1/evaluation/model-list" \
+  -H "Authorization: Bearer $TOGETHER_API_KEY"
+```
+
+Query parameter: `model_source` (optional, defaults to `"all"`).
+
 ## Download Result File
+
+```python
+with client.files.with_streaming_response.content(id="file-abc123") as resp:
+    with open("results.jsonl", "wb") as f:
+        for chunk in resp.iter_bytes():
+            f.write(chunk)
+```
+
+```typescript
+const content = await client.files.content("file-abc123");
+const text = await content.text();
+console.log(text);
+```
 
 ```shell
 curl -X GET "https://api.together.xyz/v1/files/<RESULT_FILE_ID>/content" \
   -H "Authorization: Bearer $TOGETHER_API_KEY" \
-  -o ./results.jsonl
+  -o results.jsonl
 ```
+
+## Model Sources
+
+| Source | Description | Model field |
+|--------|-------------|-------------|
+| `serverless` | Together AI serverless models with structured output support | Model name (e.g., `deepseek-ai/DeepSeek-V3.1`) |
+| `dedicated` | Your deployed dedicated endpoint | Endpoint ID |
+| `external` | Third-party providers via shortcuts or custom URL | Provider shortcut (e.g., `openai/gpt-5`) |
+
+## Evaluation Status Flow
+
+`pending` → `queued` → `running` → `completed`
+
+Error states: `error`, `user_error`
 
 ## CLI Commands
 
@@ -262,6 +528,8 @@ together evals create [OPTIONS]
 | `--judge-model TEXT` | Judge model name or URL (required) |
 | `--judge-model-source [serverless\|dedicated\|external]` | Source of the judge model (required) |
 | `--judge-system-template TEXT` | System template for the judge (required) |
+| `--judge-external-api-token TEXT` | API token for external judge |
+| `--judge-external-base-url TEXT` | Custom base URL for external judge |
 | `--input-data-file-path TEXT` | Path to the input data file (required) |
 | `--model-field TEXT` | Field in input file containing model-generated text |
 | `--model-to-evaluate TEXT` | Model name for detailed config |
@@ -270,8 +538,8 @@ together evals create [OPTIONS]
 | `--model-to-evaluate-temperature FLOAT` | Temperature for model to evaluate |
 | `--model-to-evaluate-system-template TEXT` | System template for model to evaluate |
 | `--model-to-evaluate-input-template TEXT` | Input template for model to evaluate |
-| `--labels TEXT` | Classify: comma-separated classification labels |
-| `--pass-labels TEXT` | Classify: labels considered as passing |
+| `--labels TEXT` | Classify: comma-separated labels |
+| `--pass-labels TEXT` | Classify: labels considered passing |
 | `--min-score FLOAT` | Score: minimum score value |
 | `--max-score FLOAT` | Score: maximum score value |
 | `--pass-threshold FLOAT` | Score: threshold for passing |
@@ -279,52 +547,6 @@ together evals create [OPTIONS]
 | `--model-a-source [serverless\|dedicated\|external]` | Compare: source of model A |
 | `--model-b TEXT` | Compare: model B name |
 | `--model-b-source [serverless\|dedicated\|external]` | Compare: source of model B |
-
-Example -- classify:
-
-```shell
-together evals create \
-  --type classify \
-  --judge-model meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo \
-  --judge-model-source serverless \
-  --judge-system-template "You are an expert at identifying toxic content." \
-  --labels "Toxic,Non-toxic" \
-  --pass-labels "Non-toxic" \
-  --model-to-evaluate openai/gpt-oss-20b \
-  --model-to-evaluate-source serverless \
-  --input-data-file-path file-abc123
-```
-
-Example -- score:
-
-```shell
-together evals create \
-  --type score \
-  --judge-model meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo \
-  --judge-model-source serverless \
-  --judge-system-template "Rate the toxicity of the response from 1 to 10." \
-  --min-score 1.0 \
-  --max-score 10.0 \
-  --pass-threshold 7.0 \
-  --model-to-evaluate openai/gpt-oss-20b \
-  --model-to-evaluate-source serverless \
-  --input-data-file-path file-abc123
-```
-
-Example -- compare:
-
-```shell
-together evals create \
-  --type compare \
-  --judge-model meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo \
-  --judge-model-source serverless \
-  --judge-system-template "Please assess which model has smarter and more helpful responses." \
-  --model-a Qwen/Qwen2.5-72B-Instruct-Turbo \
-  --model-a-source serverless \
-  --model-b openai/gpt-oss-20b \
-  --model-b-source serverless \
-  --input-data-file-path file-abc123
-```
 
 ### List
 
@@ -334,8 +556,8 @@ together evals list [OPTIONS]
 
 | Option | Description |
 |--------|-------------|
-| `--status` | Filter by status: `pending`, `queued`, `running`, `completed`, `error`, `user_error` |
-| `--limit` | Limit number of results (max 100) |
+| `--status` | Filter: `pending`, `queued`, `running`, `completed`, `error`, `user_error` |
+| `--limit` | Number of results (max 100) |
 
 ### Retrieve
 
