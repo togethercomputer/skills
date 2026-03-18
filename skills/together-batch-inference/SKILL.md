@@ -53,8 +53,8 @@ export TOGETHER_API_KEY=<your-api-key>
 Each line: `custom_id` (unique) + `body` (request payload).
 
 ```jsonl batch_input.jsonl
-{"custom_id": "req-1", "body": {"model": "deepseek-ai/DeepSeek-V3", "messages": [{"role": "user", "content": "Hello!"}], "max_tokens": 200}}
-{"custom_id": "req-2", "body": {"model": "deepseek-ai/DeepSeek-V3", "messages": [{"role": "user", "content": "Explain quantum computing"}], "max_tokens": 200}}
+{"custom_id": "req-1", "body": {"model": "Qwen/Qwen2.5-7B-Instruct-Turbo", "messages": [{"role": "user", "content": "Hello!"}], "max_tokens": 200}}
+{"custom_id": "req-2", "body": {"model": "Qwen/Qwen2.5-7B-Instruct-Turbo", "messages": [{"role": "user", "content": "Explain quantum computing"}], "max_tokens": 200}}
 ```
 
 ### 2. Upload and Create Batch
@@ -190,22 +190,11 @@ Output order may differ from input — use `custom_id` to match results.
 
 | Model ID | Discount |
 |----------|----------|
-| deepseek-ai/DeepSeek-R1-0528-tput | 50% |
-| meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8 | 50% |
-| meta-llama/Llama-4-Scout-17B-16E-Instruct | 50% |
-| meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo | 50% |
-| meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo | 50% |
-| meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo | 50% |
-| meta-llama/Meta-Llama-3-70B-Instruct-Turbo | 50% |
-| meta-llama/Llama-3-70b-chat-hf | 50% |
-| meta-llama/Llama-3.3-70B-Instruct-Turbo | 50% |
-| Qwen/Qwen2.5-72B-Instruct-Turbo | 50% |
 | Qwen/Qwen2.5-7B-Instruct-Turbo | 50% |
-| Qwen/Qwen3-235B-A22B-fp8-tput | 50% |
-| Qwen/Qwen3-235B-A22B-Thinking-2507 | 50% |
-| Qwen/Qwen2.5-VL-72B-Instruct | 50% |
+| meta-llama/Llama-3.3-70B-Instruct-Turbo | 50% |
+| meta-llama/Llama-3-70b-chat-hf | 50% |
 | mistralai/Mixtral-8x7B-Instruct-v0.1 | 50% |
-| mistralai/Mistral-7B-Instruct-v0.1 | 50% |
+| Qwen/Qwen2.5-7B-Instruct-Turbo | 50% |
 | zai-org/GLM-4.5-Air-FP8 | 50% |
 | openai/whisper-large-v3 | 50% |
 
@@ -239,6 +228,6 @@ Check `error_file_id` for per-request failures:
 
 - **Full API reference**: See [references/api-reference.md](references/api-reference.md)
 - **Runnable script**: See [scripts/batch_workflow.py](scripts/batch_workflow.py) — complete upload → create → poll → download pipeline (v2 SDK)
-- **Runnable script (TypeScript)**: See [scripts/batch_workflow.ts](scripts/batch_workflow.ts) — minimal OpenAPI `x-codeSamples` extraction for list/create/retrieve/cancel (TypeScript SDK)
+- **Runnable script (TypeScript)**: See [scripts/batch_workflow.ts](scripts/batch_workflow.ts) — complete upload → create → poll → download pipeline (TypeScript SDK)
 - **Official docs**: [Batch Inference](https://docs.together.ai/docs/batch-inference)
 - **API reference**: [Batch API](https://docs.together.ai/reference/batch-create)

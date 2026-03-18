@@ -24,7 +24,7 @@ requests = [
     {
         "custom_id": "req-1",
         "body": {
-            "model": "openai/gpt-oss-20b",
+            "model": "Qwen/Qwen2.5-7B-Instruct-Turbo",
             "messages": [{"role": "user", "content": "What is the capital of France?"}],
             "max_tokens": 128,
         },
@@ -32,7 +32,7 @@ requests = [
     {
         "custom_id": "req-2",
         "body": {
-            "model": "openai/gpt-oss-20b",
+            "model": "Qwen/Qwen2.5-7B-Instruct-Turbo",
             "messages": [{"role": "user", "content": "Explain quantum computing in one sentence."}],
             "max_tokens": 128,
         },
