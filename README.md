@@ -21,17 +21,17 @@ Each skill contains:
 <!-- BEGIN_SKILLS_TABLE -->
 | Skill | Description | Scripts |
 |-------|-------------|---------|
-| **together-chat-completions** | Serverless chat and text completion inference via Together AI's OpenAI-compatible API. | `tool_call_loop.py` |
+| **together-chat-completions** | Serverless chat completion inference via Together AI's OpenAI-compatible API. | `async_parallel.py`, `chat_basic.py`, `reasoning_models.py`, `structured_outputs.py`, `tool_call_loop.py` |
 | **together-images** | Generate and edit images via Together AI's image generation API. | `generate_image.py` |
 | **together-video** | Generate videos from text and image prompts via Together AI. | `generate_video.py` |
 | **together-audio** | Text-to-speech (TTS) and speech-to-text (STT) via Together AI. | `stt_transcribe.py`, `tts_generate.py` |
 | **together-embeddings** | Generate text embeddings and rerank documents via Together AI. | `embed_and_rerank.py` |
-| **together-fine-tuning** | Fine-tune open-source LLMs on Together AI with LoRA, Full fine-tuning, DPO preference tuning, VLM (vision-language) f... | `finetune_workflow.py` |
+| **together-fine-tuning** | Fine-tune open-source LLMs on Together AI with LoRA, Full fine-tuning, DPO preference tuning, VLM (vision-language) f... | `dpo_workflow.py`, `finetune_workflow.py`, `function_calling_finetune.py`, `reasoning_finetune.py`, `vlm_finetune.py` |
 | **together-batch-inference** | Process large volumes of inference requests asynchronously at up to 50% lower cost via Together AI's Batch API. | `batch_workflow.py` |
 | **together-evaluations** | Evaluate LLM outputs using Together AI's LLM-as-a-Judge framework with Classify, Score, and Compare evaluation types. | `run_evaluation.py` |
 | **together-code-interpreter** | Execute Python code in a sandboxed environment via Together Code Interpreter (TCI). | `execute_with_session.py` |
-| **together-dedicated-endpoints** | Deploy models on dedicated single-tenant GPU endpoints via Together AI for predictable performance, no rate limits, a... | `manage_endpoint.py` |
-| **together-dedicated-containers** | Deploy custom Dockerized inference workloads on Together AI's managed GPU infrastructure using Dedicated Container In... | `sprocket_hello_world.py` |
+| **together-dedicated-endpoints** | Deploy models on dedicated single-tenant GPU endpoints via Together AI for predictable performance, no rate limits, a... | `deploy_finetuned.py`, `manage_endpoint.py`, `upload_custom_model.py` |
+| **together-dedicated-containers** | Deploy custom Dockerized inference workloads on Together AI's managed GPU infrastructure using Dedicated Container In... | `queue_client.py`, `sprocket_hello_world.py` |
 | **together-gpu-clusters** | Provision on-demand and reserved GPU clusters (Instant Clusters) on Together AI with H100, H200, and B200 hardware. | — |
 <!-- END_SKILLS_TABLE -->
 
