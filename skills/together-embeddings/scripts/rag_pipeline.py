@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """
-Together AI RAG Pipeline -- Embed, Retrieve, Rerank, Generate (v2 SDK)
+Together AI RAG Pipeline -- Embed, Retrieve, Generate (v2 SDK)
 
 Demonstrates a complete Retrieval-Augmented Generation pipeline using
-Together AI embeddings, reranking, and chat completions.
+Together AI embeddings and chat completions.
 
 Uses an in-memory vector store for simplicity. Replace with your preferred
 vector database (Pinecone, Weaviate, Chroma, etc.) for production use.
+
+Note: Reranking requires a dedicated endpoint and is not included in this
+pipeline. See https://docs.together.ai/docs/rerank-overview for details.
 
 Usage:
     python rag_pipeline.py
@@ -22,7 +25,8 @@ from together import Together
 client = Together()
 
 EMBEDDING_MODEL = "intfloat/multilingual-e5-large-instruct"
-RERANK_MODEL = "mixedbread-ai/Mxbai-Rerank-Large-V2"
+# Reranking requires a dedicated endpoint. See:
+# https://docs.together.ai/docs/rerank-overview
 CHAT_MODEL = "openai/gpt-oss-20b"
 
 
@@ -71,8 +75,8 @@ class VectorStore:
 
 # --- RAG Pipeline ---
 
-def rag_query(store: VectorStore, query: str, top_k: int = 10, top_n: int = 3) -> str:
-    """Run the full RAG pipeline: embed -> retrieve -> rerank -> generate."""
+def rag_query(store: VectorStore, query: str, top_k: int = 5) -> str:
+    """Run the full RAG pipeline: embed -> retrieve -> generate."""
 
     # 1. Embed the query
     query_embedding = client.embeddings.create(
@@ -84,21 +88,8 @@ def rag_query(store: VectorStore, query: str, top_k: int = 10, top_n: int = 3) -
     candidates = store.search(query_embedding, top_k=top_k)
     print(f"Retrieved {len(candidates)} candidates")
 
-    # 3. Rerank for precision
-    reranked = client.rerank.create(
-        model=RERANK_MODEL,
-        query=query,
-        documents=[c.text for c in candidates],
-        top_n=top_n,
-    )
-    top_docs = [candidates[r.index].text for r in reranked.results]
-    print(f"Reranked to top {len(top_docs)} documents:")
-    for i, doc in enumerate(top_docs):
-        score = reranked.results[i].relevance_score
-        print(f"  [{score:.4f}] {doc[:80]}...")
-
-    # 4. Generate answer using top documents as context
-    context = "\n\n".join(top_docs)
+    # 3. Generate answer using top documents as context
+    context = "\n\n".join([c.text for c in candidates])
     response = client.chat.completions.create(
         model=CHAT_MODEL,
         messages=[

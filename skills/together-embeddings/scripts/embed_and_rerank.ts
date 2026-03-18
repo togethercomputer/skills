@@ -1,8 +1,12 @@
 #!/usr/bin/env -S npx tsx
 /**
- * Together AI Embeddings + Reranking Pipeline
+ * Together AI Embeddings Pipeline
  *
- * Embed documents, compute similarity, and rerank results.
+ * Embed documents and compute similarity.
+ *
+ * Note: Reranking requires a dedicated endpoint. The rerank function in this
+ * file has been removed. See https://docs.together.ai/docs/rerank-overview
+ * for setup instructions.
  *
  * Usage:
  *   npx tsx embed_and_rerank.ts
@@ -54,32 +58,11 @@ async function embeddingSimilarity(): Promise<void> {
   }
 }
 
-async function textReranking(): Promise<void> {
-  console.log("\n=== Text Reranking ===");
-  const documents = [
-    "The llama is a domesticated South American camelid.",
-    "The giant panda is a bear species endemic to China.",
-    "The guanaco is a camelid native to South America.",
-    "The wild Bactrian camel is endemic to Northwest China.",
-  ];
-
-  const response = await client.rerank.create({
-    model: "mixedbread-ai/Mxbai-Rerank-Large-V2",
-    query: "What animals can I find near Peru?",
-    documents,
-    top_n: 2,
-  });
-
-  for (const result of response.results) {
-    console.log(
-      `  [${result.relevance_score.toFixed(4)}] ${documents[result.index]}`,
-    );
-  }
-}
+// Note: Reranking requires a dedicated endpoint.
+// See https://docs.together.ai/docs/rerank-overview for setup instructions.
 
 async function main(): Promise<void> {
   await embeddingSimilarity();
-  await textReranking();
 }
 
 main();

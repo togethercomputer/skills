@@ -7,7 +7,7 @@ Base URL: `https://api.together.xyz/v1`
 | Method | Path | Description |
 |--------|------|-------------|
 | `POST /embeddings` | Generate embeddings | Convert text to vector representations |
-| `POST /rerank` | Rerank documents | Reorder documents by relevance to a query |
+| `POST /rerank` | Rerank documents | Reorder documents by relevance to a query (dedicated endpoint required) |
 
 ## Create Embeddings
 
@@ -76,10 +76,6 @@ for (const item of response.data) {
 ### Supported Models
 
 - `intfloat/multilingual-e5-large-instruct`
-- `BAAI/bge-base-en-v1.5`
-- `WhereIsAI/UAE-Large-V1`
-- `togethercomputer/m2-bert-80M-8k-retrieval`
-- `BAAI/bge-large-en-v1.5` (deprecated)
 
 ### Response Schema
 
@@ -99,109 +95,9 @@ for (const item of response.data) {
 
 ## Rerank Documents
 
-### Text Reranking
-
-```python
-from together import Together
-client = Together()
-
-response = client.rerank.create(
-    model="mixedbread-ai/Mxbai-Rerank-Large-V2",
-    query="What animals can I find near Peru?",
-    documents=[
-        "The llama is a domesticated South American camelid.",
-        "The giant panda is a bear species endemic to China.",
-        "The guanaco is a camelid native to South America.",
-        "The wild Bactrian camel is endemic to Northwest China.",
-    ],
-    top_n=2,
-)
-for result in response.results:
-    print(f"Index: {result.index}, Score: {result.relevance_score:.4f}")
-```
-
-```typescript
-import Together from "together-ai";
-const client = new Together();
-
-const response = await client.rerank.create({
-  model: "mixedbread-ai/Mxbai-Rerank-Large-V2",
-  query: "What animals can I find near Peru?",
-  documents: [
-    "The llama is a domesticated South American camelid.",
-    "The giant panda is a bear species endemic to China.",
-    "The guanaco is a camelid native to South America.",
-    "The wild Bactrian camel is endemic to Northwest China.",
-  ],
-  top_n: 2,
-});
-for (const result of response.results) {
-  console.log(`Index: ${result.index}, Score: ${result.relevance_score}`);
-}
-```
-
-```shell
-curl -X POST "https://api.together.xyz/v1/rerank" \
-  -H "Authorization: Bearer $TOGETHER_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "mixedbread-ai/Mxbai-Rerank-Large-V2",
-    "query": "What animals can I find near Peru?",
-    "documents": [
-      "The llama is a domesticated South American camelid.",
-      "The giant panda is a bear species endemic to China.",
-      "The guanaco is a camelid native to South America.",
-      "The wild Bactrian camel is endemic to Northwest China."
-    ],
-    "top_n": 2
-  }'
-```
-
-### Structured Document Reranking
-
-Use `rank_fields` to rerank JSON objects by specific fields (Salesforce/Llama-Rank-V1 only):
-
-```python
-response = client.rerank.create(
-    model="Salesforce/Llama-Rank-V1",
-    query="Which pricing did we get from Oracle?",
-    documents=[
-        {
-            "from": "Paul Doe <paul_fake_doe@oracle.com>",
-            "subject": "Follow-up on cloud pricing",
-            "text": "We are happy to give you the following pricing...",
-        },
-        {
-            "from": "Jane Smith <jane@company.com>",
-            "subject": "Team lunch tomorrow",
-            "text": "Hi everyone, let's meet at noon for lunch...",
-        },
-    ],
-    return_documents=True,
-    rank_fields=["from", "subject", "text"],
-)
-```
-
-```typescript
-const response = await client.rerank.create({
-  model: "Salesforce/Llama-Rank-V1",
-  query: "Which pricing did we get from Oracle?",
-  documents: [
-    {
-      from: "Paul Doe <paul_fake_doe@oracle.com>",
-      subject: "Follow-up on cloud pricing",
-      text: "We are happy to give you the following pricing...",
-    },
-    {
-      from: "Jane Smith <jane@company.com>",
-      subject: "Team lunch tomorrow",
-      text: "Hi everyone, let's meet at noon for lunch...",
-    },
-  ],
-  return_documents: true,
-  rank_fields: ["from", "subject", "text"],
-});
-```
+Reranking requires a dedicated endpoint. See the
+[Rerank Overview](https://docs.together.ai/docs/rerank-overview) for current models and
+setup instructions.
 
 ### Request Parameters
 
@@ -212,12 +108,7 @@ const response = await client.rerank.create({
 | `documents` | string[] or object[] | Yes | Documents to rerank |
 | `top_n` | integer | No | Return only top N results |
 | `return_documents` | boolean | No | Include document text in response |
-| `rank_fields` | string[] | No | Fields to rank by for JSON objects (Llama-Rank-V1 only) |
-
-### Supported Models
-
-- `mixedbread-ai/Mxbai-Rerank-Large-V2` (serverless, text reranking)
-- `Salesforce/Llama-Rank-V1` (dedicated endpoint, JSON rank_fields support)
+| `rank_fields` | string[] | No | Fields to rank by for JSON objects |
 
 ### Response Schema
 
@@ -225,7 +116,7 @@ const response = await client.rerank.create({
 {
   "object": "rerank",
   "id": "rerank-abc123",
-  "model": "mixedbread-ai/Mxbai-Rerank-Large-V2",
+  "model": "<your-dedicated-endpoint-model>",
   "results": [
     {
       "index": 0,

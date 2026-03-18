@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """
-Together AI Embeddings + Reranking Pipeline (v2 SDK)
+Together AI Embeddings Pipeline (v2 SDK)
 
-Embed documents, compute similarity, rerank results, and demonstrate
-structured document reranking.
+Embed documents and compute similarity.
+
+Note: Reranking requires a dedicated endpoint. The rerank functions in this
+file are commented out. See https://docs.together.ai/docs/rerank-overview
+for setup instructions.
 
 Usage:
     python embed_and_rerank.py
@@ -39,59 +42,65 @@ def cosine_similarity(a: list[float], b: list[float]) -> float:
     return dot / (norm_a * norm_b) if norm_a and norm_b else 0.0
 
 
-def rerank_documents(
-    query: str,
-    documents: list[str],
-    top_n: int = 3,
-    model: str = "mixedbread-ai/Mxbai-Rerank-Large-V2",
-) -> list[dict]:
-    """Rerank text documents by relevance to a query."""
-    response = client.rerank.create(
-        model=model,
-        query=query,
-        documents=documents,
-        top_n=top_n,
-    )
-    results = []
-    for item in response.results:
-        results.append({
-            "index": item.index,
-            "score": item.relevance_score,
-            "document": documents[item.index],
-        })
-    return results
+# --- Rerank functions (require a dedicated endpoint) ---
+# Reranking is currently available exclusively via dedicated endpoints.
+# Deploy a rerank model as a dedicated endpoint, then uncomment and update
+# the model parameter below with your endpoint model name.
+# See https://docs.together.ai/docs/rerank-overview
+
+# def rerank_documents(
+#     query: str,
+#     documents: list[str],
+#     top_n: int = 3,
+#     model: str = "<your-dedicated-endpoint-model>",
+# ) -> list[dict]:
+#     """Rerank text documents by relevance to a query."""
+#     response = client.rerank.create(
+#         model=model,
+#         query=query,
+#         documents=documents,
+#         top_n=top_n,
+#     )
+#     results = []
+#     for item in response.results:
+#         results.append({
+#             "index": item.index,
+#             "score": item.relevance_score,
+#             "document": documents[item.index],
+#         })
+#     return results
 
 
-def rerank_structured(
-    query: str,
-    documents: list[dict],
-    rank_fields: list[str],
-    model: str = "Salesforce/Llama-Rank-V1",
-    top_n: int | None = None,
-) -> list[dict]:
-    """Rerank structured JSON documents by specific fields.
-
-    Requires Salesforce/Llama-Rank-V1 on a dedicated endpoint.
-    """
-    kwargs: dict = {
-        "model": model,
-        "query": query,
-        "documents": documents,
-        "rank_fields": rank_fields,
-        "return_documents": True,
-    }
-    if top_n:
-        kwargs["top_n"] = top_n
-
-    response = client.rerank.create(**kwargs)
-    results = []
-    for item in response.results:
-        results.append({
-            "index": item.index,
-            "score": item.relevance_score,
-            "document": documents[item.index],
-        })
-    return results
+# def rerank_structured(
+#     query: str,
+#     documents: list[dict],
+#     rank_fields: list[str],
+#     model: str = "<your-dedicated-endpoint-model>",
+#     top_n: int | None = None,
+# ) -> list[dict]:
+#     """Rerank structured JSON documents by specific fields.
+#
+#     Requires a rerank model on a dedicated endpoint.
+#     """
+#     kwargs: dict = {
+#         "model": model,
+#         "query": query,
+#         "documents": documents,
+#         "rank_fields": rank_fields,
+#         "return_documents": True,
+#     }
+#     if top_n:
+#         kwargs["top_n"] = top_n
+#
+#     response = client.rerank.create(**kwargs)
+#     results = []
+#     for item in response.results:
+#         results.append({
+#             "index": item.index,
+#             "score": item.relevance_score,
+#             "document": documents[item.index],
+#         })
+#     return results
 
 
 if __name__ == "__main__":
@@ -112,46 +121,19 @@ if __name__ == "__main__":
         sim = cosine_similarity(query_emb, doc_embs[i])
         print(f"  {sim:.4f} -- {text}")
 
-    # --- Example 2: Text reranking ---
-    print(f"\n=== Text Reranking ===")
-    documents = [
-        "Python is widely used in data science and machine learning.",
-        "Java is a popular language for enterprise applications.",
-        "R is a language designed for statistical computing.",
-        "JavaScript powers most web applications.",
-        "SQL is essential for database querying.",
-    ]
-
-    print(f"Query: '{query}'")
-    ranked = rerank_documents(query, documents, top_n=3)
-    for r in ranked:
-        print(f"  [{r['score']:.4f}] {r['document']}")
-
-    # --- Example 3: Structured document reranking (requires dedicated endpoint) ---
-    # Uncomment below if you have a Salesforce/Llama-Rank-V1 dedicated endpoint
+    # --- Reranking examples (require a dedicated endpoint) ---
+    # Reranking is currently available exclusively via dedicated endpoints.
+    # See https://docs.together.ai/docs/rerank-overview for setup instructions.
     #
-    # print(f"\n=== Structured Document Reranking ===")
-    # emails = [
-    #     {
-    #         "from": "Paul Doe <paul@oracle.com>",
-    #         "subject": "Cloud pricing follow-up",
-    #         "text": "We are happy to offer the following pricing for our services...",
-    #     },
-    #     {
-    #         "from": "Jane Smith <jane@company.com>",
-    #         "subject": "Team lunch tomorrow",
-    #         "text": "Hi everyone, let's meet at noon for lunch...",
-    #     },
-    #     {
-    #         "from": "Bob Lee <bob@aws.com>",
-    #         "subject": "AWS pricing proposal",
-    #         "text": "Attached is our competitive pricing for your workload...",
-    #     },
+    # print(f"\n=== Text Reranking ===")
+    # documents = [
+    #     "Python is widely used in data science and machine learning.",
+    #     "Java is a popular language for enterprise applications.",
+    #     "R is a language designed for statistical computing.",
+    #     "JavaScript powers most web applications.",
+    #     "SQL is essential for database querying.",
     # ]
-    # ranked = rerank_structured(
-    #     query="Which pricing did we get from Oracle?",
-    #     documents=emails,
-    #     rank_fields=["from", "subject", "text"],
-    # )
+    # print(f"Query: '{query}'")
+    # ranked = rerank_documents(query, documents, top_n=3)
     # for r in ranked:
-    #     print(f"  [{r['score']:.4f}] {r['document']['subject']}")
+    #     print(f"  [{r['score']:.4f}] {r['document']}")
