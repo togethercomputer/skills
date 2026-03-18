@@ -1,8 +1,15 @@
 #!/usr/bin/env -S npx tsx
 /**
- * Source: mintlify-docs-main/openapi.yaml x-codeSamples
- * Operations: embeddings, rerank
- * Minimal edits: wrapped in main() for script execution.
+ * Together AI Embeddings + Reranking Pipeline
+ *
+ * Embed documents, compute similarity, and rerank results.
+ *
+ * Usage:
+ *   npx tsx embed_and_rerank.ts
+ *
+ * Requires:
+ *   npm install together-ai
+ *   export TOGETHER_API_KEY=your_key
  */
 
 import Together from "together-ai";
@@ -11,47 +18,68 @@ const client = new Together({
   apiKey: process.env.TOGETHER_API_KEY,
 });
 
-async function main() {
-  const embeddingsResponse = await client.embeddings.create({
-    model: "BAAI/bge-large-en-v1.5",
-    input: "New York City",
+function cosineSimilarity(a: number[], b: number[]): number {
+  let dot = 0, normA = 0, normB = 0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+async function embedTexts(texts: string[]): Promise<number[][]> {
+  const response = await client.embeddings.create({
+    model: "intfloat/multilingual-e5-large-instruct",
+    input: texts,
   });
+  return response.data.map((item) => item.embedding);
+}
 
-  console.log(embeddingsResponse.data[0].embedding);
-
-  const documents = [
-    {
-      title: "Llama",
-      text: "The llama is a domesticated South American camelid, widely used as a meat and pack animal by Andean cultures since the pre-Columbian era.",
-    },
-    {
-      title: "Panda",
-      text: "The giant panda (Ailuropoda melanoleuca), also known as the panda bear or simply panda, is a bear species endemic to China.",
-    },
-    {
-      title: "Guanaco",
-      text: "The guanaco is a camelid native to South America, closely related to the llama. Guanacos are one of two wild South American camelids; the other species is the vicuna, which lives at higher elevations.",
-    },
-    {
-      title: "Wild Bactrian camel",
-      text: "The wild Bactrian camel (Camelus ferus) is an endangered species of camel endemic to Northwest China and southwestern Mongolia.",
-    },
+async function embeddingSimilarity(): Promise<void> {
+  console.log("=== Embedding Similarity ===");
+  const texts = [
+    "Python is a popular programming language",
+    "JavaScript is used for web development",
+    "Machine learning uses statistical models",
   ];
+  const query = "What language is good for data science?";
 
-  const rerankResponse = await client.rerank.create({
-    model: "Salesforce/Llama-Rank-v1",
-    query: "What animals can I find near Peru?",
-    documents,
-  });
+  const embeddings = await embedTexts([...texts, query]);
+  const queryEmb = embeddings[embeddings.length - 1];
 
-  for (const result of rerankResponse.results) {
-    console.log(`Rank: ${result.index + 1}`);
-    console.log(`Title: ${documents[result.index].title}`);
-    console.log(`Text: ${documents[result.index].text}`);
+  for (let i = 0; i < texts.length; i++) {
+    const sim = cosineSimilarity(queryEmb, embeddings[i]);
+    console.log(`  ${sim.toFixed(4)} -- ${texts[i]}`);
   }
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exit(1);
-});
+async function textReranking(): Promise<void> {
+  console.log("\n=== Text Reranking ===");
+  const documents = [
+    "The llama is a domesticated South American camelid.",
+    "The giant panda is a bear species endemic to China.",
+    "The guanaco is a camelid native to South America.",
+    "The wild Bactrian camel is endemic to Northwest China.",
+  ];
+
+  const response = await client.rerank.create({
+    model: "mixedbread-ai/Mxbai-Rerank-Large-V2",
+    query: "What animals can I find near Peru?",
+    documents,
+    top_n: 2,
+  });
+
+  for (const result of response.results) {
+    console.log(
+      `  [${result.relevance_score.toFixed(4)}] ${documents[result.index]}`,
+    );
+  }
+}
+
+async function main(): Promise<void> {
+  await embeddingSimilarity();
+  await textReranking();
+}
+
+main();

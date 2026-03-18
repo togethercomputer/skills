@@ -25,7 +25,7 @@ Each skill contains:
 | **together-images** | Generate and edit images via Together AI's image generation API. | `generate_image.py` |
 | **together-video** | Generate videos from text and image prompts via Together AI. | `generate_video.py` |
 | **together-audio** | Text-to-speech (TTS) and speech-to-text (STT) via Together AI. | `stt_transcribe.py`, `tts_generate.py` |
-| **together-embeddings** | Generate text embeddings and rerank documents via Together AI. | `embed_and_rerank.py` |
+| **together-embeddings** | Generate text embeddings and rerank documents via Together AI. | `embed_and_rerank.py`, `rag_pipeline.py` |
 | **together-fine-tuning** | Fine-tune open-source LLMs on Together AI with LoRA, Full fine-tuning, DPO preference tuning, VLM (vision-language) f... | `dpo_workflow.py`, `finetune_workflow.py`, `function_calling_finetune.py`, `reasoning_finetune.py`, `vlm_finetune.py` |
 | **together-batch-inference** | Process large volumes of inference requests asynchronously at up to 50% lower cost via Together AI's Batch API. | `batch_workflow.py` |
 | **together-evaluations** | Evaluate LLM outputs using Together AI's LLM-as-a-Judge framework with Classify, Score, and Compare evaluation types. | `run_evaluation.py` |
