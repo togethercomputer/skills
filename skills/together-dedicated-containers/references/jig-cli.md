@@ -167,7 +167,35 @@ Show queue backlog and worker status.
 together beta jig queue_status
 ```
 
-## Queue REST API (cURL)
+## Queue API
+
+### Python (v2 SDK)
+
+```python
+from together import Together
+client = Together()
+
+# Submit
+job = client.beta.queue.submit(model="my-deployment", payload={"prompt": "Hello"}, priority=1)
+
+# Poll status
+status = client.beta.queue.retrieve(request_id=job.request_id, model="my-deployment")
+```
+
+### TypeScript
+
+```typescript
+import Together from "together-ai";
+const client = new Together();
+
+// Submit
+const job = await client.beta.queue.submit({ model: "my-deployment", payload: { prompt: "Hello" }, priority: 1 });
+
+// Poll status
+const status = await client.beta.queue.retrieve({ requestId: job.requestId!, model: "my-deployment" });
+```
+
+### cURL
 
 Submit a job:
 
@@ -175,11 +203,7 @@ Submit a job:
 curl -X POST "https://api.together.ai/v1/queue/submit" \
   -H "Authorization: Bearer $TOGETHER_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{
-    "model": "my-deployment",
-    "payload": {"prompt": "Hello world"},
-    "priority": 1
-  }'
+  -d '{"model": "my-deployment", "payload": {"prompt": "Hello world"}, "priority": 1}'
 ```
 
 Poll job status:
@@ -189,12 +213,52 @@ curl "https://api.together.ai/v1/queue/status?model=my-deployment&request_id=req
   -H "Authorization: Bearer $TOGETHER_API_KEY"
 ```
 
-Check health endpoint:
+Cancel a job:
 
 ```shell
-curl https://api.together.ai/v1/deployments/my-deployment/health \
+curl -X POST "https://api.together.ai/v1/queue/cancel" \
+  -H "Authorization: Bearer $TOGETHER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model": "my-deployment", "request_id": "req_abc123"}'
+```
+
+Queue metrics:
+
+```shell
+curl "https://api.together.ai/v1/queue/metrics?model=my-deployment" \
   -H "Authorization: Bearer $TOGETHER_API_KEY"
 ```
+
+Health check:
+
+```shell
+curl https://api.together.ai/v1/deployment-request/my-deployment/health \
+  -H "Authorization: Bearer $TOGETHER_API_KEY"
+```
+
+### Queue Submit Request
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `model` | string | Yes | Deployment name |
+| `payload` | object | Yes | Freeform model input (passed to predict()) |
+| `priority` | integer | No | Higher values process first (default: 0) |
+| `info` | object | No | Arbitrary metadata stored with the job |
+
+### Queue Status Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `request_id` | string | Job identifier |
+| `model` | string | Deployment name |
+| `status` | string | `pending`, `running`, `done`, `failed`, `canceled` |
+| `outputs` | object | Model output (when done) |
+| `info` | object | Job metadata (including emit_info updates) |
+| `priority` | integer | Job priority |
+| `retries` | integer | Retry count (fails after 3) |
+| `created_at` | datetime | Submission time |
+| `claimed_at` | datetime | Worker claim time |
+| `done_at` | datetime | Completion time |
 
 ## Secrets Commands
 
