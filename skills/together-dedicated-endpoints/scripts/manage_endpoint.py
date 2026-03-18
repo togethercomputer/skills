@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Together AI Dedicated Endpoints — Create, Monitor, Use, Stop (v2 SDK)
+Together AI Dedicated Endpoints -- Create, Monitor, Use, Stop (v2 SDK)
 
 Full lifecycle: list hardware, create endpoint, wait for ready,
 run inference, then stop/delete.
@@ -25,7 +25,15 @@ def list_hardware(model: str | None = None):
     for hw in response.data:
         status = hw.availability.status if hw.availability else "unknown"
         price = hw.pricing.cents_per_minute if hw.pricing else "N/A"
-        print(f"  {hw.id}  ({status}, {price}¢/min)")
+        print(f"  {hw.id}  ({status}, {price}c/min)")
+    return response.data
+
+
+def list_endpoints():
+    """List all endpoints owned by the caller."""
+    response = client.endpoints.list()
+    for ep in response.data:
+        print(f"  {ep.id}: {ep.model} ({ep.state})")
     return response.data
 
 
@@ -35,6 +43,7 @@ def create_endpoint(
     min_replicas: int = 1,
     max_replicas: int = 1,
     display_name: str | None = None,
+    inactive_timeout: int | None = 60,
 ):
     """Create a dedicated endpoint."""
     endpoint = client.endpoints.create(
@@ -45,8 +54,10 @@ def create_endpoint(
             "max_replicas": max_replicas,
         },
         display_name=display_name,
+        inactive_timeout=inactive_timeout,
     )
     print(f"Created endpoint: {endpoint.id}  (state: {endpoint.state})")
+    print(f"  Endpoint name (for inference): {endpoint.name}")
     return endpoint
 
 
@@ -59,6 +70,8 @@ def wait_for_ready(endpoint_id: str, timeout: int = 600, poll_interval: int = 10
 
         if endpoint.state == "STARTED":
             return endpoint
+        if endpoint.state == "ERROR":
+            raise RuntimeError(f"Endpoint entered ERROR state: {endpoint_id}")
 
         time.sleep(poll_interval)
         elapsed += poll_interval
@@ -92,28 +105,32 @@ def delete_endpoint(endpoint_id: str):
 
 
 if __name__ == "__main__":
-    MODEL = "openai/gpt-oss-20b"
-    HARDWARE = "1x_nvidia_a100_80gb_sxm"
+    MODEL = "Qwen/Qwen3.5-9B-FP8"
+    HARDWARE = "1x_nvidia_h100_80gb_sxm"
 
     # 1. List available hardware
     print("Available hardware:")
     list_hardware(model=MODEL)
 
-    # 2. Create endpoint
+    # 2. List existing endpoints
+    print("\nYour endpoints:")
+    list_endpoints()
+
+    # 3. Create endpoint
     ep = create_endpoint(
         model=MODEL,
         hardware=HARDWARE,
-        display_name="My Llama Endpoint",
+        display_name="My Qwen Endpoint",
     )
 
-    # 3. Wait until ready
+    # 4. Wait until ready
     ep = wait_for_ready(ep.id)
 
-    # 4. Run inference
+    # 5. Run inference
     run_inference(ep.name, "What is the capital of France?")
 
-    # 5. Stop endpoint (comment out delete if you want to restart later)
+    # 6. Stop endpoint (comment out delete if you want to restart later)
     stop_endpoint(ep.id)
 
-    # 6. Delete endpoint (uncomment to permanently remove)
+    # 7. Delete endpoint (uncomment to permanently remove)
     # delete_endpoint(ep.id)
