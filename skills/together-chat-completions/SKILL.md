@@ -974,6 +974,75 @@ answer = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL).strip()
 - Reasoning models cost more (more tokens) -- use standard models for simple tasks
 - For hybrid models, disable reasoning on simple tasks to save cost and latency
 
+## Debug Mode
+
+Send the `x-together-debug: 1` header to get detailed response headers for debugging latency,
+routing, and request tracing. Use `with_raw_response` to access both the parsed response and headers.
+
+```python
+from together import Together
+import json
+
+client = Together()
+
+response = client.chat.completions.with_raw_response.create(
+    model="openai/gpt-oss-20b",
+    messages=[{"role": "user", "content": "Say hello"}],
+    extra_headers={"x-together-debug": "1"},
+)
+
+# Parsed API object (same as .create() would return)
+parsed = response.parse()
+print(parsed.choices[0].message.content)
+
+# Inspect response headers for debugging
+headers = dict(response.headers)
+print(json.dumps(headers, indent=2))
+```
+
+```typescript
+import Together from "together-ai";
+
+const client = new Together();
+
+const response = await client.chat.completions.create(
+  {
+    model: "openai/gpt-oss-20b",
+    messages: [{ role: "user", content: "Say hello" }],
+  },
+  { headers: { "x-together-debug": "1" } }
+).asResponse();
+
+const parsed = await response.json();
+console.log(parsed.choices[0].message.content);
+
+// Inspect response headers
+for (const [key, value] of response.headers.entries()) {
+  if (key.startsWith("x-")) console.log(`${key}: ${value}`);
+}
+```
+
+```shell
+curl -s -D - -X POST "https://api.together.xyz/v1/chat/completions" \
+  -H "Authorization: Bearer $TOGETHER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "x-together-debug: 1" \
+  -d '{"model":"openai/gpt-oss-20b","messages":[{"role":"user","content":"Say hello"}]}'
+```
+
+**Key debug headers returned:**
+
+| Header | Description |
+|--------|-------------|
+| `x-request-id` | Unique request ID for support tickets |
+| `x-together-traceid` | Distributed trace ID for internal routing |
+| `x-cluster` | Inference cluster that served the request |
+| `x-engine-pod` | Specific engine pod that processed the request |
+| `x-api-received` | Timestamp when the API received the request |
+| `x-api-call-start` | Timestamp when inference started |
+| `x-api-call-end` | Timestamp when inference completed |
+| `x-inference-version` | Inference engine version |
+
 ## Resources
 
 - **Model catalog and specs**: See [references/models.md](references/models.md)
