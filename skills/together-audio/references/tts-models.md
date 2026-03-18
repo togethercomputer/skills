@@ -6,11 +6,11 @@
 |-------|-----------|-----------|---------|
 | Orpheus 3B | `canopylabs/orpheus-3b-0.1-ft` | REST, Streaming, WebSocket | $15/1M chars |
 | Kokoro 82M | `hexgrad/Kokoro-82M` | REST, Streaming, WebSocket | $4/1M chars |
+| Cartesia Sonic 3 | `cartesia/sonic-3` | REST | - |
 | Cartesia Sonic 2 | `cartesia/sonic-2` | REST | $65/1M chars |
-| Cartesia Sonic | `cartesia/sonic` | REST | - |
+| Deepgram Aura 2* | `deepgram/deepgram-aura-2` | REST, Streaming, WebSocket | DE only |
 | Rime Arcana v3 Turbo* | `rime-labs/rime-arcana-v3-turbo` | REST, Streaming, WebSocket | DE only |
 | Rime Arcana v3* | `rime-labs/rime-arcana-v3` | REST, Streaming, WebSocket | DE only |
-| Rime Arcana v2* | `rime-labs/rime-arcana-v2` | REST, Streaming, WebSocket | DE only |
 | Rime Mist v2* | `rime-labs/rime-mist-v2` | REST, Streaming, WebSocket | DE only |
 | MiniMax Speech 2.6 Turbo* | `minimax/speech-2.6-turbo` | REST, Streaming, WebSocket | DE only |
 
@@ -61,140 +61,56 @@ Query the full list via API:
 response = client.audio.voices.list()
 ```
 
-```typescript
-import fetch from "node-fetch";
-
-async function getVoices() {
-  const apiKey = process.env.TOGETHER_API_KEY;
-  const model = "canopylabs/orpheus-3b-0.1-ft";
-  const url = `https://api.together.xyz/v1/voices?model=${model}`;
-
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-    },
-  });
-
-  const data = await response.json();
-
-  console.log(`Available voices for ${model}:`);
-  for (const voice of data.voices || []) {
-    console.log(voice.name || "Unknown voice");
-  }
-}
-
-getVoices();
+```shell
+curl -X GET "https://api.together.xyz/v1/voices?model=canopylabs/orpheus-3b-0.1-ft" \
+  -H "Authorization: Bearer $TOGETHER_API_KEY"
 ```
 
-## Parameters
+## REST Parameters
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `model` | string | Yes | TTS model identifier |
 | `input` | string | Yes | Text to synthesize |
 | `voice` | string | Yes | Voice ID |
-| `response_format` | string | No | `mp3`, `wav`, `raw`, `mulaw`. MiniMax also: `opus`, `aac`, `flac`. Default: `wav` |
-| `stream` | bool | No | Enable streaming (raw format only) |
-| `response_encoding` | string | No | `pcm_s16le`, `pcm_f32le` for raw format |
-| `sample_rate` | int | No | Audio sample rate (e.g., 44100, 48000) |
+| `response_format` | string | No | `mp3`, `wav`, `raw`, `mulaw`. Default: `wav` |
+| `stream` | bool | No | Enable streaming (`raw` format only) |
+| `response_encoding` | string | No | `pcm_s16le`, `pcm_f32le`, `pcm_mulaw`, `pcm_alaw` for raw |
+| `language` | string | No | Input text language (en, de, fr, es, hi, it, ja, ko, nl, pl, pt, ru, sv, tr, zh) |
+| `sample_rate` | int | No | Audio sample rate (e.g., 44100, 24000) |
 
 ## WebSocket Parameters
 
+Connection: `wss://api.together.xyz/v1/audio/speech/websocket`
+
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `model_id` | string | TTS model |
-| `voice` | string | Voice ID |
+| `model` | string | TTS model (query param) |
+| `voice` | string | Voice ID (query param) |
 | `response_format` | string | `mp3`, `opus`, `aac`, `flac`, `wav`, `pcm` |
 | `speed` | float | Playback speed (default: 1.0) |
-| `max_partial_length` | int | Character buffer before triggering TTS |
+| `max_partial_length` | int | Character buffer before triggering TTS (default: 250) |
 
 ## WebSocket Events
 
 **Client to Server:**
-- `input_text_buffer.append` — Append text
-- `input_text_buffer.commit` — Force processing
-- `input_text_buffer.clear` — Clear buffer
-- `tts_session.updated` — Update session (e.g., voice)
+- `input_text_buffer.append` -- Append text to buffer
+- `input_text_buffer.commit` -- Force processing remaining text
+- `input_text_buffer.clear` -- Clear buffer
+- `tts_session.updated` -- Update session settings (e.g., voice)
 
 **Server to Client:**
-- `session.created` — Session established
-- `conversation.item.input_text.received` — Text acknowledged
-- `conversation.item.audio_output.delta` — Audio chunk (base64)
-- `conversation.item.audio_output.done` — Generation complete
-- `conversation.item.tts.failed` — Error
+- `session.created` -- Session established with metadata
+- `conversation.item.input_text.received` -- Text acknowledged
+- `conversation.item.audio_output.delta` -- Audio chunk (base64-encoded)
+- `conversation.item.audio_output.done` -- Generation complete for item
+- `conversation.item.tts.failed` -- Error with details
 
-### WebSocket Example (TypeScript)
+## Response Formats
 
-```typescript
-import WebSocket from "ws";
-import fs from "fs";
-
-const apiKey = process.env.TOGETHER_API_KEY;
-const url =
-  "wss://api.together.ai/v1/audio/speech/websocket?model=hexgrad/Kokoro-82M&voice=af_alloy";
-
-const ws = new WebSocket(url, {
-  headers: {
-    Authorization: `Bearer ${apiKey}`,
-  },
-});
-
-const audioData: Buffer[] = [];
-
-ws.on("open", () => {
-  console.log("WebSocket connection established!");
-});
-
-ws.on("message", (data) => {
-  const message = JSON.parse(data.toString());
-
-  if (message.type === "session.created") {
-    console.log(`Session created: ${message.session.id}`);
-
-    const textChunks = [
-      "Hello, this is a test.",
-      "This is the second sentence.",
-      "And this is the final one.",
-    ];
-
-    textChunks.forEach((text, index) => {
-      setTimeout(() => {
-        ws.send(
-          JSON.stringify({
-            type: "input_text_buffer.append",
-            text: text,
-          })
-        );
-      }, index * 500);
-    });
-
-    setTimeout(() => {
-      ws.send(JSON.stringify({ type: "input_text_buffer.commit" }));
-    }, textChunks.length * 500 + 100);
-  } else if (message.type === "conversation.item.input_text.received") {
-    console.log(`Text received: ${message.text}`);
-  } else if (message.type === "conversation.item.audio_output.delta") {
-    const audioChunk = Buffer.from(message.delta, "base64");
-    audioData.push(audioChunk);
-    console.log(`Received audio chunk for item ${message.item_id}`);
-  } else if (message.type === "conversation.item.audio_output.done") {
-    console.log(`Audio generation complete for item ${message.item_id}`);
-  } else if (message.type === "conversation.item.tts.failed") {
-    const errorMessage = message.error?.message ?? "Unknown error";
-    console.error(`Error: ${errorMessage}`);
-    ws.close();
-  }
-});
-
-ws.on("close", () => {
-  if (audioData.length > 0) {
-    const completeAudio = Buffer.concat(audioData);
-    fs.writeFileSync("output.wav", completeAudio);
-    console.log("Audio saved to output.wav");
-  }
-});
-
-ws.on("error", (error) => {
-  console.error("WebSocket error:", error);
-});
-```
+| Format | Extension | Description | Streaming |
+|--------|-----------|-------------|-----------|
+| wav | .wav | Uncompressed audio | No |
+| mp3 | .mp3 | Compressed audio | No |
+| raw | .pcm | Raw PCM data | Yes |
+| mulaw | .ulaw | Logarithmic compression (telephony) | Yes |
