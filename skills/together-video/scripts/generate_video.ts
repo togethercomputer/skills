@@ -64,7 +64,7 @@ async function advancedParameters(): Promise<void> {
     model: "minimax/hailuo-02",
     width: 1366,
     height: 768,
-    seconds: 6,
+    seconds: "6",
     fps: 30,
     steps: 30,
     guidance_scale: 8.0,
@@ -81,7 +81,7 @@ async function imageToVideo(): Promise<void> {
   console.log("\n=== Image-to-Video (Keyframe) ===");
   const job = await client.videos.create({
     prompt: "Smooth camera zoom out revealing a vast landscape",
-    model: "minimax/hailuo-02",
+    model: "minimax/video-01-director",
     width: 1366,
     height: 768,
     frame_images: [

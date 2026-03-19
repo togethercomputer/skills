@@ -110,13 +110,16 @@ curl -X GET "https://api.together.xyz/v2/videos/$JOB_ID" \
 
 ### Advanced Parameters
 
+Duration is model-specific. `minimax/hailuo-02` currently accepts `"6"` and `"10"`,
+while fixed 5-second clips are better served by models such as `minimax/video-01-director`.
+
 ```python
 job = client.videos.create(
     prompt="A futuristic city at night with neon lights reflecting on wet streets",
     model="minimax/hailuo-02",
     width=1366,
     height=768,
-    seconds=6,
+    seconds="6",
     fps=30,
     steps=30,
     guidance_scale=8.0,
@@ -133,7 +136,7 @@ const job = await together.videos.create({
   model: "minimax/hailuo-02",
   width: 1366,
   height: 768,
-  seconds: 6,
+  seconds: "6",
   fps: 30,
   steps: 30,
   guidance_scale: 8.0,
@@ -152,7 +155,7 @@ with a `frame` index (0, "first", or "last"):
 ```python
 job = client.videos.create(
     prompt="Smooth camera zoom out revealing a vast landscape",
-    model="minimax/hailuo-02",
+    model="minimax/video-01-director",
     width=1366,
     height=768,
     frame_images=[{
@@ -165,7 +168,7 @@ job = client.videos.create(
 ```typescript
 const job = await together.videos.create({
   prompt: "Smooth camera zoom out revealing a vast landscape",
-  model: "minimax/hailuo-02",
+  model: "minimax/video-01-director",
   width: 1366,
   height: 768,
   frame_images: [{
@@ -180,7 +183,7 @@ curl -X POST "https://api.together.xyz/v2/videos" \
   -H "Authorization: Bearer $TOGETHER_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "minimax/hailuo-02",
+    "model": "minimax/video-01-director",
     "prompt": "Smooth camera zoom out revealing a vast landscape",
     "width": 1366,
     "height": 768,
@@ -228,7 +231,7 @@ job = client.videos.create(
 | `model` | string | Model ID | required |
 | `width` | int | Video width in pixels | 1366 |
 | `height` | int | Video height in pixels | 768 |
-| `seconds` | int | Duration (1-10) | 5-6 |
+| `seconds` | string | Optional duration override; accepted values depend on the model | varies |
 | `fps` | int | Frames per second (15-60) | 24-25 |
 | `steps` | int | Diffusion steps (10-50) | varies |
 | `guidance_scale` | float | Prompt adherence (6.0-10.0) | varies |
@@ -275,6 +278,7 @@ job = client.videos.create(
 | Sora 2 | `openai/sora-2` | 8s | 1280x720 |
 | Sora 2 Pro | `openai/sora-2-pro` | 8s | 1280x720 |
 | Hailuo 02 | `minimax/hailuo-02` | 10s | 1366x768, 1920x1080 |
+| Video 01 Director | `minimax/video-01-director` | 5s | 1366x768 |
 | Kling 2.1 Master | `kwaivgI/kling-2.1-master` | 5s | 1920x1080 |
 | Seedance 1.0 Pro | `ByteDance/Seedance-1.0-pro` | 5s | Multiple |
 | PixVerse v5 | `pixverse/pixverse-v5` | 5s | Multiple |

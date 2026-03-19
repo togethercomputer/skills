@@ -14,10 +14,16 @@
  */
 
 import Together from "together-ai";
+import type { ClusterCreateParams } from "together-ai/resources/beta/clusters/clusters";
 
 const client = new Together({
   apiKey: process.env.TOGETHER_API_KEY,
 });
+
+type GPUType = ClusterCreateParams["gpu_type"];
+type DriverVersion = ClusterCreateParams["driver_version"];
+type BillingType = ClusterCreateParams["billing_type"];
+type ClusterType = NonNullable<ClusterCreateParams["cluster_type"]>;
 
 async function listRegions(): Promise<void> {
   console.log("=== Available Regions ===");
@@ -38,11 +44,11 @@ async function listClusters(): Promise<void> {
 async function createCluster(
   name: string,
   region: string,
-  gpuType: string,
+  gpuType: GPUType,
   numGpus: number,
-  driverVersion: string,
-  billingType: string = "ON_DEMAND",
-  clusterType: string = "KUBERNETES",
+  driverVersion: DriverVersion,
+  billingType: BillingType = "ON_DEMAND",
+  clusterType: ClusterType = "KUBERNETES",
 ): Promise<any> {
   const cluster = await client.beta.clusters.create({
     cluster_name: name,
@@ -79,8 +85,7 @@ async function waitForReady(
 }
 
 async function scaleCluster(clusterId: string, numGpus: number): Promise<any> {
-  const cluster = await client.beta.clusters.update({
-    cluster_id: clusterId,
+  const cluster = await client.beta.clusters.update(clusterId, {
     num_gpus: numGpus,
   });
   console.log(`Scaled to ${numGpus} GPUs (status: ${cluster.status})`);

@@ -2,17 +2,18 @@
 """
 Together AI Video -- Image-to-Video with Keyframe Control (v2 SDK)
 
-Animate images using keyframe control. Supports first frame, last frame,
-and first+last frame control depending on model.
+Animate images using keyframe control, poll until completion, and download the MP4.
+Supports first frame, last frame, and first+last frame control depending on model.
 
 Usage:
-    python image_to_video.py
+    python image_to_video.py <image_url_or_path> [--prompt "..."] [--output promo.mp4]
 
 Requires:
     pip install together requests
     export TOGETHER_API_KEY=your_key
 """
 
+import argparse
 import base64
 import time
 import requests as http_requests
@@ -41,13 +42,23 @@ def wait_for_video(job_id: str, poll_interval: int = 5, timeout: int = 600) -> s
     raise TimeoutError(f"Video job {job_id} did not complete within {timeout}s")
 
 
+def download_video(video_url: str, output_file: str) -> None:
+    """Download the completed video to a local file."""
+    response = http_requests.get(video_url, timeout=120)
+    response.raise_for_status()
+    with open(output_file, "wb") as f:
+        f.write(response.content)
+    print(f"Saved to {output_file} ({len(response.content)} bytes)")
+
+
 def image_to_video_url(
     prompt: str,
     image_url: str,
-    model: str = "minimax/hailuo-02",
+    model: str = "minimax/video-01-director",
     frame: str = "first",
     width: int = 1366,
     height: int = 768,
+    output_file: str = "promo.mp4",
 ) -> str:
     """Animate an image using a URL (no base64 encoding needed)."""
     job = client.videos.create(
@@ -58,16 +69,19 @@ def image_to_video_url(
         frame_images=[{"input_image": image_url, "frame": frame}],
     )
     print(f"Submitted job: {job.id}")
-    return wait_for_video(job.id)
+    video_url = wait_for_video(job.id)
+    download_video(video_url, output_file)
+    return video_url
 
 
 def image_to_video_base64(
     prompt: str,
     image_path: str,
-    model: str = "minimax/hailuo-02",
+    model: str = "minimax/video-01-director",
     frame: str = "first",
     width: int = 1366,
     height: int = 768,
+    output_file: str = "promo.mp4",
 ) -> str:
     """Animate an image from a local file (base64-encoded)."""
     with open(image_path, "rb") as f:
@@ -81,7 +95,9 @@ def image_to_video_base64(
         frame_images=[{"input_image": img_b64, "frame": frame}],
     )
     print(f"Submitted job: {job.id}")
-    return wait_for_video(job.id)
+    video_url = wait_for_video(job.id)
+    download_video(video_url, output_file)
+    return video_url
 
 
 def first_and_last_keyframes(
@@ -108,26 +124,37 @@ def first_and_last_keyframes(
 
 
 if __name__ == "__main__":
-    SOURCE_IMAGE = "https://cdn.pixabay.com/photo/2020/05/20/08/27/cat-5195431_1280.jpg"
-
-    # --- Example 1: Animate an image from URL ---
-    print("=== Image-to-Video (URL) ===")
-    image_to_video_url(
-        prompt="The cat slowly turns its head and blinks",
-        image_url=SOURCE_IMAGE,
+    parser = argparse.ArgumentParser(description="Create a promo clip from a single image.")
+    parser.add_argument("image", help="Image URL or local file path")
+    parser.add_argument(
+        "--prompt",
+        default="Turn this single image into a 5-second promo clip with a slow cinematic camera move",
+        help="Video prompt",
     )
+    parser.add_argument("--output", default="promo.mp4", help="Where to save the downloaded MP4")
+    parser.add_argument("--model", default="minimax/video-01-director", help="Video model")
+    parser.add_argument("--frame", default="first", help="Keyframe position: first or last")
+    parser.add_argument("--width", type=int, default=1366, help="Output width")
+    parser.add_argument("--height", type=int, default=768, help="Output height")
+    args = parser.parse_args()
 
-    # --- Example 2: First + Last keyframes (Seedance) ---
-    # print("\n=== First + Last Keyframes ===")
-    # first_and_last_keyframes(
-    #     prompt="Smooth transition from day to night",
-    #     first_image_url="https://example.com/day.jpg",
-    #     last_image_url="https://example.com/night.jpg",
-    # )
-
-    # --- Example 3: Local file (base64) ---
-    # print("\n=== Image-to-Video (Local File) ===")
-    # image_to_video_base64(
-    #     prompt="Camera slowly pans across the scene",
-    #     image_path="./my_image.jpg",
-    # )
+    if args.image.startswith(("http://", "https://")):
+        image_to_video_url(
+            prompt=args.prompt,
+            image_url=args.image,
+            model=args.model,
+            frame=args.frame,
+            width=args.width,
+            height=args.height,
+            output_file=args.output,
+        )
+    else:
+        image_to_video_base64(
+            prompt=args.prompt,
+            image_path=args.image,
+            model=args.model,
+            frame=args.frame,
+            width=args.width,
+            height=args.height,
+            output_file=args.output,
+        )

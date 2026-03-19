@@ -220,8 +220,7 @@ print(cluster.num_gpus)
 ```
 
 ```typescript
-const cluster = await client.beta.clusters.update({
-  cluster_id: "cluster-id",
+const cluster = await client.beta.clusters.update("cluster-id", {
   num_gpus: 16,
 });
 console.log(cluster.num_gpus);

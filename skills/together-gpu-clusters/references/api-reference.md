@@ -158,8 +158,7 @@ cluster = client.beta.clusters.update(
 ```
 
 ```typescript
-const cluster = await client.beta.clusters.update({
-  cluster_id: "cluster-id",
+const cluster = await client.beta.clusters.update("cluster-id", {
   num_gpus: 16,
   cluster_type: "KUBERNETES",
 });

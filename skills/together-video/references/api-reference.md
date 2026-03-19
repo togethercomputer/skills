@@ -59,7 +59,7 @@ curl -X POST "https://api.together.xyz/v2/videos" \
 | `prompt` | string | Yes* | - | Text description (1-32,000 chars) |
 | `width` | integer | No | 1366 | Video width in pixels |
 | `height` | integer | No | 768 | Video height in pixels |
-| `seconds` | integer | No | 5-6 | Clip duration (1-10) |
+| `seconds` | string | No | varies | Clip duration override. Supported values depend on the model. |
 | `fps` | integer | No | 24 | Frames per second (15-60) |
 | `steps` | integer | No | varies | Diffusion steps (10-50) |
 | `guidance_scale` | float | No | varies | Prompt adherence (6.0-10.0, avoid >12) |
@@ -91,7 +91,7 @@ job = client.videos.create(
     model="minimax/hailuo-02",
     width=1366,
     height=768,
-    seconds=6,
+    seconds="6",
     fps=30,
     steps=30,
     guidance_scale=8.0,
@@ -108,7 +108,7 @@ const job = await client.videos.create({
   model: "minimax/hailuo-02",
   width: 1366,
   height: 768,
-  seconds: 6,
+  seconds: "6",
   fps: 30,
   steps: 30,
   guidance_scale: 8.0,

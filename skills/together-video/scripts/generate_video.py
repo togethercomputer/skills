@@ -71,7 +71,7 @@ def text_to_video_advanced(
         model=model,
         width=1366,
         height=768,
-        seconds=6,
+        seconds="6",
         fps=30,
         steps=30,
         guidance_scale=8.0,
