@@ -6,8 +6,10 @@
 |--------|----------|-----------|
 | Conversational | Multi-turn chat | `messages` |
 | Instruction | Prompt-completion pairs | `prompt` + `completion` |
-| Generic Text | Text completion | `text` |
+| Generic Text | Text completion / pretraining | `text` |
 | Preference/DPO | Preference learning | `input` + `preferred_output` + `non_preferred_output` |
+| Reasoning | Chain-of-thought training | `messages` with `reasoning` field on assistant |
+| Function Calling | Tool use training | `messages` + `tools` |
 | VLM | Vision + language | `messages` with image content |
 
 ## Conversational Format
@@ -24,9 +26,31 @@
 }
 ```
 
-- `weight: 0` — Exclude from loss (masking)
-- `weight: 1` — Include in loss (default for assistant)
+- `weight: 0` -- Exclude from loss (masking)
+- `weight: 1` -- Include in loss (default for assistant)
 - By default, only assistant messages are trained on
+
+### Preparing a Dataset (Python example)
+
+```python
+from datasets import load_dataset
+
+coqa_dataset = load_dataset("stanfordnlp/coqa")
+
+system_prompt = "Read the story and extract answers for the questions.\nStory: {}"
+
+def map_fields(row):
+    messages = [{"role": "system", "content": system_prompt.format(row["story"])}]
+    for q, a in zip(row["questions"], row["answers"]["input_text"]):
+        messages.append({"role": "user", "content": q})
+        messages.append({"role": "assistant", "content": a})
+    return {"messages": messages}
+
+train_messages = coqa_dataset["train"].map(
+    map_fields, remove_columns=coqa_dataset["train"].column_names
+)
+train_messages.to_json("coqa_prepared_train.jsonl")
+```
 
 ## Instruction Format
 
@@ -58,6 +82,103 @@
   "non_preferred_output": [
     {"role": "assistant", "content": "It means the code is public."}
   ]
+}
+```
+
+Both outputs must contain exactly one message from the assistant role.
+
+## Reasoning Format
+
+For fine-tuning reasoning models, assistant messages include a `reasoning` (or `reasoning_content`)
+field containing the chain of thought, alongside the `content` field for the final answer:
+
+```json
+{
+  "messages": [
+    {"role": "user", "content": "What is 15% of 240?"},
+    {
+      "role": "assistant",
+      "reasoning": "15% means 15/100 = 0.15\n0.15 * 240 = 36",
+      "content": "15% of 240 is 36."
+    }
+  ]
+}
+```
+
+For preference fine-tuning with reasoning, include `reasoning` in both outputs:
+
+```json
+{
+  "input": {
+    "messages": [{"role": "user", "content": "What is 15% of 240?"}]
+  },
+  "preferred_output": [
+    {
+      "role": "assistant",
+      "reasoning": "15% means 15/100 = 0.15\n0.15 * 240 = 36",
+      "content": "15% of 240 is 36."
+    }
+  ],
+  "non_preferred_output": [
+    {
+      "role": "assistant",
+      "reasoning": "15% of 240... about 30 maybe?",
+      "content": "About 30."
+    }
+  ]
+}
+```
+
+Supported models: Qwen3 family (0.6B-235B), Qwen3-Next-80B-A3B-Thinking, GLM-4.6, GLM-4.7.
+
+## Function Calling Format
+
+```json
+{
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_weather",
+        "description": "Get weather for a city",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "city": {"type": "string", "description": "City name"}
+          },
+          "required": ["city"]
+        }
+      }
+    }
+  ],
+  "messages": [
+    {"role": "user", "content": "What's the weather in NYC?"},
+    {
+      "role": "assistant",
+      "tool_calls": [
+        {
+          "id": "call_1",
+          "type": "function",
+          "function": {"name": "get_weather", "arguments": "{\"city\": \"New York\"}"}
+        }
+      ]
+    },
+    {"role": "tool", "tool_call_id": "call_1", "content": "{\"temp\": 72, \"condition\": \"sunny\"}"},
+    {"role": "assistant", "content": "It's currently 72F and sunny in New York City."}
+  ]
+}
+```
+
+For preference fine-tuning with function calling, the `tools` field goes inside `input`:
+
+```json
+{
+  "input": {
+    "tools": [...],
+    "messages": [{"role": "user", "content": "..."}]
+  },
+  "preferred_output": [{"role": "assistant", "tool_calls": [...]}],
+  "non_preferred_output": [{"role": "assistant", "content": "wrong answer"}]
 }
 ```
 
@@ -97,51 +218,34 @@
 
 ### JSONL (Default)
 - One JSON object per line
-- Text data
-- Automatic sample packing
+- Automatic sample packing for efficient training
+- Max file size: 50GB
 
 ### Parquet (Advanced)
 - Pre-tokenized data
-- Required: `input_ids`, `attention_mask`
-- Optional: `labels` (use -100 to mask tokens)
-- Max file size: 25GB
+- Required columns: `input_ids`, `attention_mask`
+- Optional: `labels` (use -100 to mask tokens from loss)
+- Useful for custom tokenization or loss masking
+
+## Loss Masking
+
+- **Conversational format**: Use `weight: 0` on specific messages to exclude from loss
+- **`train_on_inputs` parameter**:
+  - `"auto"` (default): Framework decides based on format
+  - `true`: Train on everything including user messages/prompts
+  - `false`: Only train on assistant/completion text
+- **Parquet format**: Set label to -100 for tokens to exclude
 
 ## Data Validation
 
 ```python
 from together import Together
-from together.utils import check_file
 
 client = Together()
 
-# Check format locally
-report = check_file("my_data.jsonl")
-print(report)  # {"is_check_passed": true, "message": "Checks passed", ...}
-
-# Upload with server-side validation
+# Upload with validation enabled
 file = client.files.upload(file="my_data.jsonl", purpose="fine-tune", check=True)
 print(file.id)  # file-abc123
-```
-
-```typescript
-import { upload } from "together-ai/lib/upload";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const filepath = path.join(__dirname, "my_data.jsonl");
-const file = await upload(filepath);
-console.log(file.id);
-```
-
-```shell
-# cURL: upload a file
-curl "https://api.together.xyz/v1/files/upload" \
-  -H "Authorization: Bearer $TOGETHER_API_KEY" \
-  -F "file=@my_data.jsonl" \
-  -F "file_name=my_data.jsonl" \
-  -F "purpose=fine-tune"
 ```
 
 ```shell
@@ -152,22 +256,19 @@ together files upload my_data.jsonl
 # Upload without format checking
 together files upload my_data.jsonl --no-check
 
-# List uploaded files
+# List and manage files
 together files list
-
-# Retrieve file metadata
 together files retrieve <FILE-ID>
-
-# Download a previously uploaded file
 together files retrieve-content <FILE-ID>
 ```
 
 ## Converting Image URLs to Base64
 
 ```python
-import base64, requests
+import base64
+import requests
 
-def url_to_base64(url, mime_type="image/jpeg"):
+def url_to_base64(url: str, mime_type: str = "image/jpeg") -> str:
     response = requests.get(url)
     encoded = base64.b64encode(response.content).decode("utf-8")
     return f"data:{mime_type};base64,{encoded}"

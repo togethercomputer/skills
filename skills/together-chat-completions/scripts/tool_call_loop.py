@@ -69,46 +69,51 @@ FUNCTIONS = {
 }
 
 
-# --- 3. Send request with tools ---
-messages = [
-    {"role": "system", "content": "You are a helpful assistant with access to weather and stock tools."},
-    {"role": "user", "content": "What's the weather in NYC and the current Apple stock price?"},
-]
+def main() -> None:
+    # --- 3. Send request with tools ---
+    messages = [
+        {"role": "system", "content": "You are a helpful assistant with access to weather and stock tools."},
+        {"role": "user", "content": "What's the weather in NYC and the current Apple stock price?"},
+    ]
 
-response = client.chat.completions.create(
-    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
-    messages=messages,
-    tools=tools,
-)
-
-# --- 4. Process tool calls (handles parallel calls) ---
-tool_calls = response.choices[0].message.tool_calls
-
-if tool_calls:
-    # Add assistant message with tool calls to history
-    messages.append(response.choices[0].message)
-
-    for tc in tool_calls:
-        fn_name = tc.function.name
-        fn_args = json.loads(tc.function.arguments)
-
-        print(f"Calling {fn_name}({fn_args})")
-        result = FUNCTIONS[fn_name](**fn_args)
-
-        # Add each tool result to history
-        messages.append({
-            "role": "tool",
-            "tool_call_id": tc.id,
-            "content": json.dumps(result),
-        })
-
-    # --- 5. Get final response with tool results ---
-    final = client.chat.completions.create(
+    response = client.chat.completions.create(
         model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
         messages=messages,
         tools=tools,
     )
-    print(f"\nAssistant: {final.choices[0].message.content}")
-else:
-    # Model responded directly without calling tools
-    print(f"Assistant: {response.choices[0].message.content}")
+
+    # --- 4. Process tool calls (handles parallel calls) ---
+    tool_calls = response.choices[0].message.tool_calls
+
+    if tool_calls:
+        # Add assistant message with tool calls to history
+        messages.append(response.choices[0].message)
+
+        for tc in tool_calls:
+            fn_name = tc.function.name
+            fn_args = json.loads(tc.function.arguments)
+
+            print(f"Calling {fn_name}({fn_args})")
+            result = FUNCTIONS[fn_name](**fn_args)
+
+            # Add each tool result to history
+            messages.append({
+                "role": "tool",
+                "tool_call_id": tc.id,
+                "content": json.dumps(result),
+            })
+
+        # --- 5. Get final response with tool results ---
+        final = client.chat.completions.create(
+            model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
+            messages=messages,
+            tools=tools,
+        )
+        print(f"\nAssistant: {final.choices[0].message.content}")
+    else:
+        # Model responded directly without calling tools
+        print(f"Assistant: {response.choices[0].message.content}")
+
+
+if __name__ == "__main__":
+    main()

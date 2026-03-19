@@ -50,11 +50,11 @@ together beta clusters create [OPTIONS]
 |------|------|-------------|
 | `--name` | string | Name of the cluster |
 | `--num-gpus` | number | Number of GPUs (must be a multiple of 8) |
-| `--gpu-type` | enum | GPU type: `H100_SXM`, `H200_SXM`, `B200_SXM`, `H100_SXM_INF` |
+| `--gpu-type` | enum | `H100_SXM`, `H200_SXM`, `B200_SXM`, `H100_SXM_INF`, `L40_PCIE`, `RTX_6000_PCI` |
 | `--region` | string | Region (use `clusters list-regions` to find valid regions) |
 | `--billing-type` | enum | `ON_DEMAND` or `RESERVED` |
 | `--duration-days` | number | Reservation length in days (only with `RESERVED` billing) |
-| `--driver-version` | enum | CUDA driver version (use `clusters list-regions` to find valid versions) |
+| `--driver-version` | enum | CUDA driver version (use `clusters list-regions` for options) |
 | `--cluster-type` | enum | `KUBERNETES` or `SLURM` |
 | `--volume` | string | Existing storage volume ID to attach |
 | `--json` | -- | Output in JSON format |
@@ -114,7 +114,7 @@ together beta clusters retrieve <CLUSTER_ID>
 
 ### `clusters update`
 
-Update the configuration of an existing cluster (for example, scale GPU count or change cluster type).
+Update the configuration of an existing cluster (scale GPU count or change cluster type).
 
 ```shell
 together beta clusters update <CLUSTER_ID> [OPTIONS]
@@ -133,6 +133,9 @@ together beta clusters update <CLUSTER_ID> [OPTIONS]
 ```shell
 # Scale up to 16 GPUs
 together beta clusters update <CLUSTER_ID> --num-gpus 16
+
+# Switch to Slurm
+together beta clusters update <CLUSTER_ID> --cluster-type SLURM
 ```
 
 Equivalent tcloud command:
@@ -197,10 +200,10 @@ together beta clusters get-credentials <CLUSTER_ID> [OPTIONS]
 
 | Flag | Type | Description |
 |------|------|-------------|
-| `--file` | path or `-` | Path to write the kubeconfig. Pass `-` to print to stdout. Default: `~/.kube/config` |
+| `--file` | path or `-` | Path to write kubeconfig. `-` prints to stdout. Default: `~/.kube/config` |
 | `--context-name` | string | Name for the kubeconfig context. Default: cluster name |
-| `--overwrite-existing` | -- | Overwrite existing kubeconfig entries on conflict instead of raising an error |
-| `--set-default-context` | -- | Set the new context as the current default for kubectl |
+| `--overwrite-existing` | -- | Overwrite existing kubeconfig entries on conflict |
+| `--set-default-context` | -- | Set the new context as default for kubectl |
 
 **Examples:**
 
@@ -226,7 +229,8 @@ kubectl get nodes
 
 ## Storage Commands
 
-Shared storage volumes are long-lived, resizable, high-throughput persistent storage backed by multi-NIC bare metal paths. Volumes persist independently of cluster lifecycle and can be attached at cluster creation time.
+Shared storage volumes are persistent, resizable, high-throughput storage backed by multi-NIC
+bare metal paths. Volumes persist independently of cluster lifecycle.
 
 ### `clusters storage create`
 
@@ -286,6 +290,8 @@ together beta clusters storage delete <VOLUME_ID>
 | `H100_SXM_INF` | NVIDIA H100 | 80GB | Inference-optimized, lower IB bandwidth |
 | `H200_SXM` | NVIDIA H200 | 141GB | InfiniBand networking |
 | `B200_SXM` | NVIDIA B200 | 192GB | InfiniBand networking |
+| `L40_PCIE` | NVIDIA L40 | 48GB | PCIe |
+| `RTX_6000_PCI` | NVIDIA RTX 6000 | 24GB | PCIe |
 
 ## Driver Versions
 

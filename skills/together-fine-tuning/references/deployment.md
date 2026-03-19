@@ -2,24 +2,9 @@
 
 ## Deployment Options
 
-### Option 1: Serverless LoRA Inference (Instant)
+### Option 1: Dedicated Endpoint
 
-Available immediately for LoRA fine-tuned models on supported base models. No deployment needed.
-
-```python
-response = client.chat.completions.create(
-    model="your-username/Model-Name-your-suffix",
-    messages=[{"role": "user", "content": "Hello!"}],
-)
-```
-
-- First inference loads adapter weights (may be slower)
-- Subsequent requests use cached weights
-- No hosting fees — pay per token only
-
-### Option 2: Dedicated Endpoint
-
-For production workloads with guaranteed capacity.
+Deploy your fine-tuned model on a dedicated endpoint for production use.
 
 ```python
 endpoint = client.endpoints.create(
@@ -28,18 +13,27 @@ endpoint = client.endpoints.create(
     hardware="4x_nvidia_h100_80gb_sxm",
     autoscaling={"min_replicas": 1, "max_replicas": 1},
 )
+print(endpoint)
+
+# Query the endpoint
+response = client.chat.completions.create(
+    model="your-username/Model-Name-your-suffix",
+    messages=[{"role": "user", "content": "Hello!"}],
+    max_tokens=128,
+)
+print(response.choices[0].message.content)
 ```
 
 - Per-minute hosting charges while running
 - Guaranteed capacity and latency
+- No rate limits, high max load
 - Supports both LoRA and Full fine-tuned models
 
-### Option 3: Download Weights
+### Option 2: Download Weights
 
 Download and run locally or on your infrastructure.
 
 ```python
-# Download model weights
 client.fine_tuning.download(
     id="ft-abc123",
     output="my-model/model.tar.zst",
@@ -67,11 +61,9 @@ tar -xf model-name.tar.zst
 ```
 
 Options:
-- `--output_dir`, `-o` — Specify the output directory
-- `--checkpoint-step`, `-s` — Download a specific checkpoint's weights (default: latest)
-- `--checkpoint-type` — Checkpoint type: `default`, `merged`, or `adapter` (merged/adapter only for LoRA jobs)
-
-Extracted files include: `pytorch_model.bin`, `config.json`, tokenizer files.
+- `--output_dir`, `-o` -- Specify the output directory
+- `--checkpoint-step`, `-s` -- Download a specific checkpoint's weights (default: latest)
+- `--checkpoint-type` -- `default`, `merged`, or `adapter` (merged/adapter only for LoRA jobs)
 
 ## Training Parameters
 
@@ -90,69 +82,60 @@ Extracted files include: `pytorch_model.bin`, `config.json`, tokenizer files.
 | `lora_r` | int | 64 | LoRA rank |
 | `lora_alpha` | int | 16 | LoRA scaling factor |
 | `train_on_inputs` | bool/str | "auto" | Train on prompts/user msgs |
+| `n_evals` | int | 0 | Validation evaluations (>0 to use validation set) |
 | `wandb_api_key` | string | - | W&B integration |
+| `from_checkpoint` | string | - | Continue from previous job ID |
 
 ### DPO-specific Parameters
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `training_method` | string | - | Set to `"dpo"` |
+| `training_method` | string | "sft" | Set to `"dpo"` for preference tuning |
 | `dpo_beta` | float | 0.1 | Deviation control (0.05-0.9) |
 
 ### VLM-specific Parameters
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `train_vision` | bool | false | Update vision encoder |
+| `train_vision` | bool | false | Update vision encoder weights |
+
+### BYOM-specific Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `from_hf_model` | string | - | HuggingFace model ID |
+| `hf_api_token` | string | - | HuggingFace token (for private repos) |
 
 ## Job Monitoring
 
 ### Status Flow
-`Pending` → `Queued` → `Running` → `Uploading` → `Completed`
+`Pending` -> `Queued` -> `Running` -> `Uploading` -> `Completed`
 
 ### Python SDK
+
 ```python
+from together import Together
+
+client = Together()
+
+# Get status
 status = client.fine_tuning.retrieve(job_id)
 print(status.status)
 
+# List events
 events = client.fine_tuning.list_events(id=job_id)
 for event in events.data:
     print(event.message)
-```
-
-### TypeScript SDK
-```typescript
-import Together from "together-ai";
-const together = new Together();
-
-const fineTune = await together.fineTuning.retrieve("ft-abc123");
-console.log(fineTune.status);
-
-const events = await together.fineTuning.listEvents("ft-abc123");
-console.log(events);
-```
-
-### cURL
-```shell
-# Retrieve job details
-curl "https://api.together.xyz/v1/fine-tunes/ft-abc123" \
-  -H "Authorization: Bearer $TOGETHER_API_KEY" \
-  -H "Content-Type: application/json"
-
-# List events
-curl "https://api.together.xyz/v1/fine-tunes/ft-abc123/events" \
-  -H "Authorization: Bearer $TOGETHER_API_KEY" \
-  -H "Content-Type: application/json"
 
 # List checkpoints
-curl "https://api.together.xyz/v1/fine-tunes/ft-abc123/checkpoints" \
-  -H "Authorization: Bearer $TOGETHER_API_KEY" \
-  -H "Content-Type: application/json"
+checkpoints = client.fine_tuning.list_checkpoints(id=job_id)
+for cp in checkpoints:
+    print(f"Step {cp.step}: {cp.metrics}")
 ```
 
 ### CLI
+
 ```shell
-together fine-tuning status <JOB_ID>
 together fine-tuning retrieve <JOB_ID>
 together fine-tuning list-events <JOB_ID>
 together fine-tuning list-checkpoints <JOB_ID>
@@ -161,20 +144,48 @@ together fine-tuning cancel <JOB_ID>
 together fine-tuning delete <JOB_ID>
 ```
 
+### cURL
+
+```shell
+# Retrieve job details
+curl "https://api.together.xyz/v1/fine-tunes/ft-abc123" \
+  -H "Authorization: Bearer $TOGETHER_API_KEY"
+
+# List events
+curl "https://api.together.xyz/v1/fine-tunes/ft-abc123/events" \
+  -H "Authorization: Bearer $TOGETHER_API_KEY"
+
+# List checkpoints
+curl "https://api.together.xyz/v1/fine-tunes/ft-abc123/checkpoints" \
+  -H "Authorization: Bearer $TOGETHER_API_KEY"
+
+# Cancel job
+curl -X POST "https://api.together.xyz/v1/fine-tunes/ft-abc123/cancel" \
+  -H "Authorization: Bearer $TOGETHER_API_KEY"
+
+# Delete job
+curl -X DELETE "https://api.together.xyz/v1/fine-tunes/ft-abc123" \
+  -H "Authorization: Bearer $TOGETHER_API_KEY"
+```
+
 ## Continued Fine-tuning
 
 Resume from a previous job's checkpoint:
+
 ```python
 response = client.fine_tuning.create(
     training_file=new_file_id,
-    model="base-model",
+    model="Qwen/Qwen3-8B",
     from_checkpoint=previous_job_id,
 )
 ```
 
 ## Pricing
 
-- Based on total tokens processed
-- No minimum price — you only pay for tokens processed
-- Token calculation: `(n_epochs × training_tokens) + (n_evals × validation_tokens)`
-- Varies by model size and method (LoRA vs Full, SFT vs DPO)
+- Based on total tokens processed: `total_tokens x per_token_rate`
+- `total_tokens = (n_epochs x training_tokens) + (n_evals x validation_tokens)`
+- Cost varies by model size, method (LoRA vs Full), and type (SFT vs DPO)
+- No minimum price -- pay only for tokens processed
+- Exact token count and price available after tokenization via dashboard or
+  `together fine-tuning retrieve $JOB_ID`
+- Dedicated endpoint hosting charges are separate (per-minute while running)
