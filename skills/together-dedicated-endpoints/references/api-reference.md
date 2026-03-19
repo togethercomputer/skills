@@ -272,7 +272,7 @@ for hw in response.data:
 ```
 
 ```typescript
-const hardware = await together.endpoints.list_hardware();
+const hardware = await together.endpoints.listHardware();
 console.log(hardware);
 ```
 

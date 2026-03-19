@@ -68,7 +68,7 @@ for hw in response.data:
 import Together from "together-ai";
 const together = new Together();
 
-const hardware = await together.endpoints.list_hardware({
+const hardware = await together.endpoints.listHardware({
   model: "Qwen/Qwen3.5-9B-FP8",
 });
 console.log(hardware);

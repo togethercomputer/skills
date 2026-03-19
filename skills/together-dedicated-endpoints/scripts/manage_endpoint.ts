@@ -21,7 +21,7 @@ const client = new Together({
 
 async function listHardware(model?: string): Promise<void> {
   console.log("=== Available Hardware ===");
-  const response = await client.endpoints.list_hardware(
+  const response = await client.endpoints.listHardware(
     model ? { model } : undefined,
   );
   for (const hw of response.data) {
