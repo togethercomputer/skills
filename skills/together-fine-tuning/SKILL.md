@@ -49,18 +49,13 @@ Conversational format (most common):
 {"messages": [{"role": "user", "content": "Hello"}, {"role": "assistant", "content": "Hi! How can I help?"}]}
 ```
 
-### 2. Upload and Check
+### 2. Upload with Validation
 
 ```python
 from together import Together
 client = Together()
 
-# Check format locally
-from together.utils import check_file
-report = check_file("training_data.jsonl")
-assert report["is_check_passed"]
-
-# Upload with server-side validation
+# Upload with validation enabled
 file_resp = client.files.upload(file="training_data.jsonl", purpose="fine-tune", check=True)
 print(file_resp.id)
 ```

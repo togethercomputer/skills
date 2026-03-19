@@ -240,15 +240,10 @@ For preference fine-tuning with function calling, the `tools` field goes inside 
 
 ```python
 from together import Together
-from together.utils import check_file
 
 client = Together()
 
-# Check format locally
-report = check_file("my_data.jsonl")
-print(report)  # {"is_check_passed": true, "num_samples": 7199, ...}
-
-# Upload with server-side validation
+# Upload with validation enabled
 file = client.files.upload(file="my_data.jsonl", purpose="fine-tune", check=True)
 print(file.id)  # file-abc123
 ```
