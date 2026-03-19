@@ -87,7 +87,7 @@ for region in regions.regions:
 import Together from "together-ai";
 const client = new Together();
 
-const regions = await client.beta.clusters.list_regions();
+const regions = await client.beta.clusters.listRegions();
 console.log(regions);
 ```
 

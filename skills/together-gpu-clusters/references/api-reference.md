@@ -90,7 +90,7 @@ together beta clusters create \
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `cluster_name` | string | Yes | Name of the cluster |
-| `region` | string | Yes | Region (use `list_regions` to find valid regions) |
+| `region` | string | Yes | Region (use `list_regions()` in Python or `listRegions()` in TypeScript to find valid regions) |
 | `gpu_type` | string | Yes | GPU type (see Instance Types below) |
 | `num_gpus` | integer | Yes | Number of GPUs (must be a multiple of 8) |
 | `driver_version` | string | Yes | CUDA driver version (see Driver Versions below) |
@@ -214,7 +214,7 @@ for r in regions.regions:
 ```
 
 ```typescript
-const regions = await client.beta.clusters.list_regions();
+const regions = await client.beta.clusters.listRegions();
 console.log(regions);
 ```
 
@@ -375,7 +375,7 @@ together beta clusters storage delete <VOLUME_ID>
 
 ## Driver Versions
 
-Available CUDA driver versions (check `list_regions` for per-region availability):
+Available CUDA driver versions (check `list_regions()` in Python or `listRegions()` in TypeScript for per-region availability):
 
 - `CUDA_12_4_550`
 - `CUDA_12_5_555`

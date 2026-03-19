@@ -21,7 +21,7 @@ const client = new Together({
 
 async function listRegions(): Promise<void> {
   console.log("=== Available Regions ===");
-  const regions = await client.beta.clusters.list_regions();
+  const regions = await client.beta.clusters.listRegions();
   for (const r of regions.regions) {
     console.log(`  ${r.name}: GPUs=${JSON.stringify(r.supported_instance_types)}`);
   }
