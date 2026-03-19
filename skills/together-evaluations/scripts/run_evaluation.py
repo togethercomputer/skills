@@ -31,7 +31,7 @@ def upload_dataset(dataset: list[dict]) -> str:
         for row in dataset:
             f.write(json.dumps(row) + "\n")
 
-    file_response = client.files.upload(file=data_path, purpose="eval")
+    file_response = client.files.upload(file=data_path, purpose="eval", check=False)
     print(f"Uploaded dataset: {file_response.id}")
     return file_response.id
 
@@ -39,7 +39,7 @@ def upload_dataset(dataset: list[dict]) -> str:
 def poll_evaluation(workflow_id: str) -> object:
     """Poll until the evaluation completes or fails."""
     while True:
-        result = client.evals.retrieve(workflow_id)
+        result = client.evals.status(workflow_id)
         print(f"  Status: {result.status}")
 
         if result.status == "completed":

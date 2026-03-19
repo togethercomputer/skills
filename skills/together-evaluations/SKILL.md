@@ -44,6 +44,8 @@ export TOGETHER_API_KEY=<your-api-key>
 ### 1. Prepare and Upload Dataset
 
 Dataset must be JSONL or CSV with consistent fields per line. Upload with `purpose="eval"`.
+When using the current Python or TypeScript SDK, pass `check=False` because the local file
+checker still assumes training-style schemas for eval files.
 
 ```jsonl eval_data.jsonl
 {"prompt": "What is the capital of France?", "context": "Please also give coordinates."}
@@ -54,19 +56,15 @@ Dataset must be JSONL or CSV with consistent fields per line. Upload with `purpo
 from together import Together
 client = Together()
 
-file_resp = client.files.upload(file="eval_data.jsonl", purpose="eval")
+file_resp = client.files.upload(file="eval_data.jsonl", purpose="eval", check=False)
 file_id = file_resp.id
 ```
 
 ```typescript
 import Together from "together-ai";
-import * as fs from "fs";
 
 const client = new Together();
-const fileResp = await client.files.upload({
-  file: fs.createReadStream("eval_data.jsonl"),
-  purpose: "eval",
-});
+const fileResp = await client.files.upload("eval_data.jsonl", "eval", false);
 const fileId = fileResp.id;
 ```
 
@@ -523,7 +521,9 @@ together evals list --status completed --limit 10
 
 ## Dataset Format
 
-Upload JSONL or CSV with `purpose="eval"`. For classify/score, include prompts and optionally pre-generated responses:
+Upload JSONL or CSV with `purpose="eval"`. When using the SDK helpers, pass `check=False`
+to bypass the local file checker. For classify/score, include prompts and optionally
+pre-generated responses:
 
 ```jsonl
 {"prompt": "What is AI?", "response": "AI is artificial intelligence."}

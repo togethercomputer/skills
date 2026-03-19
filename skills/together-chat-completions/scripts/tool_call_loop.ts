@@ -14,13 +14,17 @@
  */
 
 import Together from "together-ai";
+import type {
+  ChatCompletionMessageParam,
+  ChatCompletionTool,
+} from "together-ai/resources/chat/completions";
 
 const client = new Together({
   apiKey: process.env.TOGETHER_API_KEY,
 });
 
 // --- 1. Define tools ---
-const tools: Together.Chat.Completions.CompletionCreateParams.Tool[] = [
+const tools: ChatCompletionTool[] = [
   {
     type: "function",
     function: {
@@ -87,7 +91,7 @@ const functions: Record<
 
 // --- 3. Send request with tools ---
 async function main(): Promise<void> {
-  const messages: any[] = [
+  const messages: ChatCompletionMessageParam[] = [
     {
       role: "system",
       content: "You are a helpful assistant with access to weather and stock tools.",
@@ -105,18 +109,26 @@ async function main(): Promise<void> {
   });
 
   // --- 4. Process tool calls (handles parallel calls) ---
-  const toolCalls = response.choices[0].message?.tool_calls ?? [];
+  const assistantMessage = response.choices[0]?.message;
+  if (!assistantMessage) {
+    throw new Error("Model returned no assistant message.");
+  }
+  const toolCalls = assistantMessage.tool_calls ?? [];
 
   if (toolCalls.length > 0) {
     // Add assistant message with tool calls to history
-    messages.push(response.choices[0].message);
+    messages.push(assistantMessage);
 
     for (const tc of toolCalls) {
       const fnName = tc.function.name;
       const fnArgs = JSON.parse(tc.function.arguments);
+      const fn = functions[fnName];
+      if (!fn) {
+        throw new Error(`No implementation found for tool: ${fnName}`);
+      }
 
       console.log(`Calling ${fnName}(${JSON.stringify(fnArgs)})`);
-      const result = functions[fnName](fnArgs);
+      const result = fn(fnArgs);
 
       // Add each tool result to history
       messages.push({

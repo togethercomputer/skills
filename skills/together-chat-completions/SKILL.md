@@ -578,24 +578,25 @@ print(response.choices[0].message.content)
 ```
 
 ```typescript
-const response = await together.chat.completions.create({
-  model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
-  temperature: 0.2,
-  max_tokens: 10,
-  messages: [
-    {
-      role: "system",
-      content:
-        "Classify the sentiment of the text as positive, neutral, or negative.",
+const response = await together.chat.completions.create(
+  {
+    model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    temperature: 0.2,
+    max_tokens: 10,
+    messages: [
+      {
+        role: "system",
+        content:
+          "Classify the sentiment of the text as positive, neutral, or negative.",
+      },
+      { role: "user", content: "Wow. I loved the movie!" },
+    ],
+    response_format: {
+      type: "regex",
+      pattern: "(positive|neutral|negative)",
     },
-    { role: "user", content: "Wow. I loved the movie!" },
-  ],
-  response_format: {
-    type: "regex",
-    // @ts-ignore
-    pattern: "(positive|neutral|negative)",
-  },
-});
+  } as any
+);
 
 console.log(response?.choices[0]?.message?.content);
 ```
@@ -773,12 +774,12 @@ for chunk in stream:
 import Together from "together-ai";
 import type {
   ChatCompletionChunk,
-  ChatCompletionCreateParamsStreaming,
+  CompletionCreateParamsStreaming,
 } from "together-ai/resources/chat/completions";
 
 const together = new Together();
 
-type ReasoningParams = ChatCompletionCreateParamsStreaming & {
+type ReasoningParams = CompletionCreateParamsStreaming & {
   reasoning?: { enabled: boolean };
 };
 

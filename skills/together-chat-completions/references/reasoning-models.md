@@ -131,12 +131,12 @@ for chunk in stream:
 import Together from "together-ai";
 import type {
   ChatCompletionChunk,
-  ChatCompletionCreateParamsStreaming,
+  CompletionCreateParamsStreaming,
 } from "together-ai/resources/chat/completions";
 
 const together = new Together();
 
-type ReasoningParams = ChatCompletionCreateParamsStreaming & {
+type ReasoningParams = CompletionCreateParamsStreaming & {
   reasoning?: { enabled: boolean };
 };
 

@@ -51,10 +51,7 @@ async function main() {
   console.log(`Wrote ${requests.length} requests to ${inputPath}`);
 
   // --- 2. Upload input file ---
-  const fileResp = await client.files.upload({
-    file: fs.createReadStream(inputPath),
-    purpose: "batch-api",
-  });
+  const fileResp = await client.files.upload(inputPath, "batch-api", false);
   const fileId = fileResp.id;
   console.log(`Uploaded file: ${fileId}`);
 
@@ -63,7 +60,10 @@ async function main() {
     input_file_id: fileId,
     endpoint: "/v1/chat/completions",
   });
-  const batchId = response.job?.id ?? response.id;
+  const batchId = response.job?.id;
+  if (!batchId) {
+    throw new Error("Batch create response did not include a job id.");
+  }
   console.log(`Created batch: ${batchId}`);
 
   // --- 4. Poll for completion ---

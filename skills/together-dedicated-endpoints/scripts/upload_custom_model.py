@@ -13,10 +13,7 @@ Requires:
     export TOGETHER_API_KEY=your_key
 """
 
-import json
-import os
 import time
-import urllib.request
 from together import Together
 
 client = Together()
@@ -50,14 +47,9 @@ def upload_from_s3(model_name: str, presigned_url: str) -> str:
 
 
 def check_upload_status(job_id: str) -> str:
-    """Check upload job status via GET /v1/jobs/{job_id}."""
-    url = f"https://api.together.xyz/v1/jobs/{job_id}"
-    req = urllib.request.Request(url, headers={
-        "Authorization": f"Bearer {os.environ['TOGETHER_API_KEY']}",
-    })
-    with urllib.request.urlopen(req) as resp:
-        data = json.loads(resp.read())
-    return data.get("status", "unknown")
+    """Check upload job status via the v2 SDK."""
+    response = client.models.uploads.status(job_id)
+    return response.status
 
 
 def wait_for_upload(job_id: str, timeout: int = 3600, poll_interval: int = 30) -> None:

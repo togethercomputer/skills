@@ -192,7 +192,7 @@ const client = new Together();
 const job = await client.beta.jig.queue.submit({ model: "my-deployment", payload: { prompt: "Hello" }, priority: 1 });
 
 // Poll status
-const status = await client.beta.jig.queue.retrieve({ requestId: job.requestId!, model: "my-deployment" });
+const status = await client.beta.jig.queue.retrieve({ request_id: job.requestId!, model: "my-deployment" });
 ```
 
 ### cURL

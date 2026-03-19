@@ -164,7 +164,7 @@ console.log(`Job submitted: ${job.requestId}`);
 // Poll for result
 while (true) {
   const status = await client.beta.jig.queue.retrieve({
-    requestId: job.requestId!,
+    request_id: job.requestId!,
     model: deployment,
   });
   if (status.status === "done") {

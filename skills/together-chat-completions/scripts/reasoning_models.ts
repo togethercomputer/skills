@@ -16,7 +16,8 @@
 import Together from "together-ai";
 import type {
   ChatCompletionChunk,
-  ChatCompletionCreateParamsStreaming,
+  ChatCompletionMessageParam,
+  CompletionCreateParamsStreaming,
 } from "together-ai/resources/chat/completions";
 
 const client = new Together({
@@ -27,7 +28,7 @@ type ReasoningDelta = ChatCompletionChunk.Choice.Delta & {
   reasoning?: string;
 };
 
-type ReasoningParams = ChatCompletionCreateParamsStreaming & {
+type ReasoningParams = CompletionCreateParamsStreaming & {
   reasoning?: { enabled: boolean };
 };
 
@@ -40,7 +41,7 @@ async function reasoningFieldStreaming(): Promise<void> {
     messages: [
       { role: "user", content: "Which number is bigger, 9.11 or 9.9?" },
     ],
-  } as any);
+  });
 
   let reasoningText = "";
   let contentText = "";
@@ -142,12 +143,12 @@ async function toggleReasoning(): Promise<void> {
     model: "moonshotai/Kimi-K2.5",
     messages: [
       { role: "user", content: "What is the capital of France?" },
-    ],
+    ] as ChatCompletionMessageParam[],
     reasoning: { enabled: false },
     temperature: 0.6,
   };
 
-  const response = await client.chat.completions.create(disabledParams as any);
+  const response = await client.chat.completions.create(disabledParams);
   console.log(`  Answer: ${response.choices[0].message.content?.slice(0, 100)}`);
 }
 

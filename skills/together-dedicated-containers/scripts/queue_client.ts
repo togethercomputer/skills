@@ -28,12 +28,15 @@ async function submitAndPoll(
     payload,
     priority,
   });
-  const requestId = job.requestId ?? job.request_id;
+  const requestId = job.requestId;
+  if (!requestId) {
+    throw new Error("Queue submit response did not include a request id.");
+  }
   console.log(`Submitted job: ${requestId}`);
 
   while (true) {
     const status: any = await client.beta.jig.queue.retrieve({
-      requestId,
+      request_id: requestId,
       model: DEPLOYMENT,
     });
 
@@ -67,7 +70,10 @@ async function submitMultiple(
       model: DEPLOYMENT,
       payload,
     });
-    const requestId = job.requestId ?? (job as any).request_id;
+    const requestId = job.requestId;
+    if (!requestId) {
+      throw new Error("Queue submit response did not include a request id.");
+    }
     requestIds.push(requestId);
     console.log(`Submitted: ${requestId}`);
   }
@@ -76,7 +82,7 @@ async function submitMultiple(
 
 async function checkStatus(requestId: string): Promise<any> {
   const status: any = await client.beta.jig.queue.retrieve({
-    requestId,
+    request_id: requestId,
     model: DEPLOYMENT,
   });
   console.log(`Job ${requestId}: ${status.status}`);

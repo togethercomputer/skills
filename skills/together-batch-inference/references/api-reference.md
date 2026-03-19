@@ -77,13 +77,9 @@ print(file_resp.id)  # file-abc123
 
 ```typescript
 import Together from "together-ai";
-import * as fs from "fs";
 
 const client = new Together();
-const fileResp = await client.files.upload({
-  file: fs.createReadStream("batch_input.jsonl"),
-  purpose: "batch-api",
-});
+const fileResp = await client.files.upload("batch_input.jsonl", "batch-api", false);
 console.log(fileResp.id);
 ```
 

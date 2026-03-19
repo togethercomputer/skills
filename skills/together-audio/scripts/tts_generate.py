@@ -24,19 +24,19 @@ client = Together()
 
 def tts_rest(text: str, output_file: str = "speech.mp3"):
     """Generate speech and save to file (REST API)."""
-    response = client.audio.speech.create(
+    response = client.audio.speech.with_raw_response.create(
         model="canopylabs/orpheus-3b-0.1-ft",
         input=text,
         voice="tara",
         response_format="mp3",
     )
-    response.stream_to_file(output_file)
+    response.write_to_file(output_file)
     print(f"Saved to {output_file}")
 
 
-def tts_streaming(text: str, output_file: str = "speech_stream.wav"):
+def tts_streaming(text: str, output_file: str = "speech_stream.pcm"):
     """Generate speech with streaming for low time-to-first-byte."""
-    response = client.audio.speech.create(
+    response = client.audio.speech.with_raw_response.create(
         model="canopylabs/orpheus-3b-0.1-ft",
         input=text,
         voice="tara",
@@ -44,7 +44,7 @@ def tts_streaming(text: str, output_file: str = "speech_stream.wav"):
         response_format="raw",
         response_encoding="pcm_s16le",
     )
-    response.stream_to_file(output_file, response_format="wav")
+    response.write_to_file(output_file)
     print(f"Saved to {output_file}")
 
 

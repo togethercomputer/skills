@@ -52,13 +52,13 @@ export TOGETHER_API_KEY=<your-api-key>
 from together import Together
 client = Together()
 
-response = client.audio.speech.create(
+response = client.audio.speech.with_raw_response.create(
     model="canopylabs/orpheus-3b-0.1-ft",
     input="Today is a wonderful day to build something people love!",
     voice="tara",
     response_format="mp3",
 )
-response.stream_to_file("speech.mp3")
+response.write_to_file("speech.mp3")
 ```
 
 ```typescript
@@ -94,7 +94,7 @@ curl -X POST "https://api.together.xyz/v1/audio/speech" \
 Streaming requires `response_format="raw"` with a PCM encoding.
 
 ```python
-response = client.audio.speech.create(
+response = client.audio.speech.with_raw_response.create(
     model="canopylabs/orpheus-3b-0.1-ft",
     input="The quick brown fox jumps over the lazy dog",
     voice="tara",
@@ -102,7 +102,7 @@ response = client.audio.speech.create(
     response_format="raw",
     response_encoding="pcm_s16le",
 )
-response.stream_to_file("speech.wav", response_format="wav")
+response.write_to_file("speech.pcm")
 ```
 
 ```typescript

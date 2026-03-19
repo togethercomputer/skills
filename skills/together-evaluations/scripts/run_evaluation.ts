@@ -30,17 +30,14 @@ async function uploadDataset(
   const lines = dataset.map((r) => JSON.stringify(r)).join("\n") + "\n";
   fs.writeFileSync(dataPath, lines);
 
-  const fileResp = await client.files.upload({
-    file: fs.createReadStream(dataPath),
-    purpose: "eval",
-  });
+  const fileResp = await client.files.upload(dataPath, "eval", false);
   console.log(`Uploaded dataset: ${fileResp.id}`);
   return fileResp.id;
 }
 
 async function pollEvaluation(workflowId: string): Promise<any> {
   while (true) {
-    const result = await client.evals.retrieve(workflowId);
+    const result = await client.evals.status(workflowId);
     console.log(`  Status: ${result.status}`);
 
     if (result.status === "completed") {
