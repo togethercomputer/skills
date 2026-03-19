@@ -23,7 +23,7 @@ async function submitAndPoll(
   payload: Record<string, any>,
   priority: number = 1
 ): Promise<any> {
-  const job = await client.beta.queue.submit({
+  const job = await client.beta.jig.queue.submit({
     model: DEPLOYMENT,
     payload,
     priority,
@@ -32,7 +32,7 @@ async function submitAndPoll(
   console.log(`Submitted job: ${requestId}`);
 
   while (true) {
-    const status: any = await client.beta.queue.retrieve({
+    const status: any = await client.beta.jig.queue.retrieve({
       requestId,
       model: DEPLOYMENT,
     });
@@ -63,7 +63,7 @@ async function submitMultiple(
 ): Promise<string[]> {
   const requestIds: string[] = [];
   for (const payload of payloads) {
-    const job = await client.beta.queue.submit({
+    const job = await client.beta.jig.queue.submit({
       model: DEPLOYMENT,
       payload,
     });
@@ -75,7 +75,7 @@ async function submitMultiple(
 }
 
 async function checkStatus(requestId: string): Promise<any> {
-  const status: any = await client.beta.queue.retrieve({
+  const status: any = await client.beta.jig.queue.retrieve({
     requestId,
     model: DEPLOYMENT,
   });

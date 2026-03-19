@@ -123,7 +123,7 @@ client = Together()
 deployment = "hello-world"
 
 # Submit a job
-job = client.beta.queue.submit(
+job = client.beta.jig.queue.submit(
     model=deployment,
     payload={"name": "Together"},
     priority=1,
@@ -132,7 +132,7 @@ print(f"Job submitted: {job.request_id}")
 
 # Poll for result
 while True:
-    status = client.beta.queue.retrieve(
+    status = client.beta.jig.queue.retrieve(
         request_id=job.request_id,
         model=deployment,
     )
@@ -154,7 +154,7 @@ const client = new Together();
 const deployment = "hello-world";
 
 // Submit a job
-const job = await client.beta.queue.submit({
+const job = await client.beta.jig.queue.submit({
   model: deployment,
   payload: { name: "Together" },
   priority: 1,
@@ -163,7 +163,7 @@ console.log(`Job submitted: ${job.requestId}`);
 
 // Poll for result
 while (true) {
-  const status = await client.beta.queue.retrieve({
+  const status = await client.beta.jig.queue.retrieve({
     requestId: job.requestId!,
     model: deployment,
   });

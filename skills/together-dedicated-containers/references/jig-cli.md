@@ -176,10 +176,10 @@ from together import Together
 client = Together()
 
 # Submit
-job = client.beta.queue.submit(model="my-deployment", payload={"prompt": "Hello"}, priority=1)
+job = client.beta.jig.queue.submit(model="my-deployment", payload={"prompt": "Hello"}, priority=1)
 
 # Poll status
-status = client.beta.queue.retrieve(request_id=job.request_id, model="my-deployment")
+status = client.beta.jig.queue.retrieve(request_id=job.request_id, model="my-deployment")
 ```
 
 ### TypeScript
@@ -189,10 +189,10 @@ import Together from "together-ai";
 const client = new Together();
 
 // Submit
-const job = await client.beta.queue.submit({ model: "my-deployment", payload: { prompt: "Hello" }, priority: 1 });
+const job = await client.beta.jig.queue.submit({ model: "my-deployment", payload: { prompt: "Hello" }, priority: 1 });
 
 // Poll status
-const status = await client.beta.queue.retrieve({ requestId: job.requestId!, model: "my-deployment" });
+const status = await client.beta.jig.queue.retrieve({ requestId: job.requestId!, model: "my-deployment" });
 ```
 
 ### cURL

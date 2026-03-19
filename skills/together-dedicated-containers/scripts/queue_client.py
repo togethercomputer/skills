@@ -23,7 +23,7 @@ DEPLOYMENT = "hello-world"
 
 def submit_and_poll(payload: dict, priority: int = 1) -> dict:
     """Submit a job and poll until completion."""
-    job = client.beta.queue.submit(
+    job = client.beta.jig.queue.submit(
         model=DEPLOYMENT,
         payload=payload,
         priority=priority,
@@ -31,7 +31,7 @@ def submit_and_poll(payload: dict, priority: int = 1) -> dict:
     print(f"Submitted job: {job.request_id}")
 
     while True:
-        status = client.beta.queue.retrieve(
+        status = client.beta.jig.queue.retrieve(
             request_id=job.request_id,
             model=DEPLOYMENT,
         )
@@ -61,7 +61,7 @@ def submit_multiple(payloads: list[dict]) -> list[str]:
     """Submit multiple jobs and return their request IDs."""
     request_ids = []
     for payload in payloads:
-        job = client.beta.queue.submit(
+        job = client.beta.jig.queue.submit(
             model=DEPLOYMENT,
             payload=payload,
         )
@@ -72,7 +72,7 @@ def submit_multiple(payloads: list[dict]) -> list[str]:
 
 def check_status(request_id: str) -> dict:
     """Check the status of a single job."""
-    status = client.beta.queue.retrieve(
+    status = client.beta.jig.queue.retrieve(
         request_id=request_id,
         model=DEPLOYMENT,
     )
