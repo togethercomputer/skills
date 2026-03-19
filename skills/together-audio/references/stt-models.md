@@ -1,69 +1,176 @@
 # STT Models & Transcription Reference
 
-## Models
+## Model Catalog
 
-| Model | API String | Features |
-|-------|-----------|----------|
-| Whisper Large v3 | `openai/whisper-large-v3` | Transcription, Translation, Diarization, Real-time WebSocket |
-| Voxtral Mini 3B | `mistralai/Voxtral-Mini-3B-2507` | Transcription |
-| Parakeet TDT 0.6B v3 | `nvidia/parakeet-tdt-0.6b-v3` | Transcription, Diarization, Real-time WebSocket |
+These models are current in the latest speech-to-text guide and are not listed in the current deprecation history.
 
-## Supported Audio Formats
-`.wav`, `.mp3`, `.m4a`, `.webm`, `.flac`
+| Model | API String | Access | Capabilities |
+|-------|-----------|--------|--------------|
+| Whisper Large v3 | `openai/whisper-large-v3` | Serverless | Realtime, translation, diarization |
+| Voxtral Mini 3B | `mistralai/Voxtral-Mini-3B-2507` | Serverless | Transcription |
+| Deepgram Flux | `deepgram/deepgram-flux` | Dedicated / Reserved | Realtime |
+| Deepgram Nova 3 | `deepgram/deepgram-nova-3` | Dedicated / Reserved | Transcription |
+| Deepgram Nova 3 Multilingual | `deepgram/deepgram-nova-3-multilingual` | Dedicated / Reserved | Transcription |
+| Parakeet TDT 0.6B v3 | `nvidia/parakeet-tdt-0.6b-v3` | Serverless | Realtime, diarization |
 
-## Transcription Parameters
+Notes:
+- The `/audio/transcriptions` and `/audio/translations` reference schemas currently enumerate
+  `openai/whisper-large-v3` in the request body.
+- The broader guide model catalog also includes Voxtral, Parakeet, and dedicated-endpoint Deepgram models.
+
+## Supported Input Formats
+
+The guide and reference both list:
+- `.wav` (`audio/wav`)
+- `.mp3` (`audio/mpeg`)
+- `.m4a` (`audio/mp4`)
+- `.webm` (`audio/webm`)
+- `.flac` (`audio/flac`)
+
+## Audio Transcriptions
+
+Use `/v1/audio/transcriptions` to transcribe speech into text in the same language as the source audio.
+
+### Parameters
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `file` | string/file | Yes | Audio file (path, URL, or file object) |
-| `model` | string | Yes | STT model identifier |
-| `language` | string | No | ISO 639-1 code: `en`, `es`, `fr`, `de`, `ja`, `zh`, `auto` |
-| `response_format` | string | No | `json` (default) or `verbose_json` |
-| `prompt` | string | No | Custom prompt for domain-specific accuracy |
-| `temperature` | float | No | 0.0 (deterministic) to 1.0 (creative) |
-| `timestamp_granularities` | string | No | `segment` or `word` |
-| `diarize` | bool | No | Enable speaker identification |
+| `file` | string / file / path / URL | Yes | Audio file upload or public HTTP/HTTPS URL |
+| `model` | string | No | Defaults to `openai/whisper-large-v3` in the reference |
+| `language` | string | No | ISO 639-1 code; `auto` enables auto-detection |
+| `prompt` | string | No | Optional text to bias decoding |
+| `response_format` | string | No | `json` or `verbose_json` |
+| `temperature` | float | No | `0.0` to `1.0` |
+| `timestamp_granularities` | string or array | No | `segment` and/or `word`; only used with `verbose_json` |
+| `diarize` | bool | No | Enable speaker diarization |
 | `min_speakers` | int | No | Minimum expected speakers |
 | `max_speakers` | int | No | Maximum expected speakers |
 
-## Translation Parameters
+Language examples called out in the guide:
+- `en` -- English
+- `es` -- Spanish
+- `fr` -- French
+- `de` -- German
+- `ja` -- Japanese
+- `zh` -- Chinese
+- `auto` -- auto-detect
 
-Translation converts speech from any language to English text.
+### Input Methods
+
+The guide shows all of these as valid Python inputs:
+
+```python
+from pathlib import Path
+
+file="/path/to/audio.mp3"
+file=Path("recordings/interview.wav")
+file="https://example.com/audio.mp3"
+file=open("audio.mp3", "rb")
+```
+
+## Audio Translations
+
+Use `/v1/audio/translations` to translate spoken audio. The guide frames this as translation to English. The current
+reference also documents an optional `language` parameter whose default is `en`.
+
+### Parameters
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `file` | string/file | Yes | Audio file (path, URL, or file object) |
-| `model` | string | No | Default: `openai/whisper-large-v3` |
-| `language` | string | No | ISO 639-1 target language code |
-| `prompt` | string | No | Optional text biasing decoding |
-| `response_format` | string | No | `json` (default) or `verbose_json` |
-| `temperature` | float | No | 0.0 to 1.0 |
-| `timestamp_granularities` | string | No | `segment` or `word` |
+| `file` | string / file / path / URL | Yes | Audio file upload or public HTTP/HTTPS URL |
+| `model` | string | No | Defaults to `openai/whisper-large-v3` |
+| `language` | string | No | Target output language; default `en` |
+| `prompt` | string | No | Optional text to bias decoding |
+| `response_format` | string | No | `json` or `verbose_json` |
+| `temperature` | float | No | `0.0` to `1.0` |
+| `timestamp_granularities` | string or array | No | `segment` and/or `word` for `verbose_json` |
+
+## Realtime Transcription (WebSocket)
+
+Use the realtime API when you need incremental transcription.
+
+Connection URL:
+
+```text
+wss://api.together.ai/v1/realtime?model={model}&input_audio_format=pcm_s16le_16000
+```
+
+Audio requirements:
+- PCM signed 16-bit little-endian
+- 16 kHz sample rate
+- base64-encoded in `input_audio_buffer.append`
+
+### Authentication
+
+The reference documents Bearer auth. The speech-to-text guide also shows raw websocket examples using:
+- `Authorization: Bearer YOUR_API_KEY`
+- `OpenAI-Beta: realtime=v1`
+
+Some websocket client examples in the guide also use the `realtime`, `openai-insecure-api-key.*`, and
+`openai-beta.realtime-v1` subprotocol pattern.
+
+### Query Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `model` | string | Yes | Realtime STT model such as `openai/whisper-large-v3` |
+| `input_audio_format` | string | Yes | Use `pcm_s16le_16000` |
+
+### Client Events
+
+```json
+{"type": "input_audio_buffer.append", "audio": "<base64-encoded-pcm-chunk>"}
+{"type": "input_audio_buffer.commit"}
+```
+
+### Server Events
+
+```json
+{"type": "session.created", "session": {"model": "openai/whisper-large-v3"}}
+{"type": "conversation.item.input_audio_transcription.delta", "delta": "The quick brown"}
+{"type": "conversation.item.input_audio_transcription.completed", "transcript": "The quick brown fox jumps over the lazy dog"}
+{"type": "conversation.item.input_audio_transcription.failed", "error": {"message": "Error description"}}
+```
+
+Delta semantics:
+- `conversation.item.input_audio_transcription.delta` is an interim result
+- each delta can replace the previous delta
+- `conversation.item.input_audio_transcription.completed` is the finalized text chunk
 
 ## Response Formats
 
-### JSON (Default)
+### JSON
+
 ```json
 {"text": "Hello, this is a test recording."}
 ```
 
 ### Verbose JSON
-Includes `text`, `language`, `duration`, `segments[]`, `words[]`, `speaker_segments[]`
 
-**Segment object:**
+`verbose_json` can include:
+- `text`
+- `language`
+- `duration`
+- `segments`
+- `words`
+- `speaker_segments`
+
+Segment example:
+
 ```json
 {"start": 0.11, "end": 10.85, "text": "..."}
 ```
 
-**Word object (with `timestamp_granularities="word"`):**
+Word example:
+
 ```json
 {"word": "Hello", "start": 0.00, "end": 0.36}
 ```
 
-**Diarization (with `diarize=true`):**
+Speaker segment example:
+
 ```json
 {
-  "id": 1,
   "speaker_id": "SPEAKER_01",
   "start": 6.268,
   "end": 30.776,
@@ -72,70 +179,48 @@ Includes `text`, `language`, `duration`, `segments[]`, `words[]`, `speaker_segme
 }
 ```
 
-## Real-time WebSocket STT
+## Common Workflows
 
-**URL:** `wss://api.together.ai/v1/realtime?model={model}&input_audio_format=pcm_s16le_16000`
-
-**Headers:**
-```
-Authorization: Bearer YOUR_API_KEY
-```
-
-Audio format: 16-bit PCM, 16kHz sample rate (`pcm_s16le_16000`)
-
-**Client to Server:**
-```json
-{"type": "input_audio_buffer.append", "audio": "<base64-pcm-chunk>"}
-{"type": "input_audio_buffer.commit"}
-```
-
-**Server to Client:**
-
-| Event | Description |
-|-------|-------------|
-| `session.created` | Connection established with session metadata |
-| `conversation.item.input_audio_transcription.delta` | Partial transcription (interim result) |
-| `conversation.item.input_audio_transcription.completed` | Final transcription |
-| `conversation.item.input_audio_transcription.failed` | Transcription error |
-
-## Transcription Examples
-
-### Basic
+### Basic Transcription
 
 ```python
 from together import Together
-client = Together()
 
+client = Together()
 response = client.audio.transcriptions.create(
-    file=open("audio.mp3", "rb"),
+    file="meeting_recording.mp3",
+    model="openai/whisper-large-v3",
+    language="en",
+    response_format="json",
+)
+print(response.text)
+```
+
+### Translation
+
+```python
+response = client.audio.translations.create(
+    file="french_audio.mp3",
     model="openai/whisper-large-v3",
 )
 print(response.text)
 ```
 
-```typescript
-import Together from "together-ai";
-import { readFileSync } from "fs";
+### Diarization
 
-const client = new Together();
-const audioBuffer = readFileSync("audio.mp3");
-const audioFile = new File([audioBuffer], "audio.mp3", { type: "audio/mpeg" });
-
-const response = await client.audio.transcriptions.create({
-  model: "openai/whisper-large-v3",
-  file: audioFile,
-});
-console.log(response.text);
+```python
+response = client.audio.transcriptions.create(
+    file="meeting.mp3",
+    model="openai/whisper-large-v3",
+    response_format="verbose_json",
+    diarize=True,
+    min_speakers=1,
+    max_speakers=5,
+)
+print(response.speaker_segments)
 ```
 
-```shell
-curl -X POST "https://api.together.xyz/v1/audio/transcriptions" \
-  -H "Authorization: Bearer $TOGETHER_API_KEY" \
-  -F model="openai/whisper-large-v3" \
-  -F file=@audio.mp3
-```
-
-### With Timestamps
+### Word-level Timestamps
 
 ```python
 response = client.audio.transcriptions.create(
@@ -145,77 +230,25 @@ response = client.audio.transcriptions.create(
     timestamp_granularities="word",
 )
 for word in response.words:
-    print(f"  [{word.start:.2f}s - {word.end:.2f}s] {word.word}")
-```
-
-### With Diarization
-
-```python
-response = client.audio.transcriptions.create(
-    file=open("meeting.mp3", "rb"),
-    model="openai/whisper-large-v3",
-    response_format="verbose_json",
-    diarize="true",
-    min_speakers=2,
-    max_speakers=5,
-)
-for segment in response.speaker_segments:
-    print(f"  [{segment.speaker_id}] ({segment.start:.1f}s-{segment.end:.1f}s): {segment.text}")
-```
-
-## Translation
-
-Translates speech from any language to English:
-
-```python
-response = client.audio.translations.create(
-    file=open("foreign_audio.mp3", "rb"),
-    model="openai/whisper-large-v3",
-)
-print(response.text)
-```
-
-```typescript
-const translation = await client.audio.translations.create({
-  file: audioFile,
-  model: "openai/whisper-large-v3",
-});
-console.log(translation.text);
-```
-
-```shell
-curl -X POST "https://api.together.xyz/v1/audio/translations" \
-  -H "Authorization: Bearer $TOGETHER_API_KEY" \
-  -F model="openai/whisper-large-v3" \
-  -F file=@foreign_audio.mp3
-```
-
-## Input Methods
-
-```python
-# Local file path
-file="audio.mp3"
-
-# Path object
-file=Path("recordings/interview.wav")
-
-# URL
-file="https://example.com/audio.mp3"
-
-# File-like object
-file=open("audio.mp3", "rb")
+    print(f"{word.word}: {word.start:.2f}s-{word.end:.2f}s")
 ```
 
 ## Async Support
 
 ```python
+import asyncio
 from together import AsyncTogether
 
-async def transcribe():
+
+async def transcribe_audio() -> str:
     client = AsyncTogether()
     response = await client.audio.transcriptions.create(
         file="audio.mp3",
         model="openai/whisper-large-v3",
+        language="en",
     )
     return response.text
+
+
+print(asyncio.run(transcribe_audio()))
 ```
