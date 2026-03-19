@@ -28,47 +28,80 @@
 | RunDiffusion | Juggernaut Lightning | `Rundiffusion/Juggernaut-Lightning-Flux` | - |
 | Lykon | DreamShaper | `Lykon/DreamShaper` | - |
 | Stability AI | SD 3 Medium | `stabilityai/stable-diffusion-3-medium` | - |
-| Stability AI | SDXL Base 1.0 | `stabilityai/stable-diffusion-xl-base-1.0` | - |
+| Stability AI | SD 3 Medium | `stabilityai/stable-diffusion-3-medium` | - |
 
 ## Model Categories
 
-### Text-to-Image (Generation)
-All models above support text-to-image generation.
+### Text-to-Image (All models)
 
-### Image Editing (Kontext)
-- `black-forest-labs/FLUX.1-kontext-pro` — Best quality editing
-- `black-forest-labs/FLUX.1-kontext-max` — Maximum capability
-- `google/flash-image-2.5` — Fast image editing
-- `google/gemini-3-pro-image` — Gemini-based editing
+All models above support text-to-image generation via the `prompt` parameter.
+
+### Image Editing (single reference via `image_url`)
+
+- `black-forest-labs/FLUX.1-kontext-pro` -- Balanced speed/quality (recommended)
+- `black-forest-labs/FLUX.1-kontext-max` -- Maximum editing quality
+- `black-forest-labs/FLUX.2-pro` -- FLUX.2 editing
+- `black-forest-labs/FLUX.2-flex` -- Adjustable guidance
+
+### Multi-Image Guidance (via `reference_images`)
+
+- `black-forest-labs/FLUX.2-pro`
+- `black-forest-labs/FLUX.2-dev`
+- `black-forest-labs/FLUX.2-flex`
+- `google/gemini-3-pro-image`
+- `google/flash-image-2.5`
+
+### LoRA Compatible (via `image_loras`)
+
+- `black-forest-labs/FLUX.2-dev` -- Up to 2 LoRAs, scale 0.3-1.2
 
 ## Recommended Models
 
 | Use Case | Model | API String |
 |----------|-------|-----------|
 | Best quality | Flash Image 2.5 | `google/flash-image-2.5` |
+| Highest quality FLUX | FLUX.2 Pro | `black-forest-labs/FLUX.2-pro` |
 | Image editing | FLUX.1 Kontext Max | `black-forest-labs/FLUX.1-kontext-max` |
 | Fast generation | FLUX.1 Schnell | `black-forest-labs/FLUX.1-schnell` |
-| Highest quality | FLUX.2 Pro | `black-forest-labs/FLUX.2-pro` |
+| LoRA styles | FLUX.2 Dev | `black-forest-labs/FLUX.2-dev` |
+| Typography | FLUX.2 Flex | `black-forest-labs/FLUX.2-flex` |
+| Text in images | Ideogram 3.0 | `ideogram/ideogram-3.0` |
+| Up to 4K output | Gemini 3 Pro Image | `google/gemini-3-pro-image` |
 
-## FLUX Pricing Formula
+## FLUX.2 Model Comparison
 
-```
-Cost = MP × Price_per_MP × (Steps ÷ Default_Steps)
-MP = Width × Height ÷ 1,000,000
-```
+| Variant | Best For | Unique Features |
+|---------|----------|-----------------|
+| Pro | Production, highest fidelity | Up to 9MP output, fastest |
+| Dev | Development, LoRA support | `guidance`, `steps`, `image_loras` |
+| Flex | Maximum control, typography | `guidance`, `steps`, adjustable |
 
 ## Supported Dimensions
 
 ### Standard (most models)
+
 - 1024x1024 (1:1), 1344x768 (16:9), 768x1344 (9:16)
 - 1248x832 (3:2), 832x1248 (2:3)
 - 1184x864 (4:3), 864x1184 (3:4)
 
-### Gemini 3 Pro Image — 1K
-1024x1024, 1248x832, 832x1248, 1184x864, 864x1184, 896x1152, 1152x896, 768x1344, 1344x768, 1536x672
+### Gemini 3 Pro Image -- 1K
 
-### Gemini 3 Pro Image — 2K
-2048x2048, 2496x1664, 1664x2496, 2368x1728, 1728x2368, 1792x2304, 2304x1792, 1536x2688, 2688x1536, 3072x1344
+1024x1024, 1248x832, 832x1248, 1184x864, 864x1184, 896x1152, 1152x896, 768x1344, 1344x768,
+1536x672
 
-### Gemini 3 Pro Image — 4K
-4096x4096, 4992x3328, 3328x4992, 4736x3456, 3456x4736, 3584x4608, 4608x3584, 3072x5376, 5376x3072, 6144x2688
+### Gemini 3 Pro Image -- 2K
+
+2048x2048, 2496x1664, 1664x2496, 2368x1728, 1728x2368, 1792x2304, 2304x1792, 1536x2688,
+2688x1536, 3072x1344
+
+### Gemini 3 Pro Image -- 4K
+
+4096x4096, 4992x3328, 3328x4992, 4736x3456, 3456x4736, 3584x4608, 4608x3584, 3072x5376,
+5376x3072, 6144x2688
+
+## FLUX Pricing Formula
+
+```
+Cost = MP x Price_per_MP x (Steps / Default_Steps)
+MP = Width x Height / 1,000,000
+```
