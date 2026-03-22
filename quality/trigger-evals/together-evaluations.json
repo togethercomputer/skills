@@ -1,0 +1,26 @@
+[
+  {
+    "query": "Set up a Together AI evaluation job to score model responses from 1 to 10 using a judge model.",
+    "should_trigger": true
+  },
+  {
+    "query": "I want to compare two answer variants with Together AI and download the evaluation results later.",
+    "should_trigger": true
+  },
+  {
+    "query": "Show me how to upload a dataset and run a classify evaluation on Together AI with an external judge model.",
+    "should_trigger": true
+  },
+  {
+    "query": "Run 500,000 plain generation requests as cheaply as possible overnight.",
+    "should_trigger": false
+  },
+  {
+    "query": "Train a model on preference data with DPO.",
+    "should_trigger": false
+  },
+  {
+    "query": "Deploy a dedicated endpoint for a fine-tuned model and scale it up.",
+    "should_trigger": false
+  }
+]

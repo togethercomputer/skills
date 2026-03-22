@@ -1,233 +1,64 @@
 ---
 name: together-batch-inference
-description: Process large volumes of inference requests asynchronously at up to 50% lower cost via Together AI's Batch API. Supports up to 50K requests per batch, 100MB max file size. Use when users need batch processing, offline inference, bulk data classification, synthetic data generation, or cost-optimized large-scale LLM workloads.
+description: Use this skill for Together AI Batch API workflows: preparing JSONL inputs, uploading batch files, creating asynchronous jobs, polling status, downloading outputs, and optimizing large offline inference runs for lower cost. Reach for it whenever the user needs high-volume, non-interactive inference rather than real-time chat or evaluation jobs.
 ---
 
 # Together Batch Inference
 
 ## Overview
 
-Process thousands of requests asynchronously at up to 50% cost discount. Ideal for workloads that don't need real-time responses:
-- Evaluations and data analysis
-- Large-scale classification
-- Synthetic data generation
-- Content generation and summarization
-- Dataset transformations
+Use Together AI's Batch API for large offline workloads where latency is not the primary concern.
 
-## Installation
+Typical fits:
 
-```shell
-# Python (recommended)
-uv init  # optional, if starting a new project
-uv add together
-```
+- bulk classification
+- synthetic data generation
+- dataset transformations
+- large summarization or enrichment jobs
+- low-cost asynchronous inference
 
-```shell
-# or with pip
-pip install together
-```
+## When This Skill Wins
 
-```shell
-# TypeScript / JavaScript
-npm install together-ai
-```
+- The user has many independent requests to run
+- A JSONL request file is acceptable
+- Turnaround time can be minutes or hours instead of seconds
+- Lower cost matters more than immediate interactivity
 
-Set your API key:
+## Hand Off To Another Skill
 
-```shell
-export TOGETHER_API_KEY=<your-api-key>
-```
+- Use `together-chat-completions` for real-time requests or tool-calling apps
+- Use `together-evaluations` for managed LLM-as-a-judge workflows
+- Use `together-embeddings` for retrieval-specific vector generation
+
+## Quick Routing
+
+- **End-to-end batch workflow**
+  - Start with [scripts/batch_workflow.py](scripts/batch_workflow.py) or [scripts/batch_workflow.ts](scripts/batch_workflow.ts)
+- **Request format, status model, and result downloads**
+  - Read [references/api-reference.md](references/api-reference.md)
 
 ## Workflow
 
-1. Prepare a `.jsonl` batch file with requests
-2. Upload the file with `purpose="batch-api"`
-3. Create a batch job
-4. Poll for completion
-5. Download results
+1. Build a JSONL file where each line contains `custom_id` and `body`.
+2. Upload the file with `purpose="batch-api"`.
+3. Create the batch with `input_file_id=...` and the target endpoint.
+4. Poll until the job is terminal.
+5. Download output and error files, then reconcile by `custom_id`.
 
-## Quick Start
+## High-Signal Rules
 
-### 1. Prepare Batch File
+- Use `input_file_id`, not legacy file parameters.
+- Keep `custom_id` stable and meaningful so result reconciliation is easy.
+- Batch is for independent requests. If the workload depends on shared conversation state, it is probably the wrong tool.
+- Always inspect the error file in addition to the success output.
 
-Each line: `custom_id` (unique) + `body` (request payload).
+## Resource Map
 
-```jsonl batch_input.jsonl
-{"custom_id": "req-1", "body": {"model": "Qwen/Qwen2.5-7B-Instruct-Turbo", "messages": [{"role": "user", "content": "Hello!"}], "max_tokens": 200}}
-{"custom_id": "req-2", "body": {"model": "Qwen/Qwen2.5-7B-Instruct-Turbo", "messages": [{"role": "user", "content": "Explain quantum computing"}], "max_tokens": 200}}
-```
+- **API reference**: [references/api-reference.md](references/api-reference.md)
+- **Python workflow**: [scripts/batch_workflow.py](scripts/batch_workflow.py)
+- **TypeScript workflow**: [scripts/batch_workflow.ts](scripts/batch_workflow.ts)
 
-### 2. Upload and Create Batch
+## Official Docs
 
-```python
-from together import Together
-client = Together()
-
-# Upload
-file_resp = client.files.upload(file="batch_input.jsonl", purpose="batch-api", check=False)
-
-# Create batch
-batch = client.batches.create(input_file_id=file_resp.id, endpoint="/v1/chat/completions")
-print(batch.job.id)
-```
-
-```typescript
-import Together from "together-ai";
-const client = new Together();
-
-// Upload (use the file ID returned by the Files API)
-const fileId = "file-abc123";
-
-const batch = await client.batches.create({
-  endpoint: "/v1/chat/completions",
-  input_file_id: fileId,
-});
-
-console.log(batch);
-```
-
-```shell
-# Upload the batch file
-curl -X POST "https://api.together.xyz/v1/files" \
-  -H "Authorization: Bearer $TOGETHER_API_KEY" \
-  -F "purpose=batch-api" \
-  -F "file=@batch_input.jsonl"
-
-# Create the batch (use the file id from upload response)
-curl -X POST "https://api.together.xyz/v1/batches" \
-  -H "Authorization: Bearer $TOGETHER_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"input_file_id": "file-abc123", "endpoint": "/v1/chat/completions"}'
-```
-
-### 3. Check Status
-
-```python
-status = client.batches.retrieve(batch.job.id)
-print(status.status)  # VALIDATING → IN_PROGRESS → COMPLETED
-```
-
-```typescript
-import Together from "together-ai";
-const client = new Together();
-
-const batchId = batch.job?.id;
-
-let batchInfo = await client.batches.retrieve(batchId);
-console.log(batchInfo.status);
-```
-
-```shell
-curl -X GET "https://api.together.xyz/v1/batches/batch-abc123" \
-  -H "Authorization: Bearer $TOGETHER_API_KEY"
-```
-
-### 4. Download Results
-
-```python
-if status.status == "COMPLETED":
-    with client.files.with_streaming_response.content(id=status.output_file_id) as response:
-        with open("batch_output.jsonl", "wb") as f:
-            for chunk in response.iter_bytes():
-                f.write(chunk)
-```
-
-```typescript
-import Together from "together-ai";
-const client = new Together();
-
-const batchInfo = await client.batches.retrieve(batchId);
-
-if (batchInfo.status === "COMPLETED" && batchInfo.output_file_id) {
-  const resp = await client.files.content(batchInfo.output_file_id);
-  const result = await resp.text();
-  console.log(result);
-}
-```
-
-### 5. Cancel / List
-
-```python
-client.batches.cancel(batch_id)      # Cancel a batch
-batches = client.batches.list()       # List all batches
-```
-
-```typescript
-import Together from "together-ai";
-const client = new Together();
-
-// List all batches
-const allBatches = await client.batches.list();
-for (const batch of allBatches) {
-  console.log(batch);
-}
-```
-
-```shell
-# Cancel a batch
-curl -X POST "https://api.together.xyz/v1/batches/batch-abc123/cancel" \
-  -H "Authorization: Bearer $TOGETHER_API_KEY"
-
-# List all batches
-curl -X GET "https://api.together.xyz/v1/batches" \
-  -H "Authorization: Bearer $TOGETHER_API_KEY"
-```
-
-## Status Flow
-
-| Status | Description |
-|--------|-------------|
-| `VALIDATING` | Input file being validated |
-| `IN_PROGRESS` | Batch processing |
-| `COMPLETED` | Done — download results |
-| `FAILED` | Processing failed |
-| `CANCELLED` | Batch was cancelled |
-| `EXPIRED` | Job expired before completion |
-
-Output order may differ from input — use `custom_id` to match results.
-
-## Models with 50% Discount
-
-| Model ID | Discount |
-|----------|----------|
-| Qwen/Qwen2.5-7B-Instruct-Turbo | 50% |
-| meta-llama/Llama-3.3-70B-Instruct-Turbo | 50% |
-| meta-llama/Llama-3-70b-chat-hf | 50% |
-| mistralai/Mixtral-8x7B-Instruct-v0.1 | 50% |
-| Qwen/Qwen2.5-7B-Instruct-Turbo | 50% |
-| zai-org/GLM-4.5-Air-FP8 | 50% |
-| openai/whisper-large-v3 | 50% |
-
-All serverless models are available for batch — models not listed have no discount.
-
-## Rate Limits
-
-- **Max enqueued tokens**: 30B per model
-- **Per-batch limit**: 50,000 requests
-- **File size**: 100MB max
-- **Separate pool**: Doesn't consume standard rate limits
-
-## Error Handling
-
-Check `error_file_id` for per-request failures:
-
-```jsonl
-{"custom_id": "req-1", "error": {"message": "Invalid model specified", "code": "invalid_model"}}
-```
-
-## Best Practices
-
-- Aim for 1,000-10,000 requests per batch
-- Validate JSONL before submission
-- Use unique `custom_id` values
-- Poll status every 30-60 seconds
-- Most batches complete within 24 hours (allow 72 hours for large/complex models)
-- Batch files can be reused for multiple jobs
-
-## Resources
-
-- **Full API reference**: See [references/api-reference.md](references/api-reference.md)
-- **Runnable script**: See [scripts/batch_workflow.py](scripts/batch_workflow.py) — complete upload → create → poll → download pipeline (v2 SDK)
-- **Runnable script (TypeScript)**: See [scripts/batch_workflow.ts](scripts/batch_workflow.ts) — complete upload → create → poll → download pipeline (TypeScript SDK)
-- **Official docs**: [Batch Inference](https://docs.together.ai/docs/batch-inference)
-- **API reference**: [Batch API](https://docs.together.ai/reference/batch-create)
+- [Batch Inference](https://docs.together.ai/docs/batch-inference)
+- [Batch API](https://docs.together.ai/reference/batch-create)

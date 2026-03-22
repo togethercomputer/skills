@@ -53,6 +53,18 @@ def parse_frontmatter(text: str) -> tuple[dict[str, str], str]:
     return fm, parts[2]
 
 
+def iter_skill_dirs(path: Path) -> list[Path]:
+    """Expand a path into one or more skill directories."""
+    if (path / "SKILL.md").exists():
+        return [path]
+
+    return sorted(
+        child
+        for child in path.iterdir()
+        if child.is_dir() and (child / "SKILL.md").exists()
+    )
+
+
 def validate_skill(skill_dir: Path) -> list[str]:
     """Validate a single skill directory. Returns list of error messages."""
     errors: list[str] = []
@@ -129,19 +141,25 @@ def main() -> int:
     validated = 0
 
     for arg in sys.argv[1:]:
-        skill_dir = Path(arg)
-        if not skill_dir.is_dir():
+        path = Path(arg)
+        if not path.is_dir():
             print(f"Skipping {arg} (not a directory)")
             continue
-        errors = validate_skill(skill_dir)
-        validated += 1
-        if errors:
-            all_errors.extend(errors)
-            print(f"FAIL  {skill_dir.name}")
-            for e in errors:
-                print(f"      {e}")
-        else:
-            print(f"OK    {skill_dir.name}")
+        skill_dirs = iter_skill_dirs(path)
+        if not skill_dirs:
+            print(f"Skipping {arg} (no SKILL.md found)")
+            continue
+
+        for skill_dir in skill_dirs:
+            errors = validate_skill(skill_dir)
+            validated += 1
+            if errors:
+                all_errors.extend(errors)
+                print(f"FAIL  {skill_dir.name}")
+                for e in errors:
+                    print(f"      {e}")
+            else:
+                print(f"OK    {skill_dir.name}")
 
     print(f"\n{validated} skills validated, {len(all_errors)} errors")
     return 1 if all_errors else 0

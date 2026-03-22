@@ -1,4 +1,11 @@
 # Function Calling Patterns Reference
+## Contents
+
+- [6 Calling Patterns](#6-calling-patterns)
+- [Processing Tool Calls](#processing-tool-calls)
+- [tool_choice Parameter](#toolchoice-parameter)
+- [Supported Models](#supported-models)
+
 
 ## 6 Calling Patterns
 

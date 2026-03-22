@@ -1,4 +1,13 @@
 # Image Generation Models Reference
+## Contents
+
+- [Complete Model Table](#complete-model-table)
+- [Model Categories](#model-categories)
+- [Recommended Models](#recommended-models)
+- [FLUX.2 Model Comparison](#flux2-model-comparison)
+- [Supported Dimensions](#supported-dimensions)
+- [FLUX Pricing Formula](#flux-pricing-formula)
+
 
 ## Complete Model Table
 

@@ -1,4 +1,12 @@
 # Code Interpreter API Reference
+## Contents
+
+- [Endpoints](#endpoints)
+- [Execute Code](#execute-code)
+- [List Sessions](#list-sessions)
+- [Pre-installed Packages](#pre-installed-packages)
+- [Pricing](#pricing)
+
 
 ## Endpoints
 

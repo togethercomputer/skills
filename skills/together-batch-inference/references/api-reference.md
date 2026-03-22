@@ -1,4 +1,18 @@
 # Batch Inference API Reference
+## Contents
+
+- [Endpoints](#endpoints)
+- [Input File Format (JSONL)](#input-file-format)
+- [Create Batch Request](#create-batch-request)
+- [Batch Job Object (Response)](#batch-job-object)
+- [Batch Job Status](#batch-job-status)
+- [Workflow](#workflow)
+- [Models with 50% Discount](#models-with-50-discount)
+- [Rate Limits](#rate-limits)
+- [Error Handling](#error-handling)
+- [Error Codes](#error-codes)
+- [CLI Commands](#cli-commands)
+
 
 ## Endpoints
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together Dedicated Containers"
+  short_description: "Together AI container deployment help"
+  default_prompt: "Use $together-dedicated-containers to deploy a custom inference container on Together AI with Jig, Sprocket, or the queue API."

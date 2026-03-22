@@ -12,27 +12,28 @@ Compatible with **Claude Code**, **Cursor**, **Codex**, and **Gemini CLI**.
 
 Each skill contains:
 
-- **`SKILL.md`** — Core instructions with API patterns, code examples, and best practices
+- **`SKILL.md`** — Lean routing guidance for the agent: when to use the skill, when to hand off, and where to look next
 - **`references/`** — Detailed reference docs (model lists, API parameters, CLI commands)
 - **`scripts/`** — Runnable Python scripts demonstrating complete workflows
+- **`agents/openai.yaml`** — Optional UI metadata for OpenAI/Codex surfaces
 
 ## Skills Overview
 
 <!-- BEGIN_SKILLS_TABLE -->
 | Skill | Description | Scripts |
 |-------|-------------|---------|
-| **together-chat-completions** | Serverless chat completion inference via Together AI's OpenAI-compatible API. | `async_parallel.py`, `chat_basic.py`, `reasoning_models.py`, `structured_outputs.py`, `tool_call_loop.py` |
-| **together-images** | Generate and edit images via Together AI's image generation API. | `generate_image.py`, `kontext_editing.py`, `lora_generation.py` |
-| **together-video** | Generate videos from text and image prompts via Together AI. | `generate_video.py`, `image_to_video.py` |
-| **together-audio** | Text-to-speech (TTS) and speech-to-text (STT) via Together AI. | `stt_realtime.py`, `stt_transcribe.py`, `tts_generate.py`, `tts_websocket.py` |
-| **together-embeddings** | Generate text embeddings via Together AI using the Multilingual E5 model with 1024-dimension vectors. | `embed_and_rerank.py`, `rag_pipeline.py` |
-| **together-fine-tuning** | Fine-tune open-source LLMs on Together AI with LoRA, Full fine-tuning, DPO preference tuning, VLM (vision-language) f... | `dpo_workflow.py`, `finetune_workflow.py`, `function_calling_finetune.py`, `reasoning_finetune.py`, `vlm_finetune.py` |
-| **together-batch-inference** | Process large volumes of inference requests asynchronously at up to 50% lower cost via Together AI's Batch API. | `batch_workflow.py` |
-| **together-evaluations** | Evaluate LLM outputs using Together AI's LLM-as-a-Judge framework with Classify, Score, and Compare evaluation types. | `run_evaluation.py` |
-| **together-code-interpreter** | Execute Python code in a sandboxed environment via Together Code Interpreter (TCI). | `execute_with_session.py` |
-| **together-dedicated-endpoints** | Deploy models on dedicated single-tenant GPU endpoints via Together AI for predictable performance, no rate limits, a... | `deploy_finetuned.py`, `manage_endpoint.py`, `upload_custom_model.py` |
-| **together-dedicated-containers** | Deploy custom Dockerized inference workloads on Together AI's managed GPU infrastructure using Dedicated Container In... | `queue_client.py`, `sprocket_hello_world.py` |
-| **together-gpu-clusters** | Provision on-demand and reserved GPU clusters (Instant Clusters) on Together AI with H100, H200, B200, L40, and RTX-6... | `manage_cluster.py`, `manage_storage.py` |
+| **together-chat-completions** | Use this skill for Together AI serverless chat inference: real-time or streaming chat apps, multi-turn conversations,... | `async_parallel.py`, `chat_basic.py`, `reasoning_models.py`, `structured_outputs.py`, `tool_call_loop.py` |
+| **together-images** | Use this skill for Together AI image workflows: text-to-image generation, image editing with Kontext, FLUX model sele... | `generate_image.py`, `kontext_editing.py`, `lora_generation.py` |
+| **together-video** | Use this skill for Together AI video workflows: text-to-video generation, image-to-video with keyframe control, model... | `generate_video.py`, `image_to_video.py` |
+| **together-audio** | Use this skill for Together AI audio workflows: text-to-speech over REST, streaming, or realtime WebSocket APIs, plus... | `stt_realtime.py`, `stt_transcribe.py`, `tts_generate.py`, `tts_websocket.py` |
+| **together-embeddings** | Use this skill for Together AI embedding, retrieval, and reranking workflows: generating dense vectors, building sema... | `embed_and_rerank.py`, `rag_pipeline.py` |
+| **together-fine-tuning** | Use this skill for Together AI fine-tuning workflows: LoRA or full fine-tuning, DPO preference tuning, VLM training, ... | `dpo_workflow.py`, `finetune_workflow.py`, `function_calling_finetune.py`, `reasoning_finetune.py`, `vlm_finetune.py` |
+| **together-batch-inference** | Use this skill for Together AI Batch API workflows: preparing JSONL inputs, uploading batch files, creating asynchron... | `batch_workflow.py` |
+| **together-evaluations** | Use this skill for Together AI LLM-as-a-judge workflows: classify, score, and compare evaluations; judge model select... | `run_evaluation.py` |
+| **together-code-interpreter** | Use this skill for Together AI Code Interpreter workflows: remote Python execution, session reuse, file uploads, data... | `execute_with_session.py` |
+| **together-dedicated-endpoints** | Use this skill for Together AI dedicated endpoint workflows: selecting dedicated-eligible models, sizing hardware, cr... | `deploy_finetuned.py`, `manage_endpoint.py`, `upload_custom_model.py` |
+| **together-dedicated-containers** | Use this skill for Together AI Dedicated Container Inference workflows: building custom Dockerized inference workers,... | `queue_client.py`, `sprocket_hello_world.py` |
+| **together-gpu-clusters** | Use this skill for Together AI GPU clusters and raw infrastructure workflows: provisioning on-demand or reserved clus... | `manage_cluster.py`, `manage_storage.py` |
 <!-- END_SKILLS_TABLE -->
 
 ## Installation
@@ -132,40 +133,57 @@ The agent will reference `together-fine-tuning` for data format requirements, tr
 Each script is a standalone, runnable example. They require the Together Python SDK and an API key:
 
 ```bash
-pip install together
+pip install "together>=2.0.0"
 export TOGETHER_API_KEY=your_key
 
 # Run any script directly
-python together-skills/together-images/scripts/generate_image.py
-python together-skills/together-audio/scripts/tts_generate.py
-python together-skills/together-batch-inference/scripts/batch_workflow.py
+python skills/together-images/scripts/generate_image.py
+python skills/together-audio/scripts/tts_generate.py
+python skills/together-batch-inference/scripts/batch_workflow.py
 ```
 
-Scripts use the **Together Python v2 SDK** (`together>=1.0.0`) with keyword-only arguments, updated method names, and current response shapes.
+Scripts use the **Together Python v2 SDK** (`together>=2.0.0`) with keyword-only arguments, updated method names, and current response shapes.
 
 ## Skill Structure
 
 ```
-together-<product>/
-├── SKILL.md              # Core instructions (always loaded on trigger)
-├── references/           # Detailed docs (loaded when needed)
-│   ├── models.md         # Supported models, IDs, context lengths
-│   ├── api-reference.md  # Full API parameters and response shapes
-│   └── ...
-└── scripts/              # Runnable Python examples (v2 SDK)
-    └── <workflow>.py     # Complete end-to-end workflow
+togetherai-skills/
+├── quality/
+│   └── trigger-evals/         # Skill trigger test sets
+├── scripts/                   # Repo tooling, generators, validators
+└── skills/
+    └── together-<product>/
+        ├── SKILL.md           # Core instructions (always loaded on trigger)
+        ├── agents/
+        │   └── openai.yaml    # OpenAI/Codex interface metadata
+        ├── references/        # Detailed docs (loaded when needed)
+        │   ├── models.md      # Supported models, IDs, context lengths
+        │   ├── api-reference.md
+        │   └── ...
+        └── scripts/           # Runnable Python examples (v2 SDK)
+            └── <workflow>.py
 ```
 
 ### How skills are loaded
 
 1. **Metadata** (YAML frontmatter) — Always available to the agent (~100 words). Used to decide whether to load the skill.
-2. **Body** (Markdown) — Loaded when the skill is triggered. Contains API patterns, code examples, and best practices.
+2. **Body** (Markdown) — Loaded when the skill is triggered. It should stay lean and focus on routing, high-signal rules, and the next resource to open.
 3. **References** — Loaded on demand when the agent needs deeper detail (model lists, full API specs).
 4. **Scripts** — Available as runnable code that the agent can reference or execute directly.
+5. **OpenAI metadata** — `agents/openai.yaml` gives OpenAI/Codex surfaces a display name, short description, and default prompt.
+
+## Quality Guardrails
+
+This repo now treats skills as agent artifacts rather than long tutorials:
+
+- `SKILL.md` files are intentionally short and routing-oriented
+- Long references include a `## Contents` section near the top
+- Each skill has trigger eval examples in `quality/trigger-evals/`
+- Multi-step Python workflows are validated for current v2 SDK usage and safer tempfile handling
 
 ## SDK Compatibility
 
-All code examples and scripts target the **Together Python v2 SDK** (`together>=1.0.0`), which uses:
+All code examples and scripts target the **Together Python v2 SDK** (`together>=2.0.0`), which uses:
 
 - Keyword-only arguments (not positional)
 - `client.batches.create()` / `client.batches.retrieve()` (not `create_batch()` / `get_batch()`)
@@ -182,7 +200,7 @@ If you're using the v1 SDK, see the [migration guide](https://docs.together.ai/d
 - A supported AI coding agent: [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [Cursor](https://www.cursor.com), [Codex](https://openai.com/index/introducing-codex/), or [Gemini CLI](https://github.com/google-gemini/gemini-cli)
 - [Together AI API key](https://api.together.ai/settings/api-keys)
 - Python 3.10+ (for scripts)
-- `pip install together` (v2 SDK, `>=1.0.0`)
+- `pip install "together>=2.0.0"` (v2 SDK)
 
 ## License
 

@@ -14,25 +14,28 @@ Qwen3-Next-80B-A3B-Thinking.
 
 Usage:
     python reasoning_finetune.py
+    python reasoning_finetune.py --training-file reasoning.jsonl --model Qwen/Qwen3-8B
+    python reasoning_finetune.py --test-prompt "What is 30% of 250?"
 
 Requires:
     pip install together
     export TOGETHER_API_KEY=your_key
 """
 
+import argparse
 import json
-import time
 import tempfile
+import time
+from pathlib import Path
+
 from together import Together
 
 client = Together()
 
-def main() -> None:
-    # --- 1. Prepare reasoning training data ---
-    # Each assistant message has:
-    #   - "reasoning" or "reasoning_content": the chain-of-thought process
-    #   - "content": the final answer shown to the user
-    training_data = [
+
+def sample_training_data() -> list[dict]:
+    """Return a small reasoning dataset."""
+    return [
         {
             "messages": [
                 {"role": "user", "content": "What is 15% of 240?"},
@@ -105,44 +108,72 @@ def main() -> None:
         },
         {
             "messages": [
-                {
-                    "role": "user",
-                    "content": "Solve for x: 3x + 7 = 22",
-                },
+                {"role": "user", "content": "Solve for x: 3x + 7 = 22"},
                 {
                     "role": "assistant",
                     "reasoning": (
                         "3x + 7 = 22\n"
                         "Subtract 7 from both sides: 3x = 15\n"
                         "Divide both sides by 3: x = 5\n"
-                        "Check: 3(5) + 7 = 15 + 7 = 22 ✓"
+                        "Check: 3(5) + 7 = 15 + 7 = 22"
                     ),
                     "content": "**x = 5**",
                 },
             ]
         },
-        # Add more examples for production use...
     ]
 
-    data_path = tempfile.mktemp(suffix=".jsonl")
-    with open(data_path, "w") as f:
-        for example in training_data:
-            f.write(json.dumps(example) + "\n")
 
-    print(f"Wrote {len(training_data)} reasoning examples to {data_path}")
+def create_temp_dataset(rows: list[dict]) -> Path:
+    """Write JSONL rows to a temporary file."""
+    with tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False, encoding="utf-8") as temp_file:
+        for example in rows:
+            temp_file.write(json.dumps(example) + "\n")
+        return Path(temp_file.name)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Together AI reasoning fine-tuning workflow")
+    parser.add_argument("--training-file", help="Path to a reasoning training JSONL file")
+    parser.add_argument("--model", default="Qwen/Qwen3-8B", help="Reasoning-capable base model")
+    parser.add_argument("--suffix", default="reasoning-math-v1", help="Suffix for the fine-tuned model")
+    parser.add_argument("--n-epochs", type=int, default=3, help="Number of training epochs")
+    parser.add_argument("--learning-rate", type=float, default=1e-5, help="Training learning rate")
+    parser.add_argument("--poll-interval", type=int, default=30, help="Seconds between status checks")
+    parser.add_argument(
+        "--test-prompt",
+        default="What is 25% of 360?",
+        help="Prompt to use when testing the fine-tuned model",
+    )
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    data_path: Path | None = None
+    upload_path = args.training_file
+    if upload_path is None:
+        training_data = sample_training_data()
+        data_path = create_temp_dataset(training_data)
+        upload_path = str(data_path)
+        print(f"Wrote {len(training_data)} reasoning examples to {data_path}")
 
     # --- 2. Upload ---
-    file_resp = client.files.upload(file=data_path, purpose="fine-tune", check=True)
+    try:
+        file_resp = client.files.upload(file=upload_path, purpose="fine-tune", check=True)
+    finally:
+        if data_path is not None:
+            data_path.unlink(missing_ok=True)
     print(f"Uploaded file: {file_resp.id}")
 
     # --- 3. Start LoRA fine-tuning on a reasoning-capable model ---
     job = client.fine_tuning.create(
         training_file=file_resp.id,
-        model="Qwen/Qwen3-8B",
+        model=args.model,
         lora=True,
-        n_epochs=3,
-        learning_rate=1e-5,
-        suffix="reasoning-math-v1",
+        n_epochs=args.n_epochs,
+        learning_rate=args.learning_rate,
+        suffix=args.suffix,
     )
     print(f"Created reasoning fine-tuning job: {job.id}")
 
@@ -156,17 +187,13 @@ def main() -> None:
         if status.status in ("failed", "cancelled"):
             print(f"Job ended: {status.status}")
             raise SystemExit(1)
-        time.sleep(30)
+        time.sleep(args.poll_interval)
 
     # --- 5. Test reasoning inference ---
-    # The fine-tuned model should now produce chain-of-thought reasoning
-    # in the `reasoning` field and the final answer in `content`.
     print("\n--- Testing reasoning inference ---")
     stream = client.chat.completions.create(
         model=status.output_name,
-        messages=[
-            {"role": "user", "content": "What is 25% of 360?"},
-        ],
+        messages=[{"role": "user", "content": args.test_prompt}],
         stream=True,
     )
 
@@ -184,21 +211,12 @@ def main() -> None:
     print(f"Answer: {content_text}")
 
     # --- 6. (Optional) Preference fine-tuning for reasoning ---
-    # You can also do DPO with reasoning data. Both preferred and
-    # non-preferred outputs include reasoning fields:
     dpo_example = {
-        "input": {
-            "messages": [
-                {"role": "user", "content": "What is 15% of 240?"}
-            ]
-        },
+        "input": {"messages": [{"role": "user", "content": "What is 15% of 240?"}]},
         "preferred_output": [
             {
                 "role": "assistant",
-                "reasoning": (
-                    "15% means 15/100 = 0.15\n"
-                    "0.15 * 240 = 36"
-                ),
+                "reasoning": "15% means 15/100 = 0.15\n0.15 * 240 = 36",
                 "content": "15% of 240 is **36**.",
             }
         ],

@@ -1,0 +1,26 @@
+[
+  {
+    "query": "Provision a Together AI H100 Kubernetes cluster and attach shared storage for distributed training.",
+    "should_trigger": true
+  },
+  {
+    "query": "I need a reserved Slurm cluster on Together AI and the tcloud CLI commands to manage it.",
+    "should_trigger": true
+  },
+  {
+    "query": "Show me how to scale a Together AI cluster, get kube credentials, and troubleshoot GPU health.",
+    "should_trigger": true
+  },
+  {
+    "query": "Deploy a supported chat model to a managed dedicated endpoint with no custom runtime.",
+    "should_trigger": false
+  },
+  {
+    "query": "Run some remote Python code in a managed Together sandbox and return a chart.",
+    "should_trigger": false
+  },
+  {
+    "query": "Build a queue-based custom container worker on Together AI.",
+    "should_trigger": false
+  }
+]

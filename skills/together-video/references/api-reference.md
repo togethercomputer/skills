@@ -1,4 +1,14 @@
 # Video Generation API Reference
+## Contents
+
+- [Endpoints](#endpoints)
+- [Create Video](#create-video)
+- [Get Video Status](#get-video-status)
+- [Job Statuses](#job-statuses)
+- [Polling Pattern](#polling-pattern)
+- [Guidance Scale](#guidance-scale)
+- [Steps](#steps)
+
 
 ## Endpoints
 

@@ -25,6 +25,12 @@ if ! python3 scripts/generate_agents.py $CHECK_FLAG; then
 fi
 
 echo ""
+echo "==> Generating agents/openai.yaml metadata..."
+if ! python3 scripts/generate_openai_yaml.py $CHECK_FLAG; then
+    EXIT_CODE=1
+fi
+
+echo ""
 echo "==> Generating .cursor-plugin/ manifests..."
 if ! python3 scripts/generate_cursor_plugin.py $CHECK_FLAG; then
     EXIT_CODE=1
@@ -34,6 +40,12 @@ echo ""
 if [[ -z "$CHECK_FLAG" ]]; then
     echo "==> Validating all skills..."
     if ! python3 scripts/quick_validate.py skills/together-*; then
+        EXIT_CODE=1
+    fi
+
+    echo ""
+    echo "==> Running quality checks..."
+    if ! python3 scripts/quality_check.py; then
         EXIT_CODE=1
     fi
 fi

@@ -1,0 +1,26 @@
+[
+  {
+    "query": "Build a Together AI chat endpoint with server-sent streaming and a Qwen model.",
+    "should_trigger": true
+  },
+  {
+    "query": "Show me a full tool-calling loop on Together AI where the model can call weather and calendar functions.",
+    "should_trigger": true
+  },
+  {
+    "query": "I need Together AI chat completions to return a strict JSON schema and optionally enable reasoning mode.",
+    "should_trigger": true
+  },
+  {
+    "query": "Backfill 12 million records overnight with Together AI as cheaply as possible.",
+    "should_trigger": false
+  },
+  {
+    "query": "Deploy my fine-tuned model to a dedicated Together AI endpoint with autoscaling.",
+    "should_trigger": false
+  },
+  {
+    "query": "Embed a document corpus and rerank retrieval results before generation.",
+    "should_trigger": false
+  }
+]

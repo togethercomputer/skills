@@ -1,4 +1,19 @@
 # Jig CLI Reference
+## Contents
+
+- [Installation](#installation)
+- [Environment Variables](#environment-variables)
+- [Build Commands](#build-commands)
+- [Deployment Commands](#deployment-commands)
+- [Queue Commands](#queue-commands)
+- [Queue API](#queue-api)
+- [Secrets Commands](#secrets-commands)
+- [Volumes Commands](#volumes-commands)
+- [Configuration (pyproject.toml)](#configuration)
+- [Full Example](#full-example)
+- [Container Registry](#container-registry)
+- [Debug Mode](#debug-mode)
+
 
 ## Installation
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together Dedicated Endpoints"
+  short_description: "Together AI single-tenant endpoints"
+  default_prompt: "Use $together-dedicated-endpoints to deploy or manage a dedicated Together AI endpoint for a model, fine-tune, or custom upload."

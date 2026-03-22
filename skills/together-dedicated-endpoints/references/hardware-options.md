@@ -1,4 +1,16 @@
 # Dedicated Endpoints Hardware Reference
+## Contents
+
+- [Hardware ID Format](#hardware-id-format)
+- [GPU Types](#gpu-types)
+- [Common Configurations](#common-configurations)
+- [Hardware Availability Status](#hardware-availability-status)
+- [Hardware Response Object](#hardware-response-object)
+- [Pricing Model](#pricing-model)
+- [GPU Selection Guide](#gpu-selection-guide)
+- [Scaling](#scaling)
+- [Autoscaling Schema](#autoscaling-schema)
+
 
 ## Hardware ID Format
 

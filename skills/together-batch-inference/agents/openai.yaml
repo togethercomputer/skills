@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together Batch Inference"
+  short_description: "Together AI offline batch inference"
+  default_prompt: "Use $together-batch-inference to build a Together AI batch job pipeline for large-scale offline inference."

@@ -1,0 +1,26 @@
+[
+  {
+    "query": "Generate a FLUX.2 product hero image on Together AI and save it locally as PNG.",
+    "should_trigger": true
+  },
+  {
+    "query": "Edit an uploaded image with Together AI Kontext so the background becomes a rainy cyberpunk alley.",
+    "should_trigger": true
+  },
+  {
+    "query": "Apply two LoRA adapters to a Together AI image generation request for a stylized portrait.",
+    "should_trigger": true
+  },
+  {
+    "query": "Animate a product photo into a five-second video with Together AI.",
+    "should_trigger": false
+  },
+  {
+    "query": "Build a streaming chatbot with tool calling and structured JSON outputs.",
+    "should_trigger": false
+  },
+  {
+    "query": "Deploy a custom image container to Together AI because I need my own runtime.",
+    "should_trigger": false
+  }
+]

@@ -1,4 +1,17 @@
 # Chat Completions API Parameters
+## Contents
+
+- [Required Parameters](#required-parameters)
+- [Generation Parameters](#generation-parameters)
+- [Output Control](#output-control)
+- [Response Format](#response-format)
+- [Function Calling](#function-calling)
+- [Safety & Compliance](#safety-compliance)
+- [Reasoning](#reasoning)
+- [Context Handling](#context-handling)
+- [Message Object](#message-object)
+- [HTTP Status Codes](#http-status-codes)
+
 
 ## Required Parameters
 

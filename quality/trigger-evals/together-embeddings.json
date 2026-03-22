@@ -1,0 +1,26 @@
+[
+  {
+    "query": "Generate embeddings for all my docs on Together AI and store them in Pinecone for semantic search.",
+    "should_trigger": true
+  },
+  {
+    "query": "I want a Together AI retrieval pipeline that embeds the query, retrieves candidates, and reranks them before generation.",
+    "should_trigger": true
+  },
+  {
+    "query": "Show me how to call Together AI embeddings in batches and compute cosine similarity between documents.",
+    "should_trigger": true
+  },
+  {
+    "query": "Compare two LLM responses with an automated judge and score them on quality.",
+    "should_trigger": false
+  },
+  {
+    "query": "Build a streaming chat app on Together AI with tool calling.",
+    "should_trigger": false
+  },
+  {
+    "query": "Fine-tune Llama on my customer support transcripts.",
+    "should_trigger": false
+  }
+]

@@ -1,4 +1,21 @@
 # Dedicated Endpoints API Reference
+## Contents
+
+- [Endpoints](#endpoints)
+- [Create Endpoint](#create-endpoint)
+- [Get Endpoint](#get-endpoint)
+- [List Endpoints](#list-endpoints)
+- [Endpoint States](#endpoint-states)
+- [Update Endpoint](#update-endpoint)
+- [Start / Stop](#start-stop)
+- [Delete](#delete)
+- [List Hardware](#list-hardware)
+- [Upload Model](#upload-model)
+- [List Models](#list-models)
+- [Using the Endpoint](#using-the-endpoint)
+- [CLI Reference](#cli-reference)
+- [Endpoint Response Object](#endpoint-response-object)
+
 
 ## Endpoints
 

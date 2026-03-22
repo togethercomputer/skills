@@ -10,14 +10,14 @@
  * Requires:
  *     npm install together-ai
  *     export TOGETHER_API_KEY=your_key
+ *     export TOGETHER_DEPLOYMENT_NAME=your-deployment-name
  */
 
 import Together from "together-ai";
 
 const client = new Together();
 
-// Change this to your deployment name
-const DEPLOYMENT = "hello-world";
+const DEPLOYMENT = process.env.TOGETHER_DEPLOYMENT_NAME ?? "hello-world";
 
 async function submitAndPoll(
   payload: Record<string, any>,

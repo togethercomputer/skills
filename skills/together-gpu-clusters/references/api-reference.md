@@ -1,4 +1,25 @@
 # GPU Clusters API Reference
+## Contents
+
+- [Cluster Endpoints](#cluster-endpoints)
+- [Storage Endpoints](#storage-endpoints)
+- [Create Cluster](#create-cluster)
+- [List Clusters](#list-clusters)
+- [Get Cluster](#get-cluster)
+- [Update / Scale Cluster](#update-scale-cluster)
+- [Delete Cluster](#delete-cluster)
+- [List Regions](#list-regions)
+- [Create Shared Volume](#create-shared-volume)
+- [List Shared Volumes](#list-shared-volumes)
+- [Get Shared Volume](#get-shared-volume)
+- [Update (Resize) Shared Volume](#update-shared-volume)
+- [Delete Shared Volume](#delete-shared-volume)
+- [Instance Types](#instance-types)
+- [Driver Versions](#driver-versions)
+- [Cluster Statuses](#cluster-statuses)
+- [Volume Statuses](#volume-statuses)
+- [Cluster Response Object](#cluster-response-object)
+
 
 Base URL: `https://api.together.xyz/v1`
 

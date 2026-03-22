@@ -1,4 +1,18 @@
 # Image Generation API Reference
+## Contents
+
+- [Endpoint](#endpoint)
+- [Parameters](#parameters)
+- [Text-to-Image](#text-to-image)
+- [FLUX.2 Generation](#flux2-generation)
+- [Image Editing (Kontext)](#image-editing)
+- [Reference Images (FLUX.2, Google)](#reference-images)
+- [LoRA Adapters](#lora-adapters)
+- [Response](#response)
+- [Steps Guide](#steps-guide)
+- [Dimensions Guide](#dimensions-guide)
+- [Model Feature Matrix](#model-feature-matrix)
+
 
 ## Endpoint
 

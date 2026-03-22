@@ -1,0 +1,26 @@
+[
+  {
+    "query": "Deploy a Together AI dedicated endpoint for Qwen, choose hardware, and autoscale it between 1 and 4 replicas.",
+    "should_trigger": true
+  },
+  {
+    "query": "I finished a Together fine-tune and now need to host the resulting model on a single-tenant endpoint.",
+    "should_trigger": true
+  },
+  {
+    "query": "Upload a custom Hugging Face model to Together AI and serve it from a dedicated endpoint.",
+    "should_trigger": true
+  },
+  {
+    "query": "Create a custom Docker container with Sprocket and deploy it behind the Together queue API.",
+    "should_trigger": false
+  },
+  {
+    "query": "Spin up an H200 cluster with Kubernetes because I want to run my own training jobs.",
+    "should_trigger": false
+  },
+  {
+    "query": "Build a serverless streaming chatbot on Together AI with JSON outputs.",
+    "should_trigger": false
+  }
+]

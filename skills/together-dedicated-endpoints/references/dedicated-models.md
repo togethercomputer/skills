@@ -1,4 +1,13 @@
 # Dedicated Endpoints Model Reference
+## Contents
+
+- [Chat Models](#chat-models)
+- [Image Models](#image-models)
+- [Transcription Models](#transcription-models)
+- [Moderation Models](#moderation-models)
+- [Rerank Models](#rerank-models)
+- [Custom and Fine-tuned Models](#custom-and-fine-tuned-models)
+
 
 Models available for deployment on dedicated endpoints. This list changes frequently -- use
 `together models list --type dedicated` for the current catalog.

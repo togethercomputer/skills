@@ -1,4 +1,12 @@
 # Structured Outputs Reference
+## Contents
+
+- [Three Modes](#three-modes)
+- [Structured Outputs with Reasoning Models](#structured-outputs-with-reasoning-models)
+- [Supported Models](#supported-models)
+- [Troubleshooting](#troubleshooting)
+- [Prompting Best Practices](#prompting-best-practices)
+
 
 ## Three Modes
 

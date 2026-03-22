@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together Chat Completions"
+  short_description: "Together AI serverless chat workflows"
+  default_prompt: "Use $together-chat-completions to build a Together AI chat app with streaming, tool use, structured outputs, or reasoning."
