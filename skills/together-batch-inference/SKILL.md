@@ -36,6 +36,8 @@ Typical fits:
   - Start with [scripts/batch_workflow.py](scripts/batch_workflow.py) or [scripts/batch_workflow.ts](scripts/batch_workflow.ts)
 - **Request format, status model, and result downloads**
   - Read [references/api-reference.md](references/api-reference.md)
+- **Operational guidance and batch sizing**
+  - Read [references/api-reference.md](references/api-reference.md)
 
 ## Workflow
 
@@ -55,6 +57,7 @@ Typical fits:
 ## Resource Map
 
 - **API reference**: [references/api-reference.md](references/api-reference.md)
+- **Operational guidance**: [references/api-reference.md](references/api-reference.md)
 - **Python workflow**: [scripts/batch_workflow.py](scripts/batch_workflow.py)
 - **TypeScript workflow**: [scripts/batch_workflow.ts](scripts/batch_workflow.ts)
 
