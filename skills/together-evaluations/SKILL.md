@@ -41,10 +41,15 @@ through Together AI's evaluation system.
   - Read [references/api-reference.md](references/api-reference.md) for exact request shapes
 - **Dataset formatting**
   - Read the dataset sections in [references/api-reference.md](references/api-reference.md)
+- **Dataset columns, Jinja2 templates, or pre-generated responses**
+  - Read the dataset and template sections in [references/api-reference.md](references/api-reference.md)
+  - Use `--eval-column`, `--model-a-column`, or `--model-b-column` in the scripts
 - **External providers as judge or target**
   - Read the model-source and provider sections in [references/api-reference.md](references/api-reference.md)
+  - Use the scripts with `--judge-model-source external`, `--eval-model-source external`, or compare-side source flags
 - **Polling, listing, or downloading results**
   - Use the retrieval endpoints documented in [references/api-reference.md](references/api-reference.md)
+  - Use `--download-results` in the scripts when you want the per-row JSONL locally
 
 ## Workflow
 
@@ -65,6 +70,7 @@ through Together AI's evaluation system.
 ## Resource Map
 
 - **Full API reference**: [references/api-reference.md](references/api-reference.md)
+- **Dataset formats, Jinja2 templates, and provider shortcuts**: [references/api-reference.md](references/api-reference.md)
 - **Python workflow**: [scripts/run_evaluation.py](scripts/run_evaluation.py)
 - **TypeScript workflow**: [scripts/run_evaluation.ts](scripts/run_evaluation.ts)
 

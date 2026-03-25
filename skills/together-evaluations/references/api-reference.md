@@ -8,12 +8,16 @@
 - [Evaluation Job Response](#evaluation-job-response)
 - [Result Schemas](#result-schemas)
 - [Evaluation Types](#evaluation-types)
+- [Dataset Format](#dataset-format)
+- [Jinja2 Templates](#jinja2-templates)
+- [External Judges and Targets](#external-judges-and-targets)
 - [Retrieve Evaluation](#retrieve-evaluation)
 - [Get Evaluation Status](#get-evaluation-status)
 - [List Evaluations](#list-evaluations)
 - [List Evaluation Models](#list-evaluation-models)
 - [Download Result File](#download-result-file)
 - [Model Sources](#model-sources)
+- [UI-Based Evaluations](#ui-based-evaluations)
 - [Evaluation Status Flow](#evaluation-status-flow)
 - [CLI Commands](#cli-commands)
 
@@ -407,6 +411,140 @@ curl -X POST "https://api.together.xyz/v1/evaluation" \
   }'
 ```
 
+You can also compare pre-generated responses by passing dataset column names instead of model
+configs:
+
+```python
+evaluation = client.evals.create(
+    type="compare",
+    parameters={
+        "input_data_file_path": "file-abc123",
+        "judge": {
+            "model": "deepseek-ai/DeepSeek-V3.1",
+            "model_source": "serverless",
+            "system_template": (
+                "Assess which response is better. Consider clarity, accuracy, and usefulness."
+            ),
+        },
+        "model_a": "response_a",
+        "model_b": "response_b",
+    },
+)
+```
+
+## Dataset Format
+
+Upload JSONL or CSV with `purpose="eval"`. When using the SDK helpers in this repo, pass
+`check=False` to bypass the local file checker for eval datasets.
+
+For classify and score jobs, include prompts and optionally pre-generated responses:
+
+```jsonl
+{"prompt": "What is AI?", "response": "AI is artificial intelligence."}
+{"prompt": "Capital of France?", "response": "The capital of France is Paris."}
+```
+
+For compare jobs with pre-generated outputs, include both candidate columns:
+
+```jsonl
+{"prompt": "What is AI?", "response_a": "Answer from model A", "response_b": "Answer from model B"}
+{"prompt": "Explain gravity.", "response_a": "A concise answer", "response_b": "A longer answer"}
+```
+
+If `model_to_evaluate`, `model_a`, or `model_b` is a model config instead of a column name,
+Together generates the candidate responses at evaluation time.
+
+## Jinja2 Templates
+
+Both `system_template` and `input_template` support Jinja2 syntax:
+
+- `{{prompt}}` for simple substitution from dataset columns
+- `{{metadata.topic}}` for nested field access
+- conditionals and loops for more structured judge or generation prompts
+
+Typical target-model example:
+
+```json
+{
+  "system_template": "You are a helpful assistant focused on {{metadata.topic}}.",
+  "input_template": "Answer the following question:\n\n{{prompt}}"
+}
+```
+
+## External Judges and Targets
+
+Use external providers as either judges or evaluation targets when the workflow still runs through
+Together AI's evaluation system.
+
+### External model as evaluation target
+
+```python
+evaluation = client.evals.create(
+    type="classify",
+    parameters={
+        "input_data_file_path": "file-abc123",
+        "judge": {
+            "model": "deepseek-ai/DeepSeek-V3.1",
+            "model_source": "serverless",
+            "system_template": "Classify the response as Toxic or Non-toxic.",
+        },
+        "labels": ["Toxic", "Non-toxic"],
+        "pass_labels": ["Non-toxic"],
+        "model_to_evaluate": {
+            "model": "openai/gpt-5",
+            "model_source": "external",
+            "external_api_token": "sk-...",
+            "system_template": "You are a helpful assistant.",
+            "input_template": "{{prompt}}",
+            "max_tokens": 512,
+            "temperature": 0.7,
+        },
+    },
+)
+```
+
+### External model as judge
+
+```python
+evaluation = client.evals.create(
+    type="score",
+    parameters={
+        "input_data_file_path": "file-abc123",
+        "judge": {
+            "model": "openai/gpt-5",
+            "model_source": "external",
+            "external_api_token": "sk-...",
+            "system_template": "Rate the response quality from 1 to 10.",
+        },
+        "min_score": 1.0,
+        "max_score": 10.0,
+        "pass_threshold": 7.0,
+        "model_to_evaluate": "response",
+    },
+)
+```
+
+### Custom base URL
+
+```python
+evaluation = client.evals.create(
+    type="classify",
+    parameters={
+        "input_data_file_path": "file-abc123",
+        "judge": {
+            "model": "mistral-small-latest",
+            "model_source": "external",
+            "external_api_token": "your-mistral-key",
+            "external_base_url": "https://api.mistral.ai/",
+            "system_template": "Classify the response as Toxic or Non-toxic.",
+        },
+        "labels": ["Toxic", "Non-toxic"],
+        "pass_labels": ["Non-toxic"],
+        "model_to_evaluate": "response",
+    },
+)
+```
+
 ## Retrieve Evaluation
 
 ```python
@@ -526,11 +664,29 @@ curl -X GET "https://api.together.xyz/v1/files/<RESULT_FILE_ID>/content" \
 | `dedicated` | Your deployed dedicated endpoint | Endpoint ID |
 | `external` | Third-party providers via shortcuts or custom URL | Provider shortcut (e.g., `openai/gpt-5`) |
 
+### External Provider Shortcuts
+
+| Provider | Models |
+|----------|--------|
+| OpenAI | `openai/gpt-5`, `openai/gpt-5-mini`, `openai/gpt-5-nano`, `openai/gpt-5.2`, `openai/gpt-5.2-pro`, `openai/gpt-4.1`, `openai/gpt-4o`, `openai/gpt-4o-mini` |
+| Anthropic | `anthropic/claude-opus-4-5`, `anthropic/claude-sonnet-4-5`, `anthropic/claude-haiku-4-5`, `anthropic/claude-opus-4-1`, `anthropic/claude-opus-4-0`, `anthropic/claude-sonnet-4-0` |
+| Google | `google/gemini-2.5-pro`, `google/gemini-2.5-flash`, `google/gemini-2.5-flash-lite`, `google/gemini-3-pro-preview` |
+
+For other providers, use `external_base_url` with any OpenAI-compatible chat/completions API.
+
+## UI-Based Evaluations
+
+Create and monitor evaluations via the Together AI dashboard at
+[api.together.xyz/evaluations](https://api.together.xyz/evaluations) when the user wants a
+no-code workflow or quick manual inspection.
+
 ## Evaluation Status Flow
 
 `pending` → `queued` → `running` → `completed`
 
 Error states: `error`, `user_error`
+
+Sub-1000 sample jobs typically complete within 1 hour.
 
 ## CLI Commands
 
