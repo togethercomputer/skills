@@ -33,6 +33,9 @@ Use Together AI image APIs for:
 - **Basic text-to-image**
   - Start with [scripts/generate_image.py](scripts/generate_image.py) or [scripts/generate_image.ts](scripts/generate_image.ts)
   - Read [references/api-reference.md](references/api-reference.md)
+- **Multiple variations, base64 output, or seeded runs**
+  - Start with [scripts/generate_image.py](scripts/generate_image.py) or [scripts/generate_image.ts](scripts/generate_image.ts)
+  - Read [references/api-reference.md](references/api-reference.md)
 - **Image editing with Kontext**
   - Start with [scripts/kontext_editing.py](scripts/kontext_editing.py)
   - Read [references/api-reference.md](references/api-reference.md)
@@ -59,6 +62,7 @@ Use Together AI image APIs for:
 ## Resource Map
 
 - **API reference**: [references/api-reference.md](references/api-reference.md)
+- **Troubleshooting and generation tuning**: [references/api-reference.md](references/api-reference.md)
 - **Model guide**: [references/models.md](references/models.md)
 - **Python image generation**: [scripts/generate_image.py](scripts/generate_image.py)
 - **TypeScript image generation**: [scripts/generate_image.ts](scripts/generate_image.ts)

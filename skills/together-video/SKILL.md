@@ -35,6 +35,8 @@ Use Together AI video APIs for:
 - **Image-to-video with keyframes**
   - Start with [scripts/image_to_video.py](scripts/image_to_video.py)
   - Read [references/api-reference.md](references/api-reference.md)
+- **Parameter tuning, polling, or troubleshooting**
+  - Read [references/api-reference.md](references/api-reference.md)
 - **Model, dimension, and prompt-limit selection**
   - Read [references/models.md](references/models.md)
 
@@ -55,6 +57,7 @@ Use Together AI video APIs for:
 ## Resource Map
 
 - **API reference**: [references/api-reference.md](references/api-reference.md)
+- **Polling, parameter tuning, and troubleshooting**: [references/api-reference.md](references/api-reference.md)
 - **Model guide**: [references/models.md](references/models.md)
 - **Python text-to-video workflow**: [scripts/generate_video.py](scripts/generate_video.py)
 - **TypeScript text-to-video workflow**: [scripts/generate_video.ts](scripts/generate_video.ts)
