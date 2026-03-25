@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together Embeddings"
+  short_description: "Together AI embeddings and rerank"
+  default_prompt: "Use $together-embeddings to build a Together AI embedding, retrieval, or reranking workflow."

@@ -1,4 +1,14 @@
 # Reasoning Models Reference
+## Contents
+
+- [Full Model Table](#full-model-table)
+- [Reasoning Effort Levels](#reasoning-effort-levels)
+- [Enabling and Disabling Reasoning (Hybrid Models)](#enabling-and-disabling-reasoning)
+- [Controlling Reasoning Depth via Prompting](#controlling-reasoning-depth-via-prompting)
+- [Reasoning Output Format](#reasoning-output-format)
+- [Structured Outputs with Reasoning](#structured-outputs-with-reasoning)
+- [Best Practices by Model](#best-practices-by-model)
+
 
 ## Full Model Table
 

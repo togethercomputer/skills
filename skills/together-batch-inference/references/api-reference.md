@@ -1,4 +1,19 @@
 # Batch Inference API Reference
+## Contents
+
+- [Endpoints](#endpoints)
+- [Input File Format (JSONL)](#input-file-format)
+- [Create Batch Request](#create-batch-request)
+- [Batch Job Object (Response)](#batch-job-object)
+- [Batch Job Status](#batch-job-status)
+- [Workflow](#workflow)
+- [Models with 50% Discount](#models-with-50-discount)
+- [Rate Limits](#rate-limits)
+- [Error Handling](#error-handling)
+- [Best Practices](#best-practices)
+- [Error Codes](#error-codes)
+- [CLI Commands](#cli-commands)
+
 
 ## Endpoints
 
@@ -227,6 +242,15 @@ Per-request errors are recorded in a separate file accessible via `error_file_id
 {"custom_id": "req-1", "error": {"message": "Invalid model specified", "code": "invalid_model"}}
 {"custom_id": "req-5", "error": {"message": "Request timeout", "code": "timeout"}}
 ```
+
+## Best Practices
+
+- Aim for 1,000-10,000 requests per batch unless you have a strong reason to go smaller or larger
+- Validate JSONL before submission to avoid wasting a full batch run on malformed input
+- Use unique `custom_id` values so output and error rows can be reconciled deterministically
+- Poll status every 30-60 seconds rather than tight-looping the API
+- Most batches complete within 24 hours; allow up to 72 hours for very large or complex runs
+- Reuse uploaded batch files across multiple jobs when the request set is unchanged
 
 ## Error Codes
 

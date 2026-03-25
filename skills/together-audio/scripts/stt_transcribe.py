@@ -37,19 +37,20 @@ def transcribe(
     temperature: float | None,
 ) -> str:
     """Run a basic transcription request."""
-    payload: dict[str, object] = {
-        "file": audio_path,
-        "model": model,
-        "response_format": "json",
-    }
-    if language:
-        payload["language"] = language
-    if prompt:
-        payload["prompt"] = prompt
-    if temperature is not None:
-        payload["temperature"] = temperature
+    with open(audio_path, "rb") as audio_file:
+        payload: dict[str, object] = {
+            "file": audio_file,
+            "model": model,
+            "response_format": "json",
+        }
+        if language:
+            payload["language"] = language
+        if prompt:
+            payload["prompt"] = prompt
+        if temperature is not None:
+            payload["temperature"] = temperature
 
-    response = client.audio.transcriptions.create(**payload)
+        response = client.audio.transcriptions.create(**payload)
     print(f"Transcription: {response.text}")
     return response.text
 
@@ -62,32 +63,34 @@ def translate(
     temperature: float | None,
 ) -> str:
     """Translate audio, defaulting to English if no target language is provided."""
-    payload: dict[str, object] = {
-        "file": audio_path,
-        "model": model,
-    }
-    if target_language:
-        payload["language"] = target_language
-    if prompt:
-        payload["prompt"] = prompt
-    if temperature is not None:
-        payload["temperature"] = temperature
+    with open(audio_path, "rb") as audio_file:
+        payload: dict[str, object] = {
+            "file": audio_file,
+            "model": model,
+        }
+        if target_language:
+            payload["language"] = target_language
+        if prompt:
+            payload["prompt"] = prompt
+        if temperature is not None:
+            payload["temperature"] = temperature
 
-    response = client.audio.translations.create(**payload)
+        response = client.audio.translations.create(**payload)
     print(f"Translation: {response.text}")
     return response.text
 
 
 def diarize(audio_path: Path, model: str, min_speakers: int, max_speakers: int) -> None:
     """Run diarization and print speaker segments."""
-    response = client.audio.transcriptions.create(
-        file=audio_path,
-        model=model,
-        response_format="verbose_json",
-        diarize=True,
-        min_speakers=min_speakers,
-        max_speakers=max_speakers,
-    )
+    with open(audio_path, "rb") as audio_file:
+        response = client.audio.transcriptions.create(
+            file=audio_file,
+            model=model,
+            response_format="verbose_json",
+            diarize=True,
+            min_speakers=min_speakers,
+            max_speakers=max_speakers,
+        )
     if not response.speaker_segments:
         print("No speaker segments returned.")
         return
@@ -98,12 +101,13 @@ def diarize(audio_path: Path, model: str, min_speakers: int, max_speakers: int) 
 
 def timestamps(audio_path: Path, model: str, granularity: str) -> None:
     """Print timestamped transcription results."""
-    response = client.audio.transcriptions.create(
-        file=audio_path,
-        model=model,
-        response_format="verbose_json",
-        timestamp_granularities=granularity,
-    )
+    with open(audio_path, "rb") as audio_file:
+        response = client.audio.transcriptions.create(
+            file=audio_file,
+            model=model,
+            response_format="verbose_json",
+            timestamp_granularities=granularity,
+        )
     print(f"Text: {response.text}")
     print(f"Language: {response.language}")
     print(f"Duration: {response.duration}s")

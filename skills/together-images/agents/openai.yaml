@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together Images"
+  short_description: "Together AI image generation help"
+  default_prompt: "Use $together-images to build a Together AI image generation or editing workflow with FLUX, Kontext, or LoRAs."

@@ -1,0 +1,26 @@
+[
+  {
+    "query": "I have 4 million product descriptions to classify overnight on Together AI and latency does not matter. What's the Batch API workflow?",
+    "should_trigger": true
+  },
+  {
+    "query": "Help me prepare a JSONL file and launch a Together AI batch job for bulk summarization.",
+    "should_trigger": true
+  },
+  {
+    "query": "We need the cheapest way to run thousands of independent Together AI chat requests asynchronously and download the results later.",
+    "should_trigger": true
+  },
+  {
+    "query": "Build a realtime streaming chat UI on Together AI with structured JSON outputs.",
+    "should_trigger": false
+  },
+  {
+    "query": "Evaluate two model variants with Together AI and compare the outputs using an LLM judge.",
+    "should_trigger": false
+  },
+  {
+    "query": "Create embeddings for my corpus and wire them into a RAG retriever on Together AI.",
+    "should_trigger": false
+  }
+]

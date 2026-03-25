@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together Video"
+  short_description: "Together AI video generation help"
+  default_prompt: "Use $together-video to build a Together AI text-to-video or image-to-video workflow with polling and downloads."

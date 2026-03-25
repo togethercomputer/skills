@@ -1,0 +1,26 @@
+[
+  {
+    "query": "Run Python remotely on Together AI, keep the session alive, and generate a matplotlib chart from a CSV upload.",
+    "should_trigger": true
+  },
+  {
+    "query": "I want an agent to write Python and execute it in Together Code Interpreter with session reuse.",
+    "should_trigger": true
+  },
+  {
+    "query": "Show me how to upload a file to Together Code Interpreter and inspect the returned display outputs.",
+    "should_trigger": true
+  },
+  {
+    "query": "Provision a multi-node H100 cluster on Together AI and attach shared storage.",
+    "should_trigger": false
+  },
+  {
+    "query": "Create a custom Docker image for Together AI and serve inference behind a queue.",
+    "should_trigger": false
+  },
+  {
+    "query": "Generate a JSON response from a chat model on Together AI with reasoning enabled.",
+    "should_trigger": false
+  }
+]

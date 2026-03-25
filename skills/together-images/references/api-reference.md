@@ -1,4 +1,20 @@
 # Image Generation API Reference
+## Contents
+
+- [Endpoint](#endpoint)
+- [Parameters](#parameters)
+- [Text-to-Image](#text-to-image)
+- [Multiple Variations](#multiple-variations)
+- [FLUX.2 Generation](#flux2-generation)
+- [Image Editing (Kontext)](#image-editing)
+- [Reference Images (FLUX.2, Google)](#reference-images)
+- [LoRA Adapters](#lora-adapters)
+- [Response](#response)
+- [Steps Guide](#steps-guide)
+- [Dimensions Guide](#dimensions-guide)
+- [Model Feature Matrix](#model-feature-matrix)
+- [Troubleshooting](#troubleshooting)
+
 
 ## Endpoint
 
@@ -71,6 +87,39 @@ curl -X POST "https://api.together.xyz/v1/images/generations" \
     "steps": 4,
     "n": 1
   }'
+```
+
+## Multiple Variations
+
+Use `n` to request multiple candidate images from the same prompt in one call:
+
+```python
+response = client.images.generate(
+    prompt="A cozy reading nook with warm afternoon light",
+    model="black-forest-labs/FLUX.1-schnell",
+    width=1024,
+    height=1024,
+    steps=4,
+    n=4,
+)
+
+for image in response.data:
+    print(image.url)
+```
+
+```typescript
+const response = await together.images.generate({
+  prompt: "A cozy reading nook with warm afternoon light",
+  model: "black-forest-labs/FLUX.1-schnell",
+  width: 1024,
+  height: 1024,
+  steps: 4,
+  n: 4,
+});
+
+for (const image of response.data) {
+  console.log(image.url);
+}
 ```
 
 ## FLUX.2 Generation
@@ -307,3 +356,13 @@ With `response_format="base64"`:
 | `guidance` | Dev/Flex | No | No | No |
 | `output_format` | Yes | No | No | No |
 | `negative_prompt` | No | Yes | No | No |
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Prompt mismatch | Add descriptive language, style references, and increase steps |
+| Poor quality | Use 30-40 steps and add quality modifiers such as "highly detailed" |
+| Inconsistent results | Set `seed` for reproducibility |
+| Wrong dimensions | Ensure width and height are multiples of 8 and use standard aspect ratios |
+| LoRA not applying | Verify the `.safetensors` URL is accessible and adjust `scale` between 0.3 and 1.2 |

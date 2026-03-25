@@ -1,4 +1,14 @@
 # TTS Models & Voice Reference
+## Contents
+
+- [Model Catalog](#model-catalog)
+- [REST Parameters](#rest-parameters)
+- [Streaming HTTP](#streaming-http)
+- [Realtime WebSocket](#realtime-websocket)
+- [Response Formats](#response-formats)
+- [Voice Discovery](#voice-discovery)
+- [Voice Lists](#voice-lists)
+
 
 ## Model Catalog
 

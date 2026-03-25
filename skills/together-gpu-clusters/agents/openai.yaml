@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together GPU Clusters"
+  short_description: "Together AI cluster provisioning help"
+  default_prompt: "Use $together-gpu-clusters to provision or manage a Together AI GPU cluster with Kubernetes, Slurm, or shared storage."

@@ -6,24 +6,28 @@ Prepare function calling training data, upload, fine-tune, and test.
 
 Usage:
     python function_calling_finetune.py
+    python function_calling_finetune.py --training-file tools.jsonl --model Qwen/Qwen3-8B
+    python function_calling_finetune.py --suffix fc-bot-v2
 
 Requires:
     pip install together
     export TOGETHER_API_KEY=your_key
 """
 
+import argparse
 import json
-import time
 import tempfile
+import time
+from pathlib import Path
+
 from together import Together
 
 client = Together()
 
-def main() -> None:
-    # --- 1. Prepare function calling training data ---
-    # Each example includes tool definitions, user query, assistant tool_calls,
-    # tool results, and final assistant response.
-    tools = [
+
+def build_tools() -> list[dict]:
+    """Return sample tool definitions used by the demo dataset and test prompt."""
+    return [
         {
             "type": "function",
             "function": {
@@ -62,7 +66,10 @@ def main() -> None:
         },
     ]
 
-    training_data = [
+
+def sample_training_data(tools: list[dict]) -> list[dict]:
+    """Return a small function-calling fine-tuning dataset."""
+    return [
         {
             "tools": tools,
             "messages": [
@@ -169,28 +176,60 @@ def main() -> None:
                 },
             ],
         },
-        # Add more examples for production use...
     ]
 
-    data_path = tempfile.mktemp(suffix=".jsonl")
-    with open(data_path, "w") as f:
-        for example in training_data:
-            f.write(json.dumps(example) + "\n")
 
-    print(f"Wrote {len(training_data)} function calling examples to {data_path}")
+def create_temp_dataset(rows: list[dict]) -> Path:
+    """Write JSONL rows to a temporary file."""
+    with tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False, encoding="utf-8") as temp_file:
+        for example in rows:
+            temp_file.write(json.dumps(example) + "\n")
+        return Path(temp_file.name)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Together AI function-calling fine-tuning workflow")
+    parser.add_argument("--training-file", help="Path to a training JSONL file")
+    parser.add_argument("--model", default="Qwen/Qwen3-8B", help="Base model to fine-tune")
+    parser.add_argument("--suffix", default="fc-bot-v1", help="Suffix for the fine-tuned model")
+    parser.add_argument("--n-epochs", type=int, default=3, help="Number of training epochs")
+    parser.add_argument("--learning-rate", type=float, default=1e-5, help="Training learning rate")
+    parser.add_argument("--poll-interval", type=int, default=30, help="Seconds between status checks")
+    parser.add_argument(
+        "--test-prompt",
+        default="What's the weather in Boston?",
+        help="Prompt to use when probing the fine-tuned model",
+    )
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    tools = build_tools()
+    data_path: Path | None = None
+    upload_path = args.training_file
+    if upload_path is None:
+        training_data = sample_training_data(tools)
+        data_path = create_temp_dataset(training_data)
+        upload_path = str(data_path)
+        print(f"Wrote {len(training_data)} function calling examples to {data_path}")
 
     # --- 2. Upload ---
-    file_resp = client.files.upload(file=data_path, purpose="fine-tune", check=True)
+    try:
+        file_resp = client.files.upload(file=upload_path, purpose="fine-tune", check=True)
+    finally:
+        if data_path is not None:
+            data_path.unlink(missing_ok=True)
     print(f"Uploaded file: {file_resp.id}")
 
     # --- 3. Start LoRA fine-tuning ---
     job = client.fine_tuning.create(
         training_file=file_resp.id,
-        model="Qwen/Qwen3-8B",
+        model=args.model,
         lora=True,
-        n_epochs=3,
-        learning_rate=1e-5,
-        suffix="fc-bot-v1",
+        n_epochs=args.n_epochs,
+        learning_rate=args.learning_rate,
+        suffix=args.suffix,
     )
     print(f"Created job: {job.id}")
 
@@ -204,22 +243,20 @@ def main() -> None:
         if status.status in ("failed", "cancelled"):
             print(f"Job ended: {status.status}")
             raise SystemExit(1)
-        time.sleep(30)
+        time.sleep(args.poll_interval)
 
     # --- 5. Test function calling with fine-tuned model ---
     print("\n--- Testing function calling ---")
     response = client.chat.completions.create(
         model=status.output_name,
-        messages=[
-            {"role": "user", "content": "What's the weather in Boston?"},
-        ],
+        messages=[{"role": "user", "content": args.test_prompt}],
         tools=tools,
     )
 
     tool_calls = response.choices[0].message.tool_calls
     if tool_calls:
-        for tc in tool_calls:
-            print(f"  Tool call: {tc.function.name}({tc.function.arguments})")
+        for tool_call in tool_calls:
+            print(f"  Tool call: {tool_call.function.name}({tool_call.function.arguments})")
     else:
         print(f"  Response: {response.choices[0].message.content}")
 

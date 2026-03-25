@@ -1,4 +1,20 @@
 # Sprocket SDK Reference
+## Contents
+
+- [Overview](#overview)
+- [Installation](#installation)
+- [Core Pattern](#core-pattern)
+- [`sprocket.Sprocket` Base Class](#sprocketsprocket-base-class)
+- [`sprocket.run(sprocket, name, use_torchrun=False)`](#sprocketrun)
+- [`sprocket.FileOutput`](#sprocketfileoutput)
+- [`sprocket.emit_info(info: dict)`](#sprocketemitinfo)
+- [`sprocket.InputOutputProcessor`](#sprocketinputoutputprocessor)
+- [HTTP Endpoints (Sprocket exposes)](#http-endpoints)
+- [CLI Arguments](#cli-arguments)
+- [Environment Variables](#environment-variables)
+- [Multi-GPU Pattern](#multi-gpu-pattern)
+- [Graceful Shutdown](#graceful-shutdown)
+
 
 ## Overview
 Sprocket is the worker framework for Together Dedicated Containers. It handles job receiving, processing, and result reporting.

@@ -1,0 +1,26 @@
+[
+  {
+    "query": "I need to deploy a custom Dockerized FLUX pipeline on Together AI using Jig and Sprocket.",
+    "should_trigger": true
+  },
+  {
+    "query": "Help me build a Together AI container worker that processes queue jobs and emits progress updates.",
+    "should_trigger": true
+  },
+  {
+    "query": "Show me the pyproject.toml and queue client needed for Together Dedicated Container Inference.",
+    "should_trigger": true
+  },
+  {
+    "query": "Host a supported open-source chat model on a standard dedicated endpoint with no custom container.",
+    "should_trigger": false
+  },
+  {
+    "query": "Provision a raw Slurm cluster on Together AI for distributed training.",
+    "should_trigger": false
+  },
+  {
+    "query": "Generate a single still image with FLUX.2 from a text prompt.",
+    "should_trigger": false
+  }
+]

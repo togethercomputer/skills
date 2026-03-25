@@ -10,15 +10,16 @@ Usage:
 Requires:
     pip install together
     export TOGETHER_API_KEY=your_key
+    export TOGETHER_DEPLOYMENT_NAME=your-deployment-name
 """
 
+import os
 import time
 from together import Together
 
 client = Together()
 
-# Change this to your deployment name
-DEPLOYMENT = "hello-world"
+DEPLOYMENT = os.environ.get("TOGETHER_DEPLOYMENT_NAME", "hello-world")
 
 
 def submit_and_poll(payload: dict, priority: int = 1) -> dict:

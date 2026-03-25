@@ -1,4 +1,15 @@
 # STT Models & Transcription Reference
+## Contents
+
+- [Model Catalog](#model-catalog)
+- [Supported Input Formats](#supported-input-formats)
+- [Audio Transcriptions](#audio-transcriptions)
+- [Audio Translations](#audio-translations)
+- [Realtime Transcription (WebSocket)](#realtime-transcription)
+- [Response Formats](#response-formats)
+- [Common Workflows](#common-workflows)
+- [Async Support](#async-support)
+
 
 ## Model Catalog
 
@@ -187,48 +198,52 @@ Speaker segment example:
 from together import Together
 
 client = Together()
-response = client.audio.transcriptions.create(
-    file="meeting_recording.mp3",
-    model="openai/whisper-large-v3",
-    language="en",
-    response_format="json",
-)
+with open("meeting_recording.mp3", "rb") as audio_file:
+    response = client.audio.transcriptions.create(
+        file=audio_file,
+        model="openai/whisper-large-v3",
+        language="en",
+        response_format="json",
+    )
 print(response.text)
 ```
 
 ### Translation
 
 ```python
-response = client.audio.translations.create(
-    file="french_audio.mp3",
-    model="openai/whisper-large-v3",
-)
+with open("french_audio.mp3", "rb") as audio_file:
+    response = client.audio.translations.create(
+        file=audio_file,
+        model="openai/whisper-large-v3",
+    )
 print(response.text)
 ```
 
 ### Diarization
 
 ```python
-response = client.audio.transcriptions.create(
-    file="meeting.mp3",
-    model="openai/whisper-large-v3",
-    response_format="verbose_json",
-    diarize=True,
-    min_speakers=1,
-    max_speakers=5,
-)
+with open("meeting.mp3", "rb") as audio_file:
+    response = client.audio.transcriptions.create(
+        file=audio_file,
+        model="openai/whisper-large-v3",
+        response_format="verbose_json",
+        diarize=True,
+        min_speakers=1,
+        max_speakers=5,
+    )
 print(response.speaker_segments)
 ```
 
 ### Word-level Timestamps
 
 ```python
-response = client.audio.transcriptions.create(
-    file="audio.mp3",
-    model="openai/whisper-large-v3",
-    response_format="verbose_json",
-    timestamp_granularities="word",
-)
+with open("audio.mp3", "rb") as audio_file:
+    response = client.audio.transcriptions.create(
+        file=audio_file,
+        model="openai/whisper-large-v3",
+        response_format="verbose_json",
+        timestamp_granularities="word",
+    )
 for word in response.words:
     print(f"{word.word}: {word.start:.2f}s-{word.end:.2f}s")
 ```
@@ -242,11 +257,12 @@ from together import AsyncTogether
 
 async def transcribe_audio() -> str:
     client = AsyncTogether()
-    response = await client.audio.transcriptions.create(
-        file="audio.mp3",
-        model="openai/whisper-large-v3",
-        language="en",
-    )
+    with open("audio.mp3", "rb") as audio_file:
+        response = await client.audio.transcriptions.create(
+            file=audio_file,
+            model="openai/whisper-large-v3",
+            language="en",
+        )
     return response.text
 
 

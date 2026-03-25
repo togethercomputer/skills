@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together Fine-Tuning"
+  short_description: "Together AI fine-tuning workflows"
+  default_prompt: "Use $together-fine-tuning to fine-tune a Together AI model with LoRA, DPO, VLM, function-calling, or reasoning data."

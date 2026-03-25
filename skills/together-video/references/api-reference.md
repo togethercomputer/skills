@@ -1,4 +1,15 @@
 # Video Generation API Reference
+## Contents
+
+- [Endpoints](#endpoints)
+- [Create Video](#create-video)
+- [Get Video Status](#get-video-status)
+- [Job Statuses](#job-statuses)
+- [Polling Pattern](#polling-pattern)
+- [Guidance Scale](#guidance-scale)
+- [Steps](#steps)
+- [Troubleshooting](#troubleshooting)
+
 
 ## Endpoints
 
@@ -289,3 +300,13 @@ while True:
 | 20 | Standard quality |
 | 30-40 | Production-grade |
 | >50 | Diminishing returns |
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Prompt mismatch | Increase `guidance_scale` to 8-10 and use more specific language |
+| Visual artifacts | Reduce `guidance_scale` below 12 and increase `steps` to 30-40 |
+| Slow generation | Reduce `steps`, shorten `seconds`, or lower `fps` |
+| URL expired | Download videos immediately after completion |
+| Unnatural motion | Adjust `fps` and use `negative_prompt` to exclude unwanted artifacts |

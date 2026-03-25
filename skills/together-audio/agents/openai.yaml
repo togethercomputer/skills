@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together Audio"
+  short_description: "Together AI TTS and STT workflows"
+  default_prompt: "Use $together-audio to build a Together AI voice workflow with TTS, STT, streaming, or realtime audio."

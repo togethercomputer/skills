@@ -1,0 +1,26 @@
+[
+  {
+    "query": "Fine-tune Llama with LoRA on my support conversations using Together AI.",
+    "should_trigger": true
+  },
+  {
+    "query": "I need a Together AI DPO workflow that starts from SFT and then trains on preference pairs.",
+    "should_trigger": true
+  },
+  {
+    "query": "Show me how to prepare function-calling training data and run a Together AI fine-tune.",
+    "should_trigger": true
+  },
+  {
+    "query": "Host a finished model on a dedicated endpoint with autoscaling.",
+    "should_trigger": false
+  },
+  {
+    "query": "Evaluate two model outputs with an LLM judge and compare them.",
+    "should_trigger": false
+  },
+  {
+    "query": "Create embeddings for my knowledge base and wire them into retrieval.",
+    "should_trigger": false
+  }
+]

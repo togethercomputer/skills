@@ -1,0 +1,26 @@
+[
+  {
+    "query": "Build a Together AI text-to-speech endpoint that streams audio chunks back to the browser while the user types.",
+    "should_trigger": true
+  },
+  {
+    "query": "I need to transcribe customer support calls with speaker diarization and word timestamps using Together AI.",
+    "should_trigger": true
+  },
+  {
+    "query": "Show me how to stream microphone PCM audio into Together AI for realtime captions.",
+    "should_trigger": true
+  },
+  {
+    "query": "Create a multi-turn Together AI chatbot with tool calling for weather and stock lookup.",
+    "should_trigger": false
+  },
+  {
+    "query": "Generate a five-second promo video from a product image on Together AI.",
+    "should_trigger": false
+  },
+  {
+    "query": "Fine-tune a speech model on my own voice dataset with Together AI.",
+    "should_trigger": false
+  }
+]

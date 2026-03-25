@@ -1,4 +1,13 @@
 # Code Interpreter API Reference
+## Contents
+
+- [Endpoints](#endpoints)
+- [Execute Code](#execute-code)
+- [List Sessions](#list-sessions)
+- [Pre-installed Packages](#pre-installed-packages)
+- [Pricing](#pricing)
+- [Alternative Access](#alternative-access)
+
 
 ## Endpoints
 
@@ -223,3 +232,9 @@ Install additional packages at runtime with `!pip install <package>`.
 ## Pricing
 
 $0.03 per session. Sessions last 60 minutes and support multiple executions.
+
+## Alternative Access
+
+Together AI also exposes MCP-compatible tooling for agent workflows that prefer MCP over direct API
+calls. Use the direct TCI API when you need explicit SDK control over sessions, files, and response
+objects; use MCP when the surrounding agent framework already speaks MCP.

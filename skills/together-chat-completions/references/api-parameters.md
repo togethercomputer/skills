@@ -1,4 +1,20 @@
 # Chat Completions API Parameters
+## Contents
+
+- [Required Parameters](#required-parameters)
+- [Generation Parameters](#generation-parameters)
+- [Output Control](#output-control)
+- [Response Format](#response-format)
+- [Function Calling](#function-calling)
+- [Safety & Compliance](#safety-compliance)
+- [Reasoning](#reasoning)
+- [Context Handling](#context-handling)
+- [Message Object](#message-object)
+- [OpenAI Compatibility](#openai-compatibility)
+- [Rate Limits & Build Tiers](#rate-limits-build-tiers)
+- [Debug Mode](#debug-mode)
+- [HTTP Status Codes](#http-status-codes)
+
 
 ## Required Parameters
 
@@ -316,6 +332,131 @@ Multimodal content (vision models):
     {"type": "audio_url", "audio_url": {"url": "https://..."}},
 ]}
 ```
+
+## OpenAI Compatibility
+
+Migrate from the OpenAI SDK by changing the base URL and API key while keeping the chat/completions
+shape the same:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.together.xyz/v1",
+    api_key="YOUR_TOGETHER_API_KEY",
+)
+response = client.chat.completions.create(
+    model="openai/gpt-oss-20b",
+    messages=[{"role": "user", "content": "Hello!"}],
+)
+print(response.choices[0].message.content)
+```
+
+Use the native Together SDK when you need Together-only helpers such as `.with_raw_response`,
+typed reasoning fields, or other platform-specific workflows already covered by this skill.
+
+## Rate Limits & Build Tiers
+
+Serverless rate limits are model-specific and can change based on capacity. Treat response headers
+as the source of truth for the current limit on the model you are calling.
+
+Current account-level LLM baselines from the official Together AI billing docs:
+
+| Build Tier | Lifetime Spend | LLM Rate Limit |
+|------------|----------------|----------------|
+| Build Tier 1 | $5 | 600 RPM |
+| Build Tier 2 | $50 | 1,800 RPM |
+| Build Tier 3 | $100 | 3,000 RPM |
+| Build Tier 4 | $250 | 4,500 RPM |
+| Build Tier 5 | $1,000 | 6,000 RPM |
+
+Rate-limit headers returned on serverless responses:
+
+| Header | Description |
+|--------|-------------|
+| `x-ratelimit-limit` | Maximum request rate currently allowed |
+| `x-ratelimit-remaining` | Remaining request capacity in the current window |
+| `x-ratelimit-reset` | Time until the request window resets |
+| `x-tokenlimit-limit` | Maximum token rate currently allowed |
+| `x-tokenlimit-remaining` | Remaining token capacity in the current window |
+| `x-ratelimit-limit-dynamic` | Dynamic request-rate allowance when enabled |
+| `x-ratelimit-remaining-dynamic` | Remaining dynamic request capacity |
+| `x-tokenlimit-limit-dynamic` | Dynamic token-rate allowance when enabled |
+| `x-tokenlimit-remaining-dynamic` | Remaining dynamic token capacity |
+
+Best practices:
+
+- plan against the latest headers instead of a hard-coded RPM table
+- keep traffic steady instead of bursty
+- use batch inference for high-volume offline jobs
+- use dedicated endpoints for strict capacity or SLA requirements
+
+## Debug Mode
+
+Send the `x-together-debug: 1` header to get detailed routing and latency headers. Use
+`.with_raw_response` in Python or `.asResponse()` in TypeScript when you need both the parsed body
+and the raw headers.
+
+```python
+from together import Together
+import json
+
+client = Together()
+
+response = client.chat.completions.with_raw_response.create(
+    model="openai/gpt-oss-20b",
+    messages=[{"role": "user", "content": "Say hello"}],
+    extra_headers={"x-together-debug": "1"},
+)
+
+parsed = response.parse()
+print(parsed.choices[0].message.content)
+
+headers = dict(response.headers)
+print(json.dumps(headers, indent=2))
+```
+
+```typescript
+import Together from "together-ai";
+
+const client = new Together();
+
+const response = await client.chat.completions.create(
+  {
+    model: "openai/gpt-oss-20b",
+    messages: [{ role: "user", content: "Say hello" }],
+  },
+  { headers: { "x-together-debug": "1" } }
+).asResponse();
+
+const parsed = await response.json();
+console.log(parsed.choices[0].message.content);
+
+for (const [key, value] of response.headers.entries()) {
+  if (key.startsWith("x-")) console.log(`${key}: ${value}`);
+}
+```
+
+```shell
+curl -s -D - -X POST "https://api.together.xyz/v1/chat/completions" \
+  -H "Authorization: Bearer $TOGETHER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "x-together-debug: 1" \
+  -d '{"model":"openai/gpt-oss-20b","messages":[{"role":"user","content":"Say hello"}]}'
+```
+
+Common debug headers:
+
+| Header | Description |
+|--------|-------------|
+| `x-request-id` | Unique request ID for support tickets |
+| `x-together-traceid` | Distributed trace ID for internal routing |
+| `x-cluster` | Inference cluster that served the request |
+| `x-engine-pod` | Engine pod that processed the request |
+| `x-api-received` | Timestamp when the API received the request |
+| `x-api-call-start` | Timestamp when inference started |
+| `x-api-call-end` | Timestamp when inference completed |
+| `x-inference-version` | Inference engine version |
 
 ## HTTP Status Codes
 

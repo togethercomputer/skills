@@ -1,4 +1,11 @@
 # Embeddings & Rerank API Reference
+## Contents
+
+- [Endpoints](#endpoints)
+- [Create Embeddings](#create-embeddings)
+- [Rerank Documents](#rerank-documents)
+- [HTTP Status Codes](#http-status-codes)
+
 
 Base URL: `https://api.together.xyz/v1`
 

@@ -1,4 +1,12 @@
 # CLI Reference for GPU Clusters
+## Contents
+
+- [Installation](#installation)
+- [Cluster Commands](#cluster-commands)
+- [Storage Commands](#storage-commands)
+- [Instance Types](#instance-types)
+- [Driver Versions](#driver-versions)
+
 
 The Together GPU Clusters CLI is available in two forms:
 

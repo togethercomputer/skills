@@ -1,4 +1,20 @@
 # Fine-tuning Data Formats Reference
+## Contents
+
+- [Format Overview](#format-overview)
+- [Conversational Format](#conversational-format)
+- [Instruction Format](#instruction-format)
+- [Generic Text Format](#generic-text-format)
+- [Preference/DPO Format](#preferencedpo-format)
+- [Reasoning Format](#reasoning-format)
+- [Function Calling Format](#function-calling-format)
+- [VLM Conversational Format](#vlm-conversational-format)
+- [VLM Instruction Format](#vlm-instruction-format)
+- [File Formats](#file-formats)
+- [Loss Masking](#loss-masking)
+- [Data Validation](#data-validation)
+- [Converting Image URLs to Base64](#converting-image-urls-to-base64)
+
 
 ## Format Overview
 

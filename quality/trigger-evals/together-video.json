@@ -1,0 +1,26 @@
+[
+  {
+    "query": "Create a text-to-video workflow on Together AI that polls until completion and downloads the MP4.",
+    "should_trigger": true
+  },
+  {
+    "query": "Animate this product image with first-frame control on Together AI and save the finished clip locally.",
+    "should_trigger": true
+  },
+  {
+    "query": "I need help choosing between Veo, Kling, and PixVerse models for a Together AI video generation job.",
+    "should_trigger": true
+  },
+  {
+    "query": "Generate a single still image from a prompt using FLUX on Together AI.",
+    "should_trigger": false
+  },
+  {
+    "query": "Run a large offline batch of chat completions overnight at the lowest cost.",
+    "should_trigger": false
+  },
+  {
+    "query": "Host a dedicated endpoint for a fine-tuned model with autoscaling.",
+    "should_trigger": false
+  }
+]

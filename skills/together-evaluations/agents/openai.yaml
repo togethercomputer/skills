@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together Evaluations"
+  short_description: "Together AI LLM evaluation workflows"
+  default_prompt: "Use $together-evaluations to build a Together AI classify, score, or compare evaluation workflow."
