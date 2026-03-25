@@ -35,6 +35,8 @@ Typical fits:
 - **Create and manage a standard endpoint**
   - Start with [scripts/manage_endpoint.py](scripts/manage_endpoint.py) or [scripts/manage_endpoint.ts](scripts/manage_endpoint.ts)
   - Read [references/api-reference.md](references/api-reference.md)
+- **Lifecycle tuning or troubleshooting**
+  - Read [references/api-reference.md](references/api-reference.md)
 - **Deploy a fine-tuned model**
   - Start with [scripts/deploy_finetuned.py](scripts/deploy_finetuned.py)
   - Read [references/dedicated-models.md](references/dedicated-models.md)
@@ -62,6 +64,7 @@ Typical fits:
 ## Resource Map
 
 - **API reference**: [references/api-reference.md](references/api-reference.md)
+- **Operational controls and troubleshooting**: [references/api-reference.md](references/api-reference.md)
 - **Dedicated model guide**: [references/dedicated-models.md](references/dedicated-models.md)
 - **Hardware guide**: [references/hardware-options.md](references/hardware-options.md)
 - **Python endpoint lifecycle**: [scripts/manage_endpoint.py](scripts/manage_endpoint.py)

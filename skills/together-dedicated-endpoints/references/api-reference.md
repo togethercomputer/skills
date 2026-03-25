@@ -13,6 +13,11 @@
 - [Upload Model](#upload-model)
 - [List Models](#list-models)
 - [Using the Endpoint](#using-the-endpoint)
+- [Auto-Shutdown](#auto-shutdown)
+- [Speculative Decoding](#speculative-decoding)
+- [Prompt Caching](#prompt-caching)
+- [Availability Zones](#availability-zones)
+- [Troubleshooting](#troubleshooting)
 - [CLI Reference](#cli-reference)
 - [Endpoint Response Object](#endpoint-response-object)
 
@@ -426,7 +431,9 @@ together models list --json
 
 ## Using the Endpoint
 
-Once STARTED, use the Chat Completions API with either the endpoint **name** or **ID**:
+Once STARTED, use the Chat Completions API with either the endpoint **name** or **ID**. For
+management calls, use the endpoint ID. For inference, prefer the endpoint name once the deployment
+is stable:
 
 ```python
 response = client.chat.completions.create(
@@ -452,6 +459,41 @@ curl -X POST "https://api.together.xyz/v1/chat/completions" \
     "messages": [{"role": "user", "content": "Hello!"}]
   }'
 ```
+
+## Auto-Shutdown
+
+Endpoints auto-stop after 1 hour of inactivity by default. Set `inactive_timeout` in minutes to
+change the behavior. Use `0` or `null` to disable auto-shutdown entirely.
+
+## Speculative Decoding
+
+Speculative decoding is controlled by `disable_speculative_decoding`. Leave it enabled for general
+throughput-oriented workloads. Disable it when tail latency matters more than average throughput.
+
+## Prompt Caching
+
+Prompt caching is enabled for dedicated endpoints and reduces latency on repeated prompt prefixes.
+Treat it as a default performance optimization rather than an optional advanced feature.
+
+## Availability Zones
+
+```shell
+together endpoints availability-zones
+together endpoints create --availability-zone us-central-4b ...
+```
+
+Only constrain availability zones when the workload has real geography or latency requirements.
+Restricting zones narrows available capacity and can make hardware placement harder.
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Hardware unavailable | Try a different compatible model or retry when capacity changes |
+| Endpoint queued (not starting) | Reduce `min_replicas` to match currently available capacity |
+| Low replica scaling | Reduce `max_replicas` or wait for more hardware to become available |
+| Model not supported | Use a dedicated-eligible model from `together models list --type dedicated` |
+| Fine-tuned model won't deploy | Confirm the base model is supported on dedicated endpoints |
 
 ## CLI Reference
 
