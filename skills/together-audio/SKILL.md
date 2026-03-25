@@ -1,6 +1,6 @@
 ---
 name: together-audio
-description: Use this skill for Together AI audio workflows: text-to-speech over REST, streaming, or realtime WebSocket APIs, plus speech-to-text transcription, translation, diarization, timestamps, and live transcription. Reach for it whenever the user needs audio in or audio out on Together AI rather than generic chat generation, image or video creation, or model training.
+description: "Use this skill for Together AI audio workflows: text-to-speech over REST, streaming, or realtime WebSocket APIs, plus speech-to-text transcription, translation, diarization, timestamps, and live transcription. Reach for it whenever the user needs audio in or audio out on Together AI rather than generic chat generation, image or video creation, or model training."
 ---
 
 # Together Audio

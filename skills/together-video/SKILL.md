@@ -1,6 +1,6 @@
 ---
 name: together-video
-description: Use this skill for Together AI video workflows: text-to-video generation, image-to-video with keyframe control, model and dimension selection, polling asynchronous jobs, and downloading completed videos. Reach for it whenever the user wants motion generation on Together AI rather than still-image generation or text-only inference.
+description: "Use this skill for Together AI video workflows: text-to-video generation, image-to-video with keyframe control, model and dimension selection, polling asynchronous jobs, and downloading completed videos. Reach for it whenever the user wants motion generation on Together AI rather than still-image generation or text-only inference."
 ---
 
 # Together Video

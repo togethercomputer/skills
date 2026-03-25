@@ -1,6 +1,6 @@
 ---
 name: together-embeddings
-description: Use this skill for Together AI embedding, retrieval, and reranking workflows: generating dense vectors, building semantic search or RAG pipelines, and using rerank models behind dedicated endpoints. Reach for it whenever the user needs vector representations or retrieval quality improvements rather than direct text generation.
+description: "Use this skill for Together AI embedding, retrieval, and reranking workflows: generating dense vectors, building semantic search or RAG pipelines, and using rerank models behind dedicated endpoints. Reach for it whenever the user needs vector representations or retrieval quality improvements rather than direct text generation."
 ---
 
 # Together Embeddings & Reranking

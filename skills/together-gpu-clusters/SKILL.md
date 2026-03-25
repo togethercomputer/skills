@@ -1,6 +1,6 @@
 ---
 name: together-gpu-clusters
-description: Use this skill for Together AI GPU clusters and raw infrastructure workflows: provisioning on-demand or reserved clusters, choosing Kubernetes vs Slurm, attaching shared storage, scaling, getting credentials, and operating cluster-backed ML or HPC jobs. Reach for it when the user needs multi-node compute or infrastructure control rather than a managed model endpoint.
+description: "Use this skill for Together AI GPU clusters and raw infrastructure workflows: provisioning on-demand or reserved clusters, choosing Kubernetes vs Slurm, attaching shared storage, scaling, getting credentials, and operating cluster-backed ML or HPC jobs. Reach for it when the user needs multi-node compute or infrastructure control rather than a managed model endpoint."
 ---
 
 # Together GPU Clusters

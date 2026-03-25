@@ -1,6 +1,6 @@
 ---
 name: together-code-interpreter
-description: Use this skill for Together AI Code Interpreter workflows: remote Python execution, session reuse, file uploads, data analysis, plots, and stateful notebook-like runs through the TCI API. Reach for it whenever the user wants managed remote Python execution on Together AI instead of local execution, raw clusters, or full model hosting.
+description: "Use this skill for Together AI Code Interpreter workflows: remote Python execution, session reuse, file uploads, data analysis, plots, and stateful notebook-like runs through the TCI API. Reach for it whenever the user wants managed remote Python execution on Together AI instead of local execution, raw clusters, or full model hosting."
 ---
 
 # Together Code Interpreter
