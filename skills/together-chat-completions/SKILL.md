@@ -41,6 +41,9 @@ clearly offline batch processing, vector retrieval, model training, or infrastru
 - **Basic chat, streaming, or multi-turn state**
   - Start with [references/api-parameters.md](references/api-parameters.md)
   - Use [scripts/chat_basic.py](scripts/chat_basic.py) or [scripts/chat_basic.ts](scripts/chat_basic.ts)
+- **OpenAI SDK migration, rate limits, or debug headers**
+  - Read [references/api-parameters.md](references/api-parameters.md)
+  - Use [scripts/debug_headers.py](scripts/debug_headers.py) or [scripts/debug_headers.ts](scripts/debug_headers.ts)
 - **Parallel async requests**
   - Use [scripts/async_parallel.py](scripts/async_parallel.py)
 - **Tool calling or function calling**
@@ -75,6 +78,7 @@ clearly offline batch processing, vector retrieval, model training, or infrastru
 ## Resource Map
 
 - **Parameters and response fields**: [references/api-parameters.md](references/api-parameters.md)
+- **OpenAI compatibility, rate-limit headers, and debug headers**: [references/api-parameters.md](references/api-parameters.md)
 - **Function-calling patterns**: [references/function-calling-patterns.md](references/function-calling-patterns.md)
 - **Structured outputs**: [references/structured-outputs.md](references/structured-outputs.md)
 - **Reasoning models**: [references/reasoning-models.md](references/reasoning-models.md)
@@ -83,6 +87,7 @@ clearly offline batch processing, vector retrieval, model training, or infrastru
 ## Scripts
 
 - [scripts/chat_basic.py](scripts/chat_basic.py) and [scripts/chat_basic.ts](scripts/chat_basic.ts): basic chat, streaming, and multi-turn state
+- [scripts/debug_headers.py](scripts/debug_headers.py) and [scripts/debug_headers.ts](scripts/debug_headers.ts): raw-response inspection for routing, latency, and rate-limit headers
 - [scripts/async_parallel.py](scripts/async_parallel.py): async Python fan-out for independent requests
 - [scripts/tool_call_loop.py](scripts/tool_call_loop.py) and [scripts/tool_call_loop.ts](scripts/tool_call_loop.ts): full tool-call loop
 - [scripts/structured_outputs.py](scripts/structured_outputs.py) and [scripts/structured_outputs.ts](scripts/structured_outputs.ts): schema-guided and regex outputs
