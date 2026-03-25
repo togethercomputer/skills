@@ -54,6 +54,7 @@ Use Together AI image APIs for:
 
 ## High-Signal Rules
 
+- Python scripts require the Together v2 SDK (`together>=2.0.0`). If the user is on an older version, they must upgrade first: `uv pip install --upgrade "together>=2.0.0"`.
 - Match the script to the workflow type instead of packing every image feature into one request path.
 - Keep model selection explicit because FLUX, Kontext, and partner models differ in capabilities.
 - Preserve reproducibility with seeds when the user needs stable outputs.

@@ -61,6 +61,7 @@ Supported workflows in this repo:
 
 ## High-Signal Rules
 
+- Python scripts require the Together v2 SDK (`together>=2.0.0`). If the user is on an older version, they must upgrade first: `uv pip install --upgrade "together>=2.0.0"`.
 - Prefer LoRA unless the user has a specific reason to pay for full fine-tuning.
 - Keep data-format validation close to the upload step so bad files fail early.
 - Treat deployment as a separate phase; fine-tuning success does not automatically mean serving success.

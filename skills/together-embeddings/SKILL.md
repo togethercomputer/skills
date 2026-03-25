@@ -49,6 +49,7 @@ This skill is for retrieval plumbing, not for the final language-model response 
 
 ## High-Signal Rules
 
+- Python scripts require the Together v2 SDK (`together>=2.0.0`). If the user is on an older version, they must upgrade first: `uv pip install --upgrade "together>=2.0.0"`.
 - Keep embeddings and reranking conceptually separate; rerank is a second-stage precision step.
 - Reranking in this repo assumes a dedicated endpoint. Do not promise serverless rerank unless the product changes.
 - The `rag_pipeline.py` example demonstrates retrieval plus generation; treat generation as a hand-off to chat completions.

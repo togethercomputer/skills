@@ -8,7 +8,7 @@ Usage:
     python queue_client.py
 
 Requires:
-    pip install together
+    uv pip install "together>=2.0.0"
     export TOGETHER_API_KEY=your_key
     export TOGETHER_DEPLOYMENT_NAME=your-deployment-name
 """

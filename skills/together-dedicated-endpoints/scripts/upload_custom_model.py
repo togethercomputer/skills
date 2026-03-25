@@ -10,7 +10,7 @@ Usage:
     python upload_custom_model.py --model-name my-custom-model --s3-url https://signed-url --skip-deploy
 
 Requires:
-    pip install together
+    uv pip install "together>=2.0.0"
     export TOGETHER_API_KEY=your_key
 """
 

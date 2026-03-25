@@ -56,6 +56,7 @@ Typical fits:
 
 ## High-Signal Rules
 
+- Python scripts require the Together v2 SDK (`together>=2.0.0`). If the user is on an older version, they must upgrade first: `uv pip install --upgrade "together>=2.0.0"`.
 - Model eligibility and hardware availability are gating constraints; check them early.
 - Endpoint management uses endpoint IDs, while inference usually uses the endpoint name as `model`.
 - Autoscaling, auto-shutdown, prompt caching, and speculative decoding materially affect operations and cost.

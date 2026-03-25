@@ -49,6 +49,7 @@ Core building blocks:
 
 ## High-Signal Rules
 
+- Python scripts require the Together v2 SDK (`together>=2.0.0`). If the user is on an older version, they must upgrade first: `uv pip install --upgrade "together>=2.0.0"`.
 - Prefer dedicated endpoints over containers unless the runtime or pipeline is genuinely custom.
 - Treat the worker contract and `pyproject.toml` as the source of truth for deployment behavior.
 - Parameterize deployment name, queue inputs, and resource sizing instead of hardcoding them.

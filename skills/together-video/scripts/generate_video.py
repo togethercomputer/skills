@@ -9,7 +9,7 @@ Usage:
     python generate_video.py
 
 Requires:
-    pip install together requests
+    uv pip install "together>=2.0.0" requests
     export TOGETHER_API_KEY=your_key
 """
 

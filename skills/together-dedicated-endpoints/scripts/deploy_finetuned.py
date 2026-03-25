@@ -10,7 +10,7 @@ Usage:
     python deploy_finetuned.py deploy --model-name your-username/Qwen3-8B-your-suffix --hardware 4x_nvidia_h100_80gb_sxm
 
 Requires:
-    pip install together
+    uv pip install "together>=2.0.0"
     export TOGETHER_API_KEY=your_key
 """
 

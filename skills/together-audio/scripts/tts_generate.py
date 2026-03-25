@@ -15,7 +15,7 @@ Usage:
     python tts_generate.py --mode voices
 
 Requirements:
-    pip install together
+    uv pip install "together>=2.0.0"
     export TOGETHER_API_KEY=your_key
 """
 

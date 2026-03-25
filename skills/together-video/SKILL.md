@@ -49,6 +49,7 @@ Use Together AI video APIs for:
 
 ## High-Signal Rules
 
+- Python scripts require the Together v2 SDK (`together>=2.0.0`). If the user is on an older version, they must upgrade first: `uv pip install --upgrade "together>=2.0.0"`.
 - Together video generation is asynchronous; do not treat it like a synchronous image call.
 - Keyframe support is model-specific. Validate support before promising first-plus-last-frame control.
 - Keep polling and download logic as part of the workflow, not as an afterthought.

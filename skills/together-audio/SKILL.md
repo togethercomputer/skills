@@ -53,6 +53,7 @@ Use Together AI audio APIs for:
 
 ## High-Signal Rules
 
+- Python scripts require the Together v2 SDK (`together>=2.0.0`). If the user is on an older version, they must upgrade first: `uv pip install --upgrade "together>=2.0.0"`.
 - Use `client.audio.speech.create()` for TTS.
 - Use `client.audio.transcriptions.create()` for transcription and `client.audio.translations.create()` for translation.
 - Realtime APIs require audio-format discipline; confirm PCM expectations before streaming bytes.

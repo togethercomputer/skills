@@ -68,6 +68,7 @@ clearly offline batch processing, vector retrieval, model training, or infrastru
 
 ## High-Signal Rules
 
+- Python scripts require the Together v2 SDK (`together>=2.0.0`). If the user is on an older version, they must upgrade first: `uv pip install --upgrade "together>=2.0.0"`.
 - Use `client.chat.completions.create()` for Python and `client.chat.completions.create()` for TypeScript.
 - Preserve full `messages` history for multi-turn conversations; do not rebuild context from final text only.
 - For tools, implement the full loop: model tool call -> execute tool -> append tool result -> second model call.

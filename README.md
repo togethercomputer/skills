@@ -133,7 +133,7 @@ The agent will reference `together-fine-tuning` for data format requirements, tr
 Each script is a standalone, runnable example. They require the Together Python SDK and an API key:
 
 ```bash
-pip install "together>=2.0.0"
+uv pip install "together>=2.0.0"
 export TOGETHER_API_KEY=your_key
 
 # Run any script directly
@@ -202,7 +202,7 @@ If you're using the v1 SDK, see the [migration guide](https://docs.together.ai/d
 - A supported AI coding agent: [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [Cursor](https://www.cursor.com), [Codex](https://openai.com/index/introducing-codex/), or [Gemini CLI](https://github.com/google-gemini/gemini-cli)
 - [Together AI API key](https://api.together.ai/settings/api-keys)
 - Python 3.10+ (for scripts)
-- `pip install "together>=2.0.0"` (v2 SDK)
+- `uv pip install "together>=2.0.0"` (v2 SDK)
 
 ## License
 

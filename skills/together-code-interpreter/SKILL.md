@@ -48,6 +48,7 @@ Typical fits:
 
 ## High-Signal Rules
 
+- Python scripts require the Together v2 SDK (`together>=2.0.0`). If the user is on an older version, they must upgrade first: `uv pip install --upgrade "together>=2.0.0"`.
 - Treat `session_id` as part of the workflow state.
 - Inspect `response.errors` before assuming a run succeeded.
 - Use this skill when the user benefits from remote stateful execution, not just because Python is involved.

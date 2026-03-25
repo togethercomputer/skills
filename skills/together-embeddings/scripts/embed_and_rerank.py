@@ -12,7 +12,7 @@ Usage:
     python embed_and_rerank.py
 
 Requires:
-    pip install together
+    uv pip install "together>=2.0.0"
     export TOGETHER_API_KEY=your_key
 """
 

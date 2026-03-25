@@ -61,6 +61,7 @@ through Together AI's evaluation system.
 
 ## High-Signal Rules
 
+- Python scripts require the Together v2 SDK (`together>=2.0.0`). If the user is on an older version, they must upgrade first: `uv pip install --upgrade "together>=2.0.0"`.
 - The current SDK examples in this repo use `check=False` for eval uploads because local file validation can misclassify eval datasets.
 - Treat dataset schema as part of the product contract; inconsistent fields cause downstream confusion.
 - Compare evaluations are best when both candidate responses are already present in the dataset.

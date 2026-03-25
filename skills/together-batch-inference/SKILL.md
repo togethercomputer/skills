@@ -49,6 +49,7 @@ Typical fits:
 
 ## High-Signal Rules
 
+- Python scripts require the Together v2 SDK (`together>=2.0.0`). If the user is on an older version, they must upgrade first: `uv pip install --upgrade "together>=2.0.0"`.
 - Use `input_file_id`, not legacy file parameters.
 - Keep `custom_id` stable and meaningful so result reconciliation is easy.
 - Batch is for independent requests. If the workload depends on shared conversation state, it is probably the wrong tool.

@@ -19,7 +19,7 @@ Both CLIs provide equivalent functionality. This reference uses the `together be
 
 **Together CLI (via pip):**
 ```shell
-pip install together
+uv pip install "together>=2.0.0"
 together auth login
 ```
 

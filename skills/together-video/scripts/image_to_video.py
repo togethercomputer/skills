@@ -9,7 +9,7 @@ Usage:
     python image_to_video.py <image_url_or_path> [--prompt "..."] [--output promo.mp4]
 
 Requires:
-    pip install together requests
+    uv pip install "together>=2.0.0" requests
     export TOGETHER_API_KEY=your_key
 """
 
