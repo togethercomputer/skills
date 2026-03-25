@@ -56,8 +56,7 @@ Typical fits:
 
 ## Resource Map
 
-- **API reference**: [references/api-reference.md](references/api-reference.md)
-- **Operational guidance**: [references/api-reference.md](references/api-reference.md)
+- **API reference and operational guidance**: [references/api-reference.md](references/api-reference.md)
 - **Python workflow**: [scripts/batch_workflow.py](scripts/batch_workflow.py)
 - **TypeScript workflow**: [scripts/batch_workflow.ts](scripts/batch_workflow.ts)
 

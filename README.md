@@ -183,6 +183,8 @@ This repo now treats skills as agent artifacts rather than long tutorials:
 
 ## SDK Compatibility
 
+> **Version bump:** This repo now requires `together>=2.0.0`. If you are upgrading from v1, see the [migration guide](https://docs.together.ai/docs/v2-migration-guide) for breaking changes in method names, argument styles, and response shapes.
+
 All code examples and scripts target the **Together Python v2 SDK** (`together>=2.0.0`), which uses:
 
 - Keyword-only arguments (not positional)

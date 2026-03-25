@@ -147,9 +147,10 @@ And `python scripts/quality_check.py` warns on:
 1. Create `skills/together-<product>/SKILL.md` with frontmatter and body
 2. Add `references/` files for detailed specs (model tables, API params)
 3. Add `scripts/` with runnable Python v2 SDK examples if the skill involves multi-step workflows
-4. Validate with `python scripts/quick_validate.py skills/together-<product>`
-5. Run `./scripts/publish.sh` to regenerate AGENTS.md and README.md
-6. Update `.claude-plugin/marketplace.json` with the new skill entry
+4. Create `agents/openai.yaml` with `display_name`, `short_description`, and `default_prompt`
+5. Validate with `python scripts/quick_validate.py skills/together-<product>`
+6. Run `./scripts/publish.sh` to regenerate AGENTS.md and README.md
+7. Update `.claude-plugin/marketplace.json` with the new skill entry
 
 ## Modifying existing skills
 
