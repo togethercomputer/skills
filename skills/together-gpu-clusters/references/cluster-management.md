@@ -10,6 +10,7 @@
 - [Health Checks](#health-checks)
 - [User Management](#user-management)
 - [Billing](#billing)
+- [Troubleshooting](#troubleshooting)
 - [Terraform](#terraform)
 
 
@@ -392,6 +393,17 @@ Users require active Together AI accounts before they can be added.
 - **Reserved compute**: Runs until end date; overflow capacity decommissioned
 - **On-demand compute**: Paused first, then decommissioned if credits not restored
 - **Storage**: Access revoked, then data decommissioned
+
+## Troubleshooting
+
+| Issue | Solution |
+|-------|----------|
+| Cluster stuck provisioning | Check the status for phases like `WaitingForControlPlaneNodes` or `RunningAcceptanceTests` |
+| Pods not scheduling | Verify node readiness with `kubectl get nodes` and inspect resource requests and taints |
+| GPU not accessible in container | Use a CUDA-enabled image such as `pytorch/pytorch` or `nvidia/cuda` |
+| Storage PVC not binding | Confirm the volume name matches the shared volume and inspect `kubectl get pvc` |
+| Slurm job failures | Run `sinfo` to inspect partitions and `scontrol show job <jobid>` for details |
+| Node health issues | Check `nvidia-smi`, inspect Xid errors in `dmesg`, and trigger repair from the UI if needed |
 
 ## Terraform
 
