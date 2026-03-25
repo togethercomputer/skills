@@ -35,6 +35,8 @@ Typical fits:
   - Start with [scripts/execute_with_session.py](scripts/execute_with_session.py) or [scripts/execute_with_session.ts](scripts/execute_with_session.ts)
 - **Response schema and session listing**
   - Read [references/api-reference.md](references/api-reference.md)
+- **MCP-style access for agent workflows**
+  - Read [references/api-reference.md](references/api-reference.md)
 
 ## Workflow
 
@@ -54,6 +56,7 @@ Typical fits:
 ## Resource Map
 
 - **API reference**: [references/api-reference.md](references/api-reference.md)
+- **Alternative access patterns**: [references/api-reference.md](references/api-reference.md)
 - **Python workflow**: [scripts/execute_with_session.py](scripts/execute_with_session.py)
 - **TypeScript workflow**: [scripts/execute_with_session.ts](scripts/execute_with_session.ts)
 
