@@ -22,7 +22,7 @@ Each skill contains:
 <!-- BEGIN_SKILLS_TABLE -->
 | Skill | Description | Scripts |
 |-------|-------------|---------|
-| **together-chat-completions** | Use this skill for Together AI serverless chat inference: real-time or streaming chat apps, multi-turn conversations,... | `async_parallel.py`, `chat_basic.py`, `reasoning_models.py`, `structured_outputs.py`, `tool_call_loop.py` |
+| **together-chat-completions** | Use this skill for Together AI serverless chat inference: real-time or streaming chat apps, multi-turn conversations,... | `async_parallel.py`, `chat_basic.py`, `debug_headers.py`, `reasoning_models.py`, `structured_outputs.py`, `tool_call_loop.py` |
 | **together-images** | Use this skill for Together AI image workflows: text-to-image generation, image editing with Kontext, FLUX model sele... | `generate_image.py`, `kontext_editing.py`, `lora_generation.py` |
 | **together-video** | Use this skill for Together AI video workflows: text-to-video generation, image-to-video with keyframe control, model... | `generate_video.py`, `image_to_video.py` |
 | **together-audio** | Use this skill for Together AI audio workflows: text-to-speech over REST, streaming, or realtime WebSocket APIs, plus... | `stt_realtime.py`, `stt_transcribe.py`, `tts_generate.py`, `tts_websocket.py` |
