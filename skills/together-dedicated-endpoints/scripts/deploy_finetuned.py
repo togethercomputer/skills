@@ -3,11 +3,16 @@
 Together AI -- Deploy a Fine-tuned Model on a Dedicated Endpoint (v2 SDK)
 
 Deploy a fine-tuned model as a dedicated endpoint, wait for it to become
-ready, and optionally run inference or stop the endpoint.
+ready, and optionally run inference or tear down the endpoint.
+
+Fine-tuned models may require larger hardware than the base parameter count
+suggests (e.g. 4x H100 for an 8B model). The script validates the chosen
+hardware against eligible configs before creating the endpoint.
 
 Usage:
     python deploy_finetuned.py list-jobs
     python deploy_finetuned.py deploy --model-name your-username/Qwen3-8B-your-suffix --hardware 4x_nvidia_h100_80gb_sxm
+    python deploy_finetuned.py deploy --model-name your-username/Qwen3-8B-your-suffix --hardware 4x_nvidia_h100_80gb_sxm --delete
 
 Requires:
     uv pip install "together>=2.0.0"
@@ -15,6 +20,7 @@ Requires:
 """
 
 import argparse
+import sys
 import time
 
 from together import Together
@@ -41,6 +47,24 @@ def list_hardware(model_name: str) -> list:
     return response.data
 
 
+def validate_hardware(model_name: str, hardware: str) -> None:
+    """Check that the chosen hardware is eligible for the model. Exits on mismatch."""
+    print(f"Validating hardware for {model_name}...")
+    response = client.endpoints.list_hardware(model=model_name)
+    eligible_ids = [hw.id for hw in response.data]
+    for hw in response.data:
+        status = hw.availability.status if hw.availability else "unknown"
+        tag = " <-- selected" if hw.id == hardware else ""
+        print(f"  {hw.id} ({status}){tag}")
+
+    if hardware not in eligible_ids:
+        print(
+            f"\nError: '{hardware}' is not eligible for this model.\n"
+            f"Eligible options: {', '.join(eligible_ids)}"
+        )
+        sys.exit(1)
+
+
 def deploy_finetuned(
     model_name: str,
     hardware: str,
@@ -60,7 +84,7 @@ def deploy_finetuned(
     return endpoint
 
 
-def wait_for_ready(endpoint_id: str, timeout: int = 600, poll_interval: int = 10):
+def wait_for_ready(endpoint_id: str, timeout: int = 600, poll_interval: int = 15):
     """Poll until endpoint reaches STARTED state."""
     elapsed = 0
     while elapsed < timeout:
@@ -91,9 +115,15 @@ def run_inference(endpoint_name: str, prompt: str) -> str:
 
 
 def stop_endpoint(endpoint_id: str) -> None:
-    """Stop an endpoint to avoid charges."""
+    """Stop an endpoint to avoid charges. Can be restarted later."""
     client.endpoints.update(endpoint_id, state="STOPPED")
     print(f"Stopped endpoint: {endpoint_id}")
+
+
+def delete_endpoint(endpoint_id: str) -> None:
+    """Permanently delete an endpoint."""
+    client.endpoints.delete(endpoint_id)
+    print(f"Deleted endpoint: {endpoint_id}")
 
 
 def parse_args() -> argparse.Namespace:
@@ -108,18 +138,29 @@ def parse_args() -> argparse.Namespace:
     deploy_parser.add_argument("--display-name", help="Optional endpoint display name")
     deploy_parser.add_argument("--min-replicas", type=int, default=1, help="Minimum replicas")
     deploy_parser.add_argument("--max-replicas", type=int, default=1, help="Maximum replicas")
-    deploy_parser.add_argument("--show-hardware", action="store_true", help="List hardware before deploying")
+    deploy_parser.add_argument(
+        "--skip-hardware-check",
+        action="store_true",
+        help="Skip validating hardware eligibility before creating",
+    )
     deploy_parser.add_argument("--timeout", type=int, default=600, help="Maximum wait time in seconds")
-    deploy_parser.add_argument("--poll-interval", type=int, default=10, help="Seconds between polls")
+    deploy_parser.add_argument("--poll-interval", type=int, default=15, help="Seconds between polls")
     deploy_parser.add_argument(
         "--prompt",
         default="What are some fun things to do in New York?",
         help="Prompt to use after the endpoint becomes ready",
     )
-    deploy_parser.add_argument(
+
+    teardown = deploy_parser.add_mutually_exclusive_group()
+    teardown.add_argument(
         "--leave-running",
         action="store_true",
-        help="Leave the endpoint running instead of stopping it after the test prompt",
+        help="Leave the endpoint running after the test prompt",
+    )
+    teardown.add_argument(
+        "--delete",
+        action="store_true",
+        help="Delete the endpoint after testing (default: stop only)",
     )
     return parser.parse_args()
 
@@ -130,9 +171,8 @@ def main() -> None:
         list_finetuning_jobs()
         return
 
-    if args.show_hardware:
-        print(f"Available hardware for {args.model_name}:")
-        list_hardware(args.model_name)
+    if not args.skip_hardware_check:
+        validate_hardware(args.model_name, args.hardware)
 
     endpoint = deploy_finetuned(
         model_name=args.model_name,
@@ -143,7 +183,12 @@ def main() -> None:
     )
     endpoint = wait_for_ready(endpoint.id, timeout=args.timeout, poll_interval=args.poll_interval)
     run_inference(endpoint.name, args.prompt)
-    if not args.leave_running:
+
+    if args.leave_running:
+        print(f"Endpoint left running: {endpoint.id}")
+    elif args.delete:
+        delete_endpoint(endpoint.id)
+    else:
         stop_endpoint(endpoint.id)
 
 

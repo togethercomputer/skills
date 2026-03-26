@@ -490,6 +490,7 @@ Restricting zones narrows available capacity and can make hardware placement har
 | Issue | Solution |
 |-------|----------|
 | Hardware unavailable | Try a different compatible model or retry when capacity changes |
+| Hardware not eligible (404: "not available for this model") | The model only supports specific hardware configs. Run `list_hardware(model=...)` to see eligible options. Fine-tuned models often require larger hardware than their parameter count suggests |
 | Endpoint queued (not starting) | Reduce `min_replicas` to match currently available capacity |
 | Low replica scaling | Reduce `max_replicas` or wait for more hardware to become available |
 | Model not supported | Use a dedicated-eligible model from `together models list --type dedicated` |

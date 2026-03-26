@@ -103,6 +103,18 @@ together endpoints hardware --model Qwen/Qwen3.5-9B-FP8 --available
 | Cost-effective | A100 (lower per-minute cost) |
 | Maximum performance | H100 (faster inference) |
 
+Fine-tuned and custom-uploaded models may require larger hardware than their base parameter count
+suggests. For example, a fine-tuned 8B model may only be eligible for 4x or 8x H100 configs.
+Always call `list_hardware(model=...)` to get the authoritative list of eligible hardware before
+creating an endpoint:
+
+```python
+response = client.endpoints.list_hardware(model="your-username/your-finetuned-model")
+for hw in response.data:
+    status = hw.availability.status if hw.availability else "unknown"
+    print(f"  {hw.id}  ({status})")
+```
+
 ## Scaling
 
 ### Horizontal (Replicas)
