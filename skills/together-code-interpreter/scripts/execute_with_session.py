@@ -86,25 +86,44 @@ print(f"Max:  {data.max():.4f}")
         session_id=session_id,
     )
 
-    # --- Example 4: Generate a chart (returns display_data) ---
+    # --- Example 4: Generate a chart and retrieve as base64 PNG ---
+    # plt.show() with the Agg backend does not reliably produce display_data
+    # outputs. Instead, save the figure to a buffer and encode it explicitly.
     print("\n=== Chart generation ===")
-    execute_code(
+    chart_result = execute_code(
         """
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
+import base64, io
 
 x = np.linspace(0, 10, 100)
-plt.figure(figsize=(8, 4))
-plt.plot(x, np.sin(x), label='sin(x)')
-plt.plot(x, np.cos(x), label='cos(x)')
-plt.legend()
-plt.title('Trig Functions')
-plt.show()
+fig, ax = plt.subplots(figsize=(8, 4))
+ax.plot(x, np.sin(x), label='sin(x)')
+ax.plot(x, np.cos(x), label='cos(x)')
+ax.legend()
+ax.set_title('Trig Functions')
+
+buf = io.BytesIO()
+fig.savefig(buf, format='png', dpi=150)
+buf.seek(0)
+png_b64 = base64.b64encode(buf.read()).decode()
+plt.close(fig)
+print(f"chart_png_base64:{png_b64}")
 """,
         session_id=session_id,
     )
+
+    # Extract and save the chart locally
+    import base64 as _b64
+
+    for out in chart_result["outputs"]:
+        if out["type"] == "stdout" and "chart_png_base64:" in out["data"]:
+            b64_str = out["data"].split("chart_png_base64:", 1)[1].strip()
+            with open("trig_chart.png", "wb") as f:
+                f.write(_b64.b64decode(b64_str))
+            print(f"  Chart saved to trig_chart.png ({len(b64_str)} bytes b64)")
 
     # --- List active sessions ---
     print("\n=== Active sessions ===")

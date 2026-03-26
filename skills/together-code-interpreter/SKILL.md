@@ -51,6 +51,7 @@ Typical fits:
 - Python scripts require the Together v2 SDK (`together>=2.0.0`). If the user is on an older version, they must upgrade first: `uv pip install --upgrade "together>=2.0.0"`.
 - Treat `session_id` as part of the workflow state.
 - Inspect `response.errors` before assuming a run succeeded.
+- `plt.show()` with the Agg backend does not reliably produce `display_data` outputs. To retrieve charts, save the figure to a `BytesIO` buffer with `fig.savefig()`, base64-encode it, and print the encoded string to stdout. Parse it from the `stdout` output on the client side. See the chart example in [scripts/execute_with_session.py](scripts/execute_with_session.py).
 - Use this skill when the user benefits from remote stateful execution, not just because Python is involved.
 - If the task outgrows the sandbox model, hand off to GPU clusters or dedicated containers.
 

@@ -184,6 +184,42 @@ curl -X POST "https://api.together.ai/tci/execute" \
   }'
 ```
 
+### Retrieving Charts
+
+`plt.show()` with the Agg backend does not reliably produce `display_data` outputs containing
+`image/png`. To get chart images back to the client, save explicitly and base64-encode via stdout:
+
+```python
+# --- Remote code (runs in the sandbox) ---
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import base64, io
+
+fig, ax = plt.subplots()
+ax.bar(["Jan", "Feb", "Mar"], [100, 150, 130])
+
+buf = io.BytesIO()
+fig.savefig(buf, format="png", dpi=150)
+buf.seek(0)
+print("chart_b64:" + base64.b64encode(buf.read()).decode())
+plt.close(fig)
+```
+
+```python
+# --- Client side ---
+import base64
+
+for output in response.data.outputs:
+    if output.type == "stdout" and "chart_b64:" in output.data:
+        b64 = output.data.split("chart_b64:", 1)[1].strip()
+        with open("chart.png", "wb") as f:
+            f.write(base64.b64decode(b64))
+```
+
+If the API does return a `display_data` output with an `image/png` key, prefer that over stdout
+parsing. Check both paths for maximum reliability.
+
 ## List Sessions
 
 ### Response (SessionListResponse)
