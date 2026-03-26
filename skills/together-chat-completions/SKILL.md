@@ -55,6 +55,11 @@ clearly offline batch processing, vector retrieval, model training, or infrastru
 - **Reasoning models or thinking-mode toggles**
   - Read [references/reasoning-models.md](references/reasoning-models.md)
   - Start from [scripts/reasoning_models.py](scripts/reasoning_models.py) or [scripts/reasoning_models.ts](scripts/reasoning_models.ts)
+- **Combining tools + structured output, or tools + streaming**
+  - Read the "Combining Tool Calls with Structured Output" section in
+    [references/function-calling-patterns.md](references/function-calling-patterns.md)
+  - Read the "Streaming Structured Output" section in
+    [references/structured-outputs.md](references/structured-outputs.md)
 - **Model selection, context length, or pricing-aware choices**
   - Read [references/models.md](references/models.md)
 
@@ -74,6 +79,8 @@ clearly offline batch processing, vector retrieval, model training, or infrastru
 - For tools, implement the full loop: model tool call -> execute tool -> append tool result -> second model call.
 - Prefer `json_schema` over looser JSON modes when the user needs stable machine-readable output.
 - Use reasoning models only when the task benefits from deeper deliberation; otherwise prefer cheaper standard models.
+- To combine tool calling with structured output, use a two-phase approach: Phase 1 sends `tools` (no `response_format`), Phase 2 sends `response_format` (no `tools`) after tool results are appended.
+- Streaming works with `response_format`; accumulate chunks and parse the final concatenated string as JSON.
 - If the user needs many independent requests, combine this skill with `async_parallel.py` or hand off to batch inference.
 
 ## Resource Map

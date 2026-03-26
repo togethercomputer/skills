@@ -3,6 +3,7 @@
 
 - [Three Modes](#three-modes)
 - [Structured Outputs with Reasoning Models](#structured-outputs-with-reasoning-models)
+- [Streaming Structured Output](#streaming-structured-output)
 - [Supported Models](#supported-models)
 - [Troubleshooting](#troubleshooting)
 - [Prompting Best Practices](#prompting-best-practices)
@@ -421,6 +422,85 @@ if (completion?.choices?.[0]?.message?.content) {
   const result = JSON.parse(completion.choices[0].message.content);
   console.log(JSON.stringify(result, null, 2));
 }
+```
+
+## Streaming Structured Output
+
+You can combine `response_format` with `stream=True`. Tokens arrive incrementally (individual chunks
+are not valid JSON), so accumulate all chunks and parse the final concatenated string.
+
+```python
+import json
+from together import Together
+from pydantic import BaseModel, Field
+
+client = Together()
+
+class Summary(BaseModel):
+    title: str = Field(description="A short title")
+    bullets: list[str] = Field(description="Key points")
+
+schema = Summary.model_json_schema()
+
+stream = client.chat.completions.create(
+    model="openai/gpt-oss-20b",
+    messages=[
+        {"role": "system", "content": f"Respond in JSON matching: {json.dumps(schema)}"},
+        {"role": "user", "content": "Summarize the benefits of exercise"},
+    ],
+    response_format={
+        "type": "json_schema",
+        "json_schema": {"name": "summary", "schema": schema},
+    },
+    stream=True,
+)
+
+chunks: list[str] = []
+for chunk in stream:
+    token = chunk.choices[0].delta.content or ""
+    chunks.append(token)
+    print(token, end="", flush=True)
+print()
+
+result = json.loads("".join(chunks))
+print(f"Title: {result['title']}")
+print(f"Bullets: {result['bullets']}")
+```
+
+```typescript
+import Together from "together-ai";
+import { z } from "zod";
+
+const together = new Together();
+
+const summarySchema = z.object({
+  title: z.string().describe("A short title"),
+  bullets: z.array(z.string()).describe("Key points"),
+});
+const jsonSchema = z.toJSONSchema(summarySchema);
+
+const stream = await together.chat.completions.create({
+  model: "openai/gpt-oss-20b",
+  messages: [
+    { role: "system", content: `Respond in JSON matching: ${JSON.stringify(jsonSchema)}` },
+    { role: "user", content: "Summarize the benefits of exercise" },
+  ],
+  response_format: {
+    type: "json_schema",
+    json_schema: { name: "summary", schema: jsonSchema },
+  },
+  stream: true,
+});
+
+const chunks: string[] = [];
+for await (const chunk of stream) {
+  const token = chunk.choices[0]?.delta?.content || "";
+  chunks.push(token);
+  process.stdout.write(token);
+}
+
+const result = JSON.parse(chunks.join(""));
+console.log(`Title: ${result.title}`);
 ```
 
 ## Supported Models

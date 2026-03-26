@@ -2,6 +2,7 @@
 ## Contents
 
 - [6 Calling Patterns](#6-calling-patterns)
+- [Combining Tool Calls with Structured Output](#combining-tool-calls-with-structured-output)
 - [Processing Tool Calls](#processing-tool-calls)
 - [tool_choice Parameter](#toolchoice-parameter)
 - [Supported Models](#supported-models)
@@ -525,6 +526,113 @@ const response2 = await together.chat.completions.create({
   tools,
 });
 // Model picks the best-weather city and calls get_restaurant
+```
+
+## Combining Tool Calls with Structured Output
+
+You cannot pass `tools` and `response_format` in the same request. Use a two-phase approach:
+
+1. **Phase 1 (tool detection)**: Send with `tools`, no `response_format`. Model decides whether to call
+   functions.
+2. **Phase 2 (structured response)**: After executing tools and appending results, send a follow-up
+   request with `response_format` (and optionally `stream=True`) but without `tools`.
+
+```python
+import json
+from together import Together
+from pydantic import BaseModel, Field
+
+client = Together()
+
+class ChatResponse(BaseModel):
+    response: str = Field(description="The assistant's answer")
+    confidence: float = Field(description="Confidence from 0.0 to 1.0")
+    sources: list[str] = Field(description="Data sources used")
+
+messages = [
+    {"role": "system", "content": "You are a helpful assistant with weather tools."},
+    {"role": "user", "content": "What's the weather in NYC?"},
+]
+
+# Phase 1: tool detection (no response_format)
+response = client.chat.completions.create(
+    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    messages=messages,
+    tools=tools,
+)
+
+# Execute tool calls and append results
+tool_calls = response.choices[0].message.tool_calls
+if tool_calls:
+    messages.append(response.choices[0].message)
+    for tc in tool_calls:
+        result = execute_function(tc.function.name, json.loads(tc.function.arguments))
+        messages.append({
+            "role": "tool",
+            "tool_call_id": tc.id,
+            "content": json.dumps(result),
+        })
+
+# Phase 2: structured response (no tools)
+schema = ChatResponse.model_json_schema()
+final = client.chat.completions.create(
+    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    messages=messages,
+    response_format={
+        "type": "json_schema",
+        "json_schema": {"name": "chat_response", "schema": schema},
+    },
+    stream=True,  # can stream structured JSON
+)
+
+chunks = []
+for chunk in final:
+    token = chunk.choices[0].delta.content or ""
+    chunks.append(token)
+    print(token, end="", flush=True)
+output = json.loads("".join(chunks))
+```
+
+```typescript
+import Together from "together-ai";
+import { z } from "zod";
+
+const together = new Together();
+
+const chatResponseSchema = z.object({
+  response: z.string().describe("The assistant's answer"),
+  confidence: z.number().describe("Confidence from 0.0 to 1.0"),
+  sources: z.array(z.string()).describe("Data sources used"),
+});
+const jsonSchema = z.toJSONSchema(chatResponseSchema);
+
+// Phase 1: tool detection
+const response = await together.chat.completions.create({
+  model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+  messages,
+  tools,
+});
+
+// Execute tool calls, append results to messages...
+
+// Phase 2: structured response (no tools), with streaming
+const stream = await together.chat.completions.create({
+  model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+  messages,
+  response_format: {
+    type: "json_schema",
+    json_schema: { name: "chat_response", schema: jsonSchema },
+  },
+  stream: true,
+});
+
+const chunks: string[] = [];
+for await (const chunk of stream) {
+  const token = chunk.choices[0]?.delta?.content || "";
+  chunks.push(token);
+  process.stdout.write(token);
+}
+const output = JSON.parse(chunks.join(""));
 ```
 
 ## Processing Tool Calls

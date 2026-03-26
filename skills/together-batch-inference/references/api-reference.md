@@ -3,6 +3,7 @@
 
 - [Endpoints](#endpoints)
 - [Input File Format (JSONL)](#input-file-format)
+- [Output File Format (JSONL)](#output-file-format)
 - [Create Batch Request](#create-batch-request)
 - [Batch Job Object (Response)](#batch-job-object)
 - [Batch Job Status](#batch-job-status)
@@ -37,6 +38,22 @@ Each line is a JSON object with two required fields:
 
 - `custom_id` (string, required): Unique identifier for tracking (max 64 chars)
 - `body` (object, required): Request matching the `/v1/chat/completions` schema
+
+## Output File Format (JSONL)
+
+Each line in the output file is a JSON object keyed by `custom_id`:
+
+```json
+{"custom_id": "request-1", "response": {"status_code": 200, "body": {"id": "...", "object": "chat.completion", "model": "Qwen/Qwen2.5-7B-Instruct-Turbo", "choices": [{"index": 0, "message": {"role": "assistant", "content": "Hello!"}, "finish_reason": "stop"}], "usage": {"prompt_tokens": 12, "completion_tokens": 3, "total_tokens": 15}}}}
+```
+
+To extract the assistant's reply from a result line:
+
+```python
+content = (
+    result["response"]["body"]["choices"][0]["message"]["content"]
+)
+```
 
 ## Create Batch Request
 
@@ -82,6 +99,8 @@ Each line is a JSON object with two required fields:
 
 ### 1. Upload Input File
 
+Pass `check=False` to skip client-side file validation and let the server validate during the `VALIDATING` phase.
+
 ```python
 from together import Together
 
@@ -107,20 +126,23 @@ curl -X POST "https://api.together.xyz/v1/files" \
 
 ### 2. Create Batch
 
+Note: `create()` returns a wrapper object. Access the batch via `.job`:
+
 ```python
-batch = client.batches.create(
+response = client.batches.create(
     input_file_id=file_resp.id,
     endpoint="/v1/chat/completions",
 )
-print(batch.job.id)  # batch-abc123
+batch = response.job
+print(batch.id)  # batch-abc123
 ```
 
 ```typescript
-const batch = await client.batches.create({
+const response = await client.batches.create({
   endpoint: "/v1/chat/completions",
   input_file_id: fileResp.id,
 });
-console.log(batch);
+console.log(response.job?.id);
 ```
 
 ```shell
@@ -132,10 +154,12 @@ curl -X POST "https://api.together.xyz/v1/batches" \
 
 ### 3. Check Status
 
+Unlike `create()`, `retrieve()` returns the batch object directly (no `.job` wrapper):
+
 ```python
-status = client.batches.retrieve(batch.job.id)
-print(status.status)    # VALIDATING, IN_PROGRESS, COMPLETED, FAILED
-print(status.progress)  # 0.0 to 100.0
+batch = client.batches.retrieve(batch.id)
+print(batch.status)    # VALIDATING, IN_PROGRESS, COMPLETED, FAILED
+print(batch.progress)  # 0.0 to 100.0
 ```
 
 ```typescript
@@ -249,7 +273,7 @@ Per-request errors are recorded in a separate file accessible via `error_file_id
 - Validate JSONL before submission to avoid wasting a full batch run on malformed input
 - Use unique `custom_id` values so output and error rows can be reconciled deterministically
 - Poll status every 30-60 seconds rather than tight-looping the API
-- Most batches complete within 24 hours; allow up to 72 hours for very large or complex runs
+- Small batches (under 1K requests) typically complete in minutes; most batches finish within 24 hours; allow up to 72 hours for very large or complex runs
 - Reuse uploaded batch files across multiple jobs when the request set is unchanged
 
 ## Error Codes

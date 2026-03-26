@@ -54,6 +54,9 @@ Typical fits:
 - Keep `custom_id` stable and meaningful so result reconciliation is easy.
 - Batch is for independent requests. If the workload depends on shared conversation state, it is probably the wrong tool.
 - Always inspect the error file in addition to the success output.
+- `client.batches.create()` returns a wrapper; access the batch object via `response.job` (e.g., `response.job.id`). `client.batches.retrieve()` returns the batch object directly.
+- For classification or labeling workloads, set `max_tokens` low (e.g., 4), use `temperature: 0`, and constrain the system prompt to return only the label. This minimizes output tokens and cost.
+- Small batches (under 1K requests) typically complete in minutes. The 24-hour completion window is a maximum, not typical.
 
 ## Resource Map
 
