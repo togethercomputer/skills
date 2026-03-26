@@ -141,12 +141,16 @@ Alternatively, pass a string (dataset column name) to evaluate pre-generated res
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `A_wins` | int | Model A preference count |
-| `B_wins` | int | Model B preference count |
-| `Ties` | int | No clear winner count |
+| `A_wins` | int | Model A preference count (Python SDK: `a_wins`) |
+| `B_wins` | int | Model B preference count (Python SDK: `b_wins`) |
+| `Ties` | int | No clear winner count (Python SDK: `ties`) |
 | `generation_fail_count` | int | Failed generations |
 | `judge_fail_count` | int | Unevaluated samples |
 | `result_file_id` | string | Pairwise decision details |
+
+> **Note:** The REST API returns `A_wins`, `B_wins`, and `Ties` but the Python SDK
+> Pydantic models convert these to snake_case (`a_wins`, `b_wins`, `ties`). The TypeScript
+> SDK preserves the original casing.
 
 ## Evaluation Types
 

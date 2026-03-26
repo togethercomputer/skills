@@ -333,9 +333,9 @@ def run_compare(args: argparse.Namespace, dataset: list[dict[str, Any]]) -> None
 
     result = poll_evaluation(evaluation.workflow_id, poll_interval=args.poll_interval)
     if getattr(result, "results", None):
-        print(f"  A wins: {result.results.A_wins}")
-        print(f"  B wins: {result.results.B_wins}")
-        print(f"  Ties: {result.results.Ties}")
+        print(f"  A wins: {result.results.a_wins}")
+        print(f"  B wins: {result.results.b_wins}")
+        print(f"  Ties: {result.results.ties}")
         maybe_download_results(args, result)
 
 
