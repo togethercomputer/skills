@@ -55,6 +55,8 @@ Use Together AI audio APIs for:
 
 - Python scripts require the Together v2 SDK (`together>=2.0.0`). If the user is on an older version, they must upgrade first: `uv pip install --upgrade "together>=2.0.0"`.
 - Use `client.audio.speech.create()` for TTS.
+- REST TTS returns a `BinaryAPIResponse`; call `response.write_to_file(path)` to save it. Do NOT use `stream_to_file` (it does not exist on this object).
+- Streaming TTS (`stream=True`) returns a `Stream` of `AudioSpeechStreamChunk` objects. Iterate chunks, check `chunk.type`, and decode `base64.b64decode(chunk.delta)` for audio data. There is no file-writing helper on the stream object.
 - Use `client.audio.transcriptions.create()` for transcription and `client.audio.translations.create()` for translation.
 - Realtime APIs require audio-format discipline; confirm PCM expectations before streaming bytes.
 - Diarization and word timestamps change response shape; code for the richer verbose output explicitly.

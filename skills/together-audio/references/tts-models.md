@@ -59,6 +59,11 @@ Current behavior from the docs and reference:
 - `alignment=word` is only supported on streaming requests
 - `/audio/speech` documents default sample rates of `24000` for Orpheus/Kokoro and `44100` for `cartesia/sonic`
 
+SDK response types (Python v2):
+- Non-streaming: `client.audio.speech.create()` returns a `BinaryAPIResponse`. Save with `response.write_to_file(path)`.
+- Streaming (`stream=True`): returns a `Stream[AudioSpeechStreamChunk]`. Iterate chunks, check `chunk.type`, and use `base64.b64decode(chunk.delta)` for `conversation.item.audio_output.delta` events.
+- The SDK `create()` method accepts: `model`, `input`, `voice`, `language`, `response_encoding`, `response_format`, `sample_rate`, `stream`. Pass `alignment` and `segment` via `extra_body={"alignment": ..., "segment": ...}`.
+
 ## Streaming HTTP
 
 When `stream=true`, the HTTP endpoint returns server-sent events.

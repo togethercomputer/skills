@@ -22,11 +22,33 @@ Requirements:
 from __future__ import annotations
 
 import argparse
+import base64
+import struct
 from pathlib import Path
 
 from together import Together
+from together import Omit
 
 client = Together()
+
+
+def _write_wav(pcm_data: bytes, output_file: Path, sample_rate: int = 24000) -> None:
+    """Wrap raw PCM s16le bytes in a WAV header and write to file."""
+    num_channels = 1
+    bits_per_sample = 16
+    byte_rate = sample_rate * num_channels * bits_per_sample // 8
+    block_align = num_channels * bits_per_sample // 8
+    data_size = len(pcm_data)
+
+    with open(output_file, "wb") as f:
+        f.write(b"RIFF")
+        f.write(struct.pack("<I", 36 + data_size))
+        f.write(b"WAVE")
+        f.write(b"fmt ")
+        f.write(struct.pack("<IHHIIHH", 16, 1, num_channels, sample_rate, byte_rate, block_align, bits_per_sample))
+        f.write(b"data")
+        f.write(struct.pack("<I", data_size))
+        f.write(pcm_data)
 
 
 def generate_rest(
@@ -51,7 +73,7 @@ def generate_rest(
         payload["sample_rate"] = sample_rate
 
     response = client.audio.speech.create(**payload)
-    response.stream_to_file(str(output_file))
+    response.write_to_file(str(output_file))
     print(f"Saved {response_format} audio to {output_file}")
 
 
@@ -67,23 +89,30 @@ def generate_stream(
     segment: str,
 ) -> None:
     """Generate streaming audio and save it as a WAV file."""
-    payload: dict[str, object] = {
-        "model": model,
-        "input": text,
-        "voice": voice,
-        "stream": True,
-        "response_format": "raw",
-        "response_encoding": response_encoding,
+    extra: dict[str, object] = {
         "alignment": alignment,
         "segment": segment,
     }
-    if language:
-        payload["language"] = language
-    if sample_rate is not None:
-        payload["sample_rate"] = sample_rate
+    response = client.audio.speech.create(
+        model=model,
+        input=text,
+        voice=voice,
+        stream=True,
+        response_format="raw",
+        response_encoding=response_encoding,
+        language=language if language else Omit(),
+        sample_rate=sample_rate if sample_rate is not None else Omit(),
+        extra_body=extra,
+    )
+    raw_chunks: list[bytes] = []
+    for chunk in response:
+        if chunk.type == "conversation.item.audio_output.delta":
+            raw_chunks.append(base64.b64decode(chunk.delta))
+        elif chunk.type == "conversation.item.word_timestamps":
+            print(f"Timestamps: {chunk.model_extra}")
 
-    response = client.audio.speech.create(**payload)
-    response.stream_to_file(str(output_file), response_format="wav")
+    pcm_data = b"".join(raw_chunks)
+    _write_wav(pcm_data, output_file, sample_rate=sample_rate or 24000)
     print(f"Saved streaming audio to {output_file}")
 
 
@@ -110,7 +139,7 @@ def generate_raw_bytes(
         payload["sample_rate"] = sample_rate
 
     response = client.audio.speech.create(**payload)
-    response.stream_to_file(str(output_file))
+    response.write_to_file(str(output_file))
     print(f"Saved raw audio bytes to {output_file}")
 
 
