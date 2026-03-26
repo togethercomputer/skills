@@ -34,6 +34,8 @@ This skill is for retrieval plumbing, not for the final language-model response 
 - **Embeddings API usage**
   - Read [references/api-reference.md](references/api-reference.md)
   - Start with [scripts/embed_and_rerank.py](scripts/embed_and_rerank.py) or [scripts/embed_and_rerank.ts](scripts/embed_and_rerank.ts)
+- **Semantic search (embed, store, query)**
+  - Start with [scripts/semantic_search.py](scripts/semantic_search.py) -- includes an in-memory vector store, cosine-similarity retrieval, and optional rerank
 - **RAG pipeline composition**
   - Start with [scripts/rag_pipeline.py](scripts/rag_pipeline.py)
 - **Model selection and rerank constraints**
@@ -44,14 +46,15 @@ This skill is for retrieval plumbing, not for the final language-model response 
 1. Confirm that the user needs vectors or retrieval, not direct generation.
 2. Choose the embedding model and batch shape.
 3. Generate embeddings for corpus and query paths consistently.
-4. Retrieve candidates in the user's vector store.
-5. Rerank only when the extra latency and endpoint requirement are justified.
+4. Retrieve candidates. An in-memory cosine-similarity store works for prototyping and small corpora (see `semantic_search.py`). Use a dedicated vector database for production scale.
+5. Rerank only when the extra latency and endpoint requirement are justified. When no dedicated rerank endpoint is available, cosine-similarity ranking is a reasonable fallback.
 
 ## High-Signal Rules
 
 - Python scripts require the Together v2 SDK (`together>=2.0.0`). If the user is on an older version, they must upgrade first: `uv pip install --upgrade "together>=2.0.0"`.
 - Keep embeddings and reranking conceptually separate; rerank is a second-stage precision step.
-- Reranking in this repo assumes a dedicated endpoint. Do not promise serverless rerank unless the product changes.
+- Reranking in this repo assumes a dedicated endpoint. Do not promise serverless rerank unless the product changes. When no endpoint is available, fall back to cosine-similarity ranking.
+- The embedding model has a 514-token context limit. Chunk longer documents before embedding.
 - The `rag_pipeline.py` example demonstrates retrieval plus generation; treat generation as a hand-off to chat completions.
 - Preserve model consistency across indexing and querying.
 
@@ -61,6 +64,7 @@ This skill is for retrieval plumbing, not for the final language-model response 
 - **Model guide**: [references/models.md](references/models.md)
 - **Python embeddings example**: [scripts/embed_and_rerank.py](scripts/embed_and_rerank.py)
 - **TypeScript embeddings example**: [scripts/embed_and_rerank.ts](scripts/embed_and_rerank.ts)
+- **Python semantic search**: [scripts/semantic_search.py](scripts/semantic_search.py)
 - **Python RAG pipeline**: [scripts/rag_pipeline.py](scripts/rag_pipeline.py)
 
 ## Official Docs

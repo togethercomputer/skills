@@ -75,6 +75,17 @@ The active serverless embedding model is `intfloat/multilingual-e5-large-instruc
 dimensions, 514 token max input). It supports multilingual text and is recommended for all
 embedding use cases including retrieval, semantic similarity, and classification.
 
+### Practical Notes
+
+- **514-token context limit:** Input text beyond 514 tokens is truncated silently. For
+  longer documents (articles, product pages, support tickets), split into chunks before
+  embedding. A typical English sentence is ~20 tokens, so 514 tokens covers roughly a
+  short paragraph.
+- **Use the same model for indexing and querying.** Mixing embedding models between corpus
+  and query will produce meaningless similarity scores.
+- **Cosine similarity works out of the box.** E5 embeddings are normalized, so cosine
+  similarity and dot product give equivalent rankings.
+
 ### Reranking
 
 There are currently no serverless rerank models. Reranking requires deploying a model on a

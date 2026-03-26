@@ -54,6 +54,10 @@ curl -X POST "https://api.together.xyz/v1/embeddings" \
 
 ### Batch Input
 
+Pass a list of strings to embed multiple texts in a single request. For large
+corpora, batch in groups (e.g. 100 texts per call) to avoid timeouts and stay
+within rate limits.
+
 ```python
 response = client.embeddings.create(
     model="intfloat/multilingual-e5-large-instruct",
@@ -71,6 +75,19 @@ const response = await client.embeddings.create({
 for (const item of response.data) {
   console.log(`Index ${item.index}: ${item.embedding.length} dimensions`);
 }
+```
+
+**Batching tip:** For corpora larger than ~100 documents, split into batches:
+
+```python
+batch_size = 100
+for start in range(0, len(texts), batch_size):
+    batch = texts[start : start + batch_size]
+    response = client.embeddings.create(
+        model="intfloat/multilingual-e5-large-instruct",
+        input=batch,
+    )
+    # store response.data embeddings
 ```
 
 ### Request Parameters
