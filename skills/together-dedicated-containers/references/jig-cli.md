@@ -393,10 +393,33 @@ This is useful for managing multiple environments (e.g., `staging_jig.toml`, `pr
 | `python_version` | string | `"3.11"` | Python version for the container base image |
 | `system_packages` | string[] | `[]` | APT packages to install (e.g., `ffmpeg`, `git`, `libgl1`) |
 | `environment` | object | `{}` | Build-time + runtime env vars (set as `ENV` directives) |
-| `run` | string[] | `[]` | Extra shell commands during build (each becomes a `RUN` instruction) |
+| `run` | string[] | `[]` | Extra shell commands during build (each becomes a `RUN` instruction). See [CUDA PyTorch note](#cuda-pytorch) |
 | `cmd` | string | `"python app.py"` | Container startup command (Docker `CMD`). Include `--queue` for Sprocket |
 | `copy` | string[] | `[]` | Files and directories to include in container |
 | `auto_include_git` | bool | `false` | Auto-include git-tracked files (requires clean repo) |
+
+### CUDA PyTorch
+
+The Jig base image (`python:3.11-slim`) does not include CUDA. A plain `torch>=2.0` dependency
+installs CPU-only PyTorch, so `torch.cuda.is_available()` will be `False` even on GPU nodes.
+
+For GPU workloads, install the CUDA-enabled PyTorch wheel via `run`:
+
+```toml
+[tool.jig.image]
+run = ["pip install torch --index-url https://download.pytorch.org/whl/cu121"]
+```
+
+Do **not** list `torch` in `[project] dependencies` when using this approach -- the `run`
+install handles it. Other packages that depend on torch (e.g. `openai-whisper`) will use the
+already-installed CUDA build.
+
+Workers should also auto-detect the device to ease local testing:
+
+```python
+device = "cuda" if torch.cuda.is_available() else "cpu"
+model = load_model(device=device)
+```
 
 ### `[tool.jig.deploy]` -- Runtime Settings
 
@@ -428,21 +451,17 @@ LOG_LEVEL = "INFO"
 
 ### `[tool.jig.autoscaling]`
 
+> **Not yet supported.** The autoscaling config below is planned but the API currently rejects
+> it with `unknown autoscaling metric`. Do not include `[tool.jig.autoscaling]` in your
+> `pyproject.toml` until this feature is live. Use `min_replicas` / `max_replicas` under
+> `[tool.jig.deploy]` for basic scaling control in the meantime.
+
 ```toml
+# NOT YET SUPPORTED -- will cause deployment failure
 [tool.jig.autoscaling]
 profile = "QueueBacklogPerWorker"
 targetValue = "1.05"
 ```
-
-The `QueueBacklogPerWorker` profile scales based on queue depth relative to worker count.
-
-Formula: `desired_replicas = queue_depth / targetValue`
-
-| targetValue | Behavior | Example (100 jobs) |
-|-------------|----------|-------------------|
-| `"1.0"` | Exact match | 100 workers |
-| `"1.05"` | 5% underprovisioning (recommended) | 95 workers |
-| `"0.9"` | 10% overprovisioning (lower latency) | 111 workers |
 
 ### `[[tool.jig.volume_mounts]]`
 
@@ -459,13 +478,16 @@ mount_path = "/models"
 name = "video-generator"
 version = "0.1.0"
 requires-python = ">=3.11"
-dependencies = ["torch>=2.0", "diffusers", "sprocket"]
+dependencies = ["diffusers", "sprocket"]
 
 [tool.jig.image]
 python_version = "3.11"
 system_packages = ["git", "ffmpeg", "libgl1"]
 environment = { TORCH_CUDA_ARCH_LIST = "8.0 9.0" }
-run = ["pip install flash-attn --no-build-isolation"]
+run = [
+    "pip install torch --index-url https://download.pytorch.org/whl/cu121",
+    "pip install flash-attn --no-build-isolation",
+]
 cmd = "python app.py --queue"
 copy = ["app.py", "models/"]
 
@@ -487,10 +509,6 @@ TORCH_COMPILE = "1"
 [[tool.jig.volume_mounts]]
 name = "my-weights"
 mount_path = "/models"
-
-[tool.jig.autoscaling]
-profile = "QueueBacklogPerWorker"
-targetValue = "1.05"
 ```
 
 ## Container Registry

@@ -91,13 +91,18 @@ The file is uploaded after `predict()` returns, and the path is replaced with a 
 
 ## `sprocket.emit_info(info: dict)`
 
+> **Availability note:** `emit_info` is not available in all Sprocket versions. Guard calls
+> with `hasattr(sprocket, "emit_info")` or wrap in a try/except. If unavailable, omit
+> progress reporting -- jobs will still complete normally.
+
 Report progress from inside `predict()`:
 
 ```python
 def predict(self, args):
     for i in range(100):
         frame = generate_frame(i)
-        sprocket.emit_info({"progress": (i + 1) / 100, "status": "generating"})
+        if hasattr(sprocket, "emit_info"):
+            sprocket.emit_info({"progress": (i + 1) / 100, "status": "generating"})
     return {"video": sprocket.FileOutput("output.mp4")}
 ```
 
