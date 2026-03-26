@@ -39,6 +39,17 @@ def list_clusters() -> list:
     return response.clusters
 
 
+def parse_driver_version(driver_version: str) -> tuple[str, str]:
+    """Extract cuda_version and nvidia_driver_version from a combined string.
+
+    Example: "CUDA_12_6_560" -> ("12.6", "560")
+    """
+    parts = driver_version.removeprefix("CUDA_").split("_")
+    cuda_version = f"{parts[0]}.{parts[1]}"
+    nvidia_driver = parts[2]
+    return cuda_version, nvidia_driver
+
+
 def create_cluster(
     name: str,
     region: str,
@@ -48,8 +59,15 @@ def create_cluster(
     billing_type: str = "ON_DEMAND",
     cluster_type: str = "KUBERNETES",
     volume_id: str | None = None,
+    shared_volume_name: str | None = None,
+    shared_volume_size_tib: int | None = None,
 ):
-    """Create a new GPU cluster."""
+    """Create a new GPU cluster.
+
+    For shared storage, prefer ``shared_volume_name`` + ``shared_volume_size_tib``
+    (inline creation) over ``volume_id`` to avoid datacenter-mismatch errors.
+    """
+    cuda_ver, nvidia_ver = parse_driver_version(driver_version)
     kwargs: dict = {
         "cluster_name": name,
         "region": region,
@@ -58,9 +76,19 @@ def create_cluster(
         "driver_version": driver_version,
         "billing_type": billing_type,
         "cluster_type": cluster_type,
+        "extra_body": {
+            "cuda_version": cuda_ver,
+            "nvidia_driver_version": nvidia_ver,
+        },
     }
     if volume_id:
         kwargs["volume_id"] = volume_id
+    elif shared_volume_name and shared_volume_size_tib:
+        kwargs["shared_volume"] = {
+            "volume_name": shared_volume_name,
+            "size_tib": shared_volume_size_tib,
+            "region": region,
+        }
 
     cluster = client.beta.clusters.create(**kwargs)
     print(f"Created cluster: {cluster.cluster_id} (status: {cluster.status})")
@@ -113,7 +141,9 @@ def parse_args() -> argparse.Namespace:
     create_parser.add_argument("--driver-version", required=True, help="Driver version")
     create_parser.add_argument("--billing-type", default="ON_DEMAND", help="Billing type")
     create_parser.add_argument("--cluster-type", default="KUBERNETES", help="Cluster type")
-    create_parser.add_argument("--volume-id", help="Optional shared storage volume id")
+    create_parser.add_argument("--volume-id", help="Optional existing volume id (prefer --shared-volume-name)")
+    create_parser.add_argument("--shared-volume-name", help="Inline shared volume name (created with cluster)")
+    create_parser.add_argument("--shared-volume-size-tib", type=int, help="Inline shared volume size in TiB")
 
     wait_parser = subparsers.add_parser("wait", help="Wait for a cluster to become ready")
     wait_parser.add_argument("--cluster-id", required=True, help="Cluster id")
@@ -135,7 +165,9 @@ def parse_args() -> argparse.Namespace:
     demo_parser.add_argument("--driver-version", default="CUDA_12_6_560", help="Driver version")
     demo_parser.add_argument("--billing-type", default="ON_DEMAND", help="Billing type")
     demo_parser.add_argument("--cluster-type", default="KUBERNETES", help="Cluster type")
-    demo_parser.add_argument("--volume-id", help="Optional shared storage volume id")
+    demo_parser.add_argument("--volume-id", help="Optional existing volume id (prefer --shared-volume-name)")
+    demo_parser.add_argument("--shared-volume-name", help="Inline shared volume name (created with cluster)")
+    demo_parser.add_argument("--shared-volume-size-tib", type=int, help="Inline shared volume size in TiB")
     demo_parser.add_argument("--scale-to", type=int, default=16, help="GPU count to scale to after creation")
     demo_parser.add_argument("--timeout", type=int, default=1800, help="Maximum wait time in seconds")
     demo_parser.add_argument("--poll-interval", type=int, default=30, help="Seconds between polls")
@@ -161,6 +193,8 @@ def main() -> None:
             billing_type=args.billing_type,
             cluster_type=args.cluster_type,
             volume_id=args.volume_id,
+            shared_volume_name=args.shared_volume_name,
+            shared_volume_size_tib=args.shared_volume_size_tib,
         )
         return
     if args.command == "wait":
@@ -186,6 +220,8 @@ def main() -> None:
         billing_type=args.billing_type,
         cluster_type=args.cluster_type,
         volume_id=args.volume_id,
+        shared_volume_name=args.shared_volume_name,
+        shared_volume_size_tib=args.shared_volume_size_tib,
     )
     print("\nWaiting for cluster to be ready...")
     cluster = wait_for_ready(cluster.cluster_id, timeout=args.timeout, poll_interval=args.poll_interval)

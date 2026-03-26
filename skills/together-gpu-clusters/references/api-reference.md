@@ -46,6 +46,10 @@ Base URL: `https://api.together.xyz/v1`
 
 ## Create Cluster
 
+The API requires `cuda_version` and `nvidia_driver_version` as separate fields. The SDK
+also accepts a combined `driver_version` string, but the two split fields must be present
+for the request to succeed. Pass them via `extra_body` in the SDK or directly in REST.
+
 ```python
 from together import Together
 client = Together()
@@ -59,6 +63,10 @@ cluster = client.beta.clusters.create(
     billing_type="ON_DEMAND",
     cluster_type="KUBERNETES",
     # volume_id="existing-volume-id",  # optional: attach existing volume
+    extra_body={
+        "cuda_version": "12.6",
+        "nvidia_driver_version": "560",
+    },
 )
 print(cluster.cluster_id)
 ```
@@ -75,6 +83,9 @@ const cluster = await client.beta.clusters.create({
   driver_version: "CUDA_12_6_560",
   billing_type: "ON_DEMAND",
   cluster_type: "KUBERNETES",
+  // @ts-expect-error -- required by API but not yet in SDK types
+  cuda_version: "12.6",
+  nvidia_driver_version: "560",
 });
 console.log(cluster.cluster_id);
 ```
@@ -89,6 +100,8 @@ curl -X POST \
     "gpu_type": "H100_SXM",
     "num_gpus": 8,
     "driver_version": "CUDA_12_6_560",
+    "cuda_version": "12.6",
+    "nvidia_driver_version": "560",
     "billing_type": "ON_DEMAND",
     "cluster_type": "KUBERNETES"
   }' \
@@ -114,12 +127,14 @@ together beta clusters create \
 | `region` | string | Yes | Region (use `list_regions()` in Python or `listRegions()` in TypeScript to find valid regions) |
 | `gpu_type` | string | Yes | GPU type (see Instance Types below) |
 | `num_gpus` | integer | Yes | Number of GPUs (must be a multiple of 8) |
-| `driver_version` | string | Yes | CUDA driver version (see Driver Versions below) |
+| `driver_version` | string | Yes | Combined driver string, e.g. `CUDA_12_6_560` (see Driver Versions below) |
+| `cuda_version` | string | Yes | CUDA version, e.g. `"12.6"` |
+| `nvidia_driver_version` | string | Yes | NVIDIA driver version, e.g. `"560"` |
 | `billing_type` | string | Yes | `ON_DEMAND` or `RESERVED` |
 | `cluster_type` | string | No | `KUBERNETES` (default) or `SLURM` |
 | `duration_days` | integer | No | Reservation length in days (only with `RESERVED`) |
 | `volume_id` | string | No | Existing shared volume ID to attach |
-| `shared_volume` | object | No | Inline volume: `{name, size_tib}` |
+| `shared_volume` | object | No | Inline volume: `{volume_name, size_tib, region}` |
 
 ## List Clusters
 
@@ -395,19 +410,33 @@ together beta clusters storage delete <VOLUME_ID>
 
 ## Driver Versions
 
-Available CUDA driver versions (check `list_regions()` in Python or `listRegions()` in TypeScript for per-region availability):
+Available CUDA driver versions (check `list_regions()` in Python or `listRegions()` in TypeScript for per-region availability).
 
-- `CUDA_12_4_550`
-- `CUDA_12_5_555`
-- `CUDA_12_6_560`
-- `CUDA_12_6_565`
-- `CUDA_12_8_570`
-- `CUDA_12_9_575`
+The `list_regions()` response returns driver versions as a list of objects:
+
+```json
+[
+  {"cuda_version": "12.6", "nvidia_driver_version": "560"},
+  {"cuda_version": "12.4", "nvidia_driver_version": "550"}
+]
+```
+
+The combined `driver_version` string follows the pattern `CUDA_{major}_{minor}_{nvidia}`:
+
+| `driver_version` | `cuda_version` | `nvidia_driver_version` |
+|-------------------|----------------|--------------------------|
+| `CUDA_12_4_550` | `12.4` | `550` |
+| `CUDA_12_5_555` | `12.5` | `555` |
+| `CUDA_12_6_560` | `12.6` | `560` |
+| `CUDA_12_6_565` | `12.6` | `565` |
+| `CUDA_12_8_570` | `12.8` | `570` |
+| `CUDA_12_9_575` | `12.9` | `575` |
 
 ## Cluster Statuses
 
 | Status | Description |
 |--------|-------------|
+| `Scheduled` | Cluster creation accepted, awaiting resource allocation |
 | `WaitingForControlPlaneNodes` | Control plane provisioning |
 | `WaitingForDataPlaneNodes` | Worker nodes provisioning |
 | `WaitingForSubnet` | Network setup |

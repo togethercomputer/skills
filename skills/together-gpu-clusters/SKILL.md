@@ -61,6 +61,9 @@ Typical fits:
 - Python scripts require the Together v2 SDK (`together>=2.0.0`). If the user is on an older version, they must upgrade first: `uv pip install --upgrade "together>=2.0.0"`.
 - Prefer managed products unless the user explicitly needs raw infrastructure control.
 - Treat storage lifecycle separately from cluster lifecycle; volumes can outlive clusters.
+- When creating a cluster with new shared storage, prefer inline `shared_volume` over creating a volume separately and attaching via `volume_id`. Separately created volumes may land in a different datacenter partition than the cluster, causing a "does not exist in the datacenter" error even when the volume shows as available.
+- GPU stock-outs (409 "Out of stock") are common. Always call `list_regions()` first and be prepared to try multiple regions.
+- The API requires `cuda_version` and `nvidia_driver_version` as separate fields in addition to the combined `driver_version` string. Pass them via `extra_body` in the Python SDK.
 - Credentials retrieval is part of provisioning. Do not stop at cluster creation if the user needs to run workloads immediately.
 - Slurm and Kubernetes operational patterns differ materially; read the cluster-management reference before improvising.
 - For repeated cluster operations, start from the scripts instead of rebuilding request shapes.

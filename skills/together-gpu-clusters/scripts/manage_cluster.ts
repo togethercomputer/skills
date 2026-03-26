@@ -41,6 +41,11 @@ async function listClusters(): Promise<void> {
   }
 }
 
+function parseDriverVersion(driverVersion: string): { cudaVersion: string; nvidiaDriver: string } {
+  const parts = driverVersion.replace("CUDA_", "").split("_");
+  return { cudaVersion: `${parts[0]}.${parts[1]}`, nvidiaDriver: parts[2] };
+}
+
 async function createCluster(
   name: string,
   region: string,
@@ -50,6 +55,7 @@ async function createCluster(
   billingType: BillingType = "ON_DEMAND",
   clusterType: ClusterType = "KUBERNETES",
 ): Promise<any> {
+  const { cudaVersion, nvidiaDriver } = parseDriverVersion(driverVersion);
   const cluster = await client.beta.clusters.create({
     cluster_name: name,
     region,
@@ -58,6 +64,9 @@ async function createCluster(
     driver_version: driverVersion,
     billing_type: billingType,
     cluster_type: clusterType,
+    // @ts-expect-error -- required by API but not yet in SDK types
+    cuda_version: cudaVersion,
+    nvidia_driver_version: nvidiaDriver,
   });
   console.log(`Created cluster: ${cluster.cluster_id}  (status: ${cluster.status})`);
   return cluster;

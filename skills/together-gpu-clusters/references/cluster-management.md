@@ -399,6 +399,9 @@ Users require active Together AI accounts before they can be added.
 | Issue | Solution |
 |-------|----------|
 | Cluster stuck provisioning | Check the status for phases like `WaitingForControlPlaneNodes` or `RunningAcceptanceTests` |
+| 400 "cuda version and nvidia driver version are required" | Pass `cuda_version` and `nvidia_driver_version` as separate fields alongside `driver_version` |
+| 409 "Out of stock" | GPUs unavailable in the requested region. Call `list_regions()` and try another region |
+| "Shared volume does not exist in the datacenter" | Volume was created in a different datacenter partition. Use inline `shared_volume` at cluster creation instead of a separate `volume_id` |
 | Pods not scheduling | Verify node readiness with `kubectl get nodes` and inspect resource requests and taints |
 | GPU not accessible in container | Use a CUDA-enabled image such as `pytorch/pytorch` or `nvidia/cuda` |
 | Storage PVC not binding | Confirm the volume name matches the shared volume and inspect `kubectl get pvc` |
