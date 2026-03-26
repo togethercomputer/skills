@@ -21,15 +21,29 @@ endpoint = client.endpoints.create(
     hardware="4x_nvidia_h100_80gb_sxm",
     autoscaling={"min_replicas": 1, "max_replicas": 1},
 )
-print(endpoint)
+print(f"Endpoint ID: {endpoint.id}")
 
-# Query the endpoint
+# Wait for the endpoint to be ready
+import time
+while True:
+    ep = client.endpoints.retrieve(endpoint.id)
+    print(f"  State: {ep.state}")
+    if ep.state == "STARTED":
+        break
+    if ep.state in ("FAILED", "STOPPED"):
+        raise SystemExit(1)
+    time.sleep(15)
+
+# Query via endpoint.name (not the model ID)
 response = client.chat.completions.create(
-    model="your-username/Model-Name-your-suffix",
+    model=endpoint.name,
     messages=[{"role": "user", "content": "Hello!"}],
     max_tokens=128,
 )
 print(response.choices[0].message.content)
+
+# Delete the endpoint when done to stop charges
+client.endpoints.delete(endpoint.id)
 ```
 
 - Per-minute hosting charges while running

@@ -176,7 +176,7 @@ def main() -> None:
         status = client.fine_tuning.retrieve(id=sft_job.id)
         print(f"  SFT status: {status.status}")
         if status.status == "completed":
-            print(f"  SFT output: {status.output_name}")
+            print(f"  SFT output: {status.x_model_output_name}")
             break
         if status.status in ("failed", "cancelled"):
             print(f"SFT failed: {status.status}")
@@ -201,21 +201,43 @@ def main() -> None:
         status = client.fine_tuning.retrieve(id=dpo_job.id)
         print(f"  DPO status: {status.status}")
         if status.status == "completed":
-            print(f"  DPO output: {status.output_name}")
+            print(f"  DPO output: {status.x_model_output_name}")
             break
         if status.status in ("failed", "cancelled"):
             print(f"DPO failed: {status.status}")
             raise SystemExit(1)
         time.sleep(args.poll_interval)
 
-    # --- 6. Test the DPO-tuned model ---
+    # --- 6. Deploy and test the DPO-tuned model ---
+    print("\n--- Deploying DPO-tuned model ---")
+    output_model = status.x_model_output_name
+    endpoint = client.endpoints.create(
+        display_name="DPO Fine-tuned Model",
+        model=output_model,
+        hardware="4x_nvidia_h100_80gb_sxm",
+        autoscaling={"min_replicas": 1, "max_replicas": 1},
+    )
+    print(f"Created endpoint: {endpoint.id}")
+
+    while True:
+        ep = client.endpoints.retrieve(endpoint.id)
+        print(f"  Endpoint state: {ep.state}")
+        if ep.state == "STARTED":
+            break
+        if ep.state in ("FAILED", "STOPPED"):
+            print(f"Endpoint {ep.state}")
+            raise SystemExit(1)
+        time.sleep(args.poll_interval)
+
     print("\n--- Testing DPO-tuned model ---")
     response = client.chat.completions.create(
-        model=status.output_name,
+        model=endpoint.name,
         messages=[{"role": "user", "content": args.test_prompt}],
         max_tokens=256,
     )
     print(f"Response: {response.choices[0].message.content}")
+    print(f"\nEndpoint is running. Delete it when done to avoid charges:")
+    print(f"  client.endpoints.delete(\"{endpoint.id}\")")
 
 
 if __name__ == "__main__":

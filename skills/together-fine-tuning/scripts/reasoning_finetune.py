@@ -182,17 +182,37 @@ def main() -> None:
         status = client.fine_tuning.retrieve(id=job.id)
         print(f"  Status: {status.status}")
         if status.status == "completed":
-            print(f"\nTraining complete! Output: {status.output_name}")
+            print(f"\nTraining complete! Output: {status.x_model_output_name}")
             break
         if status.status in ("failed", "cancelled"):
             print(f"Job ended: {status.status}")
             raise SystemExit(1)
         time.sleep(args.poll_interval)
 
-    # --- 5. Test reasoning inference ---
+    # --- 5. Deploy and test reasoning inference ---
+    print("\n--- Deploying fine-tuned model ---")
+    output_model = status.x_model_output_name
+    endpoint = client.endpoints.create(
+        display_name="Reasoning Fine-tuned",
+        model=output_model,
+        hardware="4x_nvidia_h100_80gb_sxm",
+        autoscaling={"min_replicas": 1, "max_replicas": 1},
+    )
+    print(f"Created endpoint: {endpoint.id}")
+
+    while True:
+        ep = client.endpoints.retrieve(endpoint.id)
+        print(f"  Endpoint state: {ep.state}")
+        if ep.state == "STARTED":
+            break
+        if ep.state in ("FAILED", "STOPPED"):
+            print(f"Endpoint {ep.state}")
+            raise SystemExit(1)
+        time.sleep(args.poll_interval)
+
     print("\n--- Testing reasoning inference ---")
     stream = client.chat.completions.create(
-        model=status.output_name,
+        model=endpoint.name,
         messages=[{"role": "user", "content": args.test_prompt}],
         stream=True,
     )
@@ -209,6 +229,8 @@ def main() -> None:
 
     print(f"Reasoning: {reasoning_text}")
     print(f"Answer: {content_text}")
+    print(f"\nEndpoint is running. Delete it when done to avoid charges:")
+    print(f"  client.endpoints.delete(\"{endpoint.id}\")")
 
     # --- 6. (Optional) Preference fine-tuning for reasoning ---
     dpo_example = {

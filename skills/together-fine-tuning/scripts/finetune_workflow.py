@@ -147,7 +147,7 @@ def main() -> None:
 
         if status.status == "completed":
             print("\nTraining complete!")
-            print(f"  Output model: {status.output_name}")
+            print(f"  Output model: {status.x_model_output_name}")
             break
         if status.status in ("failed", "cancelled"):
             print(f"Job ended: {status.status}")
@@ -165,18 +165,29 @@ def main() -> None:
         return
 
     # --- 6. Deploy as a Dedicated Endpoint ---
-    output_model = status.output_name
+    output_model = status.x_model_output_name
     endpoint = client.endpoints.create(
         display_name=args.display_name,
         model=output_model,
         hardware=args.hardware,
         autoscaling={"min_replicas": 1, "max_replicas": 1},
     )
-    print(f"\nDeployed endpoint: {endpoint}")
+    print(f"\nCreated endpoint: {endpoint.id}")
 
-    # --- 7. Query the fine-tuned model ---
+    # Wait for the endpoint to be ready before querying
+    while True:
+        ep = client.endpoints.retrieve(endpoint.id)
+        print(f"  Endpoint state: {ep.state}")
+        if ep.state == "STARTED":
+            break
+        if ep.state in ("FAILED", "STOPPED"):
+            print(f"Endpoint {ep.state}")
+            raise SystemExit(1)
+        time.sleep(args.poll_interval)
+
+    # --- 7. Query the fine-tuned model via the endpoint name ---
     response = client.chat.completions.create(
-        model=output_model,
+        model=endpoint.name,
         messages=[
             {"role": "system", "content": "You are a helpful customer support agent."},
             {"role": "user", "content": args.test_prompt},
@@ -184,6 +195,8 @@ def main() -> None:
         max_tokens=256,
     )
     print(f"\nFine-tuned model response: {response.choices[0].message.content}")
+    print(f"\nEndpoint is running. Delete it when done to avoid charges:")
+    print(f"  client.endpoints.delete(\"{endpoint.id}\")")
 
 
 if __name__ == "__main__":

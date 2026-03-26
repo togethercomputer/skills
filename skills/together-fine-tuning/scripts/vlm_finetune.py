@@ -155,17 +155,37 @@ def main() -> None:
         status = client.fine_tuning.retrieve(id=job.id)
         print(f"  Status: {status.status}")
         if status.status == "completed":
-            print(f"\nVLM training complete! Output: {status.output_name}")
+            print(f"\nVLM training complete! Output: {status.x_model_output_name}")
             break
         if status.status in ("failed", "cancelled"):
             print(f"Job ended: {status.status}")
             raise SystemExit(1)
         time.sleep(args.poll_interval)
 
-    # --- 5. Test VLM inference ---
+    # --- 5. Deploy and test VLM inference ---
+    print("\n--- Deploying fine-tuned VLM ---")
+    output_model = status.x_model_output_name
+    endpoint = client.endpoints.create(
+        display_name="VLM Fine-tuned",
+        model=output_model,
+        hardware="4x_nvidia_h100_80gb_sxm",
+        autoscaling={"min_replicas": 1, "max_replicas": 1},
+    )
+    print(f"Created endpoint: {endpoint.id}")
+
+    while True:
+        ep = client.endpoints.retrieve(endpoint.id)
+        print(f"  Endpoint state: {ep.state}")
+        if ep.state == "STARTED":
+            break
+        if ep.state in ("FAILED", "STOPPED"):
+            print(f"Endpoint {ep.state}")
+            raise SystemExit(1)
+        time.sleep(args.poll_interval)
+
     print("\n--- Testing VLM inference ---")
     response = client.chat.completions.create(
-        model=status.output_name,
+        model=endpoint.name,
         messages=[
             {
                 "role": "user",
@@ -178,6 +198,8 @@ def main() -> None:
         max_tokens=512,
     )
     print(f"VLM response: {response.choices[0].message.content}")
+    print(f"\nEndpoint is running. Delete it when done to avoid charges:")
+    print(f"  client.endpoints.delete(\"{endpoint.id}\")")
 
 
 if __name__ == "__main__":
