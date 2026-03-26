@@ -13,6 +13,7 @@
  *   export TOGETHER_API_KEY=your_key
  */
 
+import { writeFileSync } from "fs";
 import Together from "together-ai";
 
 const client = new Together({
@@ -45,6 +46,14 @@ async function waitForVideo(
   throw new Error(`Video job ${jobId} did not complete within ${timeoutMs / 1000}s`);
 }
 
+async function downloadVideo(url: string, outputPath: string): Promise<void> {
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error(`Download failed: ${resp.status}`);
+  const buf = Buffer.from(await resp.arrayBuffer());
+  writeFileSync(outputPath, buf);
+  console.log(`  Saved to ${outputPath} (${buf.length} bytes)`);
+}
+
 async function basicTextToVideo(): Promise<void> {
   console.log("=== Basic Text-to-Video ===");
   const job = await client.videos.create({
@@ -54,7 +63,8 @@ async function basicTextToVideo(): Promise<void> {
     height: 768,
   });
   console.log(`Job ID: ${job.id}`);
-  await waitForVideo(job.id);
+  const url = await waitForVideo(job.id);
+  await downloadVideo(url, "output.mp4");
 }
 
 async function advancedParameters(): Promise<void> {

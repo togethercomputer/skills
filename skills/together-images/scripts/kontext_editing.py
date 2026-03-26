@@ -9,10 +9,13 @@ Usage:
     python kontext_editing.py
 
 Requires:
-    uv pip install "together>=2.0.0"
+    uv pip install "together>=2.0.0" requests
     export TOGETHER_API_KEY=your_key
 """
 
+import base64
+
+import requests
 from together import Together
 
 client = Together()
@@ -30,7 +33,7 @@ def edit_image(
     steps: int = 28,
     seed: int | None = None,
 ) -> str:
-    """Edit an existing image using a text prompt."""
+    """Edit an existing image using a text prompt. Returns a URL."""
     kwargs: dict = dict(
         model=model,
         prompt=prompt,
@@ -46,6 +49,50 @@ def edit_image(
     url = response.data[0].url
     print(f"  Edited image: {url}")
     return url
+
+
+def edit_and_save(
+    prompt: str,
+    image_url: str,
+    output_path: str = "edited.png",
+    model: str = KONTEXT_PRO,
+    width: int = 1024,
+    height: int = 1024,
+    steps: int = 28,
+    seed: int | None = None,
+) -> str:
+    """Edit an image and save the result locally via base64."""
+    kwargs: dict = dict(
+        model=model,
+        prompt=prompt,
+        image_url=image_url,
+        width=width,
+        height=height,
+        steps=steps,
+        response_format="base64",
+        n=1,
+    )
+    if seed is not None:
+        kwargs["seed"] = seed
+
+    response = client.images.generate(**kwargs)
+    image_data = base64.b64decode(response.data[0].b64_json)
+
+    with open(output_path, "wb") as f:
+        f.write(image_data)
+
+    print(f"  Saved to {output_path} ({len(image_data):,} bytes)")
+    return output_path
+
+
+def download_image(url: str, output_path: str) -> str:
+    """Download an image from a URL and save it locally."""
+    resp = requests.get(url, timeout=60)
+    resp.raise_for_status()
+    with open(output_path, "wb") as f:
+        f.write(resp.content)
+    print(f"  Downloaded {output_path} ({len(resp.content):,} bytes)")
+    return output_path
 
 
 def style_transfer(image_url: str, style: str, **kwargs) -> str:
@@ -104,4 +151,36 @@ if __name__ == "__main__":
         prompt="Make this a pop art poster",
         image_url=SOURCE_IMAGE,
         seed=42,
+    )
+
+    # --- Example 6: Edit and save locally ---
+    print("\n=== Edit and Save Locally ===")
+    edit_and_save(
+        prompt="Change the background to a tropical beach at sunset",
+        image_url=SOURCE_IMAGE,
+        output_path="cat_beach.png",
+    )
+
+    # --- Example 7: Generate-then-edit pipeline ---
+    # Generate an image with FLUX, then refine the background with Kontext.
+    # This is the most common multi-step image workflow (e.g. product photos).
+    print("\n=== Generate-then-Edit Pipeline ===")
+    print("Step 1: Generate base image with FLUX")
+    gen_response = client.images.generate(
+        model="black-forest-labs/FLUX.1-schnell",
+        prompt="A white ceramic vase with dried flowers on a wooden table",
+        width=1024,
+        height=1024,
+        steps=4,
+        n=1,
+    )
+    base_url = gen_response.data[0].url
+    download_image(base_url, "vase_original.png")
+
+    print("Step 2: Edit background with Kontext")
+    edit_and_save(
+        prompt="Change the background to a smooth gradient studio backdrop, "
+        "keep the vase and flowers exactly the same",
+        image_url=base_url,
+        output_path="vase_studio.png",
     )

@@ -14,6 +14,8 @@ Requires:
 """
 
 import time
+
+import requests
 from together import Together
 
 client = Together()
@@ -109,8 +111,6 @@ if __name__ == "__main__":
     )
 
     # Download the video
-    import requests
-
     response = requests.get(url)
     with open("output.mp4", "wb") as f:
         f.write(response.content)

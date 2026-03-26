@@ -39,6 +39,9 @@ Use Together AI image APIs for:
 - **Image editing with Kontext**
   - Start with [scripts/kontext_editing.py](scripts/kontext_editing.py)
   - Read [references/api-reference.md](references/api-reference.md)
+- **Generate then edit (e.g. product photos)**
+  - Start with [scripts/kontext_editing.py](scripts/kontext_editing.py) (Example 7)
+  - Generate with FLUX, feed the URL to Kontext, save both locally
 - **LoRA styling**
   - Start with [scripts/lora_generation.py](scripts/lora_generation.py)
   - Read [references/api-reference.md](references/api-reference.md)
