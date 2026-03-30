@@ -51,21 +51,20 @@ This works with Claude Code, Cursor, Codex, and other agents that support the [A
 ### Claude Code
 
 ```bash
-# Plugin marketplace
-/plugin marketplace add togethercomputer/skills
-
-# Or install individual skills
-/plugin install together-chat-completions@togethercomputer/skills
-
-# Or copy manually
 cp -r skills/together-* your-project/.claude/skills/
 # Global availability
 cp -r skills/together-* ~/.claude/skills/
 ```
 
+Marketplace plugin coming soon.
+
 ### Cursor
 
-Install via the Cursor plugin flow using the `.cursor-plugin/` manifests included in this repository.
+```bash
+cp -r skills/together-* your-project/.cursor/skills/
+```
+
+Cursor plugin marketplace listing coming soon.
 
 ### Codex
 
