@@ -1,6 +1,6 @@
 ---
 name: together-sandboxes
-description: "Use this skill for Together AI Sandboxes workflows: remote Python execution, session reuse, file uploads, data analysis, plots, and stateful notebook-like runs through the Sandboxes API. Reach for it whenever the user wants managed remote Python execution on Together AI instead of local execution, raw clusters, or full model hosting."
+description: "Remote Python execution in managed sandboxes on Together AI with stateful sessions, file uploads, data analysis, chart generation, and notebook-like runs via the Sandboxes API. Reach for it whenever the user wants managed remote Python execution instead of local execution, raw clusters, or full model hosting."
 ---
 
 # Together Sandboxes

@@ -22,18 +22,18 @@ Each skill contains:
 <!-- BEGIN_SKILLS_TABLE -->
 | Skill | Description | Scripts |
 |-------|-------------|---------|
-| **together-chat-completions** | Use this skill for Together AI serverless chat inference: real-time or streaming chat apps, multi-turn conversations,... | `async_parallel.py`, `chat_basic.py`, `debug_headers.py`, `reasoning_models.py`, `structured_outputs.py`, `tool_call_loop.py` |
-| **together-images** | Use this skill for Together AI image workflows: text-to-image generation, image editing with Kontext, FLUX model sele... | `generate_image.py`, `kontext_editing.py`, `lora_generation.py` |
-| **together-video** | Use this skill for Together AI video workflows: text-to-video generation, image-to-video with keyframe control, model... | `generate_video.py`, `image_to_video.py` |
-| **together-audio** | Use this skill for Together AI audio workflows: text-to-speech over REST, streaming, or realtime WebSocket APIs, plus... | `stt_realtime.py`, `stt_transcribe.py`, `tts_generate.py`, `tts_websocket.py` |
-| **together-embeddings** | Use this skill for Together AI embedding, retrieval, and reranking workflows: generating dense vectors, building sema... | `embed_and_rerank.py`, `rag_pipeline.py`, `semantic_search.py` |
-| **together-fine-tuning** | Use this skill for Together AI fine-tuning workflows: LoRA or full fine-tuning, DPO preference tuning, VLM training, ... | `dpo_workflow.py`, `finetune_workflow.py`, `function_calling_finetune.py`, `reasoning_finetune.py`, `vlm_finetune.py` |
-| **together-batch-inference** | Use this skill for Together AI Batch API workflows: preparing JSONL inputs, uploading batch files, creating asynchron... | `batch_workflow.py` |
-| **together-evaluations** | Use this skill for Together AI LLM-as-a-judge workflows: classify, score, and compare evaluations; judge model select... | `run_evaluation.py` |
-| **together-sandboxes** | Use this skill for Together AI Sandboxes workflows: remote Python execution, session reuse, file uploads, data analys... | `execute_with_session.py` |
-| **together-dedicated-endpoints** | Use this skill for Together AI dedicated endpoint workflows: selecting dedicated-eligible models, sizing hardware, cr... | `deploy_finetuned.py`, `manage_endpoint.py`, `upload_custom_model.py` |
-| **together-dedicated-containers** | Use this skill for Together AI Dedicated Container Inference workflows: building custom Dockerized inference workers,... | `queue_client.py`, `sprocket_hello_world.py` |
-| **together-gpu-clusters** | Use this skill for Together AI GPU clusters and raw infrastructure workflows: provisioning on-demand or reserved clus... | `manage_cluster.py`, `manage_storage.py` |
+| **together-chat-completions** | Real-time and streaming text generation via Together AI's OpenAI-compatible chat/completions API, including multi-tur... | `async_parallel.py`, `chat_basic.py`, `debug_headers.py`, `reasoning_models.py`, `structured_outputs.py`, `tool_call_loop.py` |
+| **together-images** | Text-to-image generation and image editing via Together AI, including FLUX and Kontext models, LoRA-based styling, re... | `generate_image.py`, `kontext_editing.py`, `lora_generation.py` |
+| **together-video** | Text-to-video and image-to-video generation via Together AI, including keyframe control, model and dimension selectio... | `generate_video.py`, `image_to_video.py` |
+| **together-audio** | Text-to-speech and speech-to-text via Together AI, including REST, streaming, and realtime WebSocket TTS, plus transc... | `stt_realtime.py`, `stt_transcribe.py`, `tts_generate.py`, `tts_websocket.py` |
+| **together-embeddings** | Dense vector embeddings, semantic search, RAG pipelines, and reranking via Together AI. | `embed_and_rerank.py`, `rag_pipeline.py`, `semantic_search.py` |
+| **together-fine-tuning** | LoRA, full fine-tuning, DPO preference tuning, VLM training, function-calling tuning, reasoning tuning, and BYOM uplo... | `dpo_workflow.py`, `finetune_workflow.py`, `function_calling_finetune.py`, `reasoning_finetune.py`, `vlm_finetune.py` |
+| **together-batch-inference** | High-volume, asynchronous offline inference at up to 50% lower cost via Together AI's Batch API. | `batch_workflow.py` |
+| **together-evaluations** | LLM-as-a-judge evaluation framework on Together AI. | `run_evaluation.py` |
+| **together-sandboxes** | Remote Python execution in managed sandboxes on Together AI with stateful sessions, file uploads, data analysis, char... | `execute_with_session.py` |
+| **together-dedicated-endpoints** | Single-tenant GPU endpoints on Together AI with autoscaling and no rate limits. | `deploy_finetuned.py`, `manage_endpoint.py`, `upload_custom_model.py` |
+| **together-dedicated-containers** | Custom Dockerized inference workers on Together AI's managed GPU infrastructure. | `queue_client.py`, `sprocket_hello_world.py` |
+| **together-gpu-clusters** | On-demand and reserved GPU clusters (H100, H200, B200) on Together AI with Kubernetes or Slurm orchestration, shared ... | `manage_cluster.py`, `manage_storage.py` |
 <!-- END_SKILLS_TABLE -->
 
 ## Installation
