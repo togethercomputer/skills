@@ -37,8 +37,8 @@
         "description": "Evaluate LLM outputs using Together AI's LLM-as-a-Judge framework with Classify, Score, and Compare evaluation types."
       },
       {
-        "name": "together-code-interpreter",
-        "description": "Execute Python code in a sandboxed environment via Together Code Interpreter (TCI). Stateful sessions with data science packages."
+        "name": "together-sandboxes",
+        "description": "Execute Python code in a sandboxed environment via Together Sandboxes. Stateful sessions with data science packages."
       },
       {
         "name": "together-dedicated-endpoints",

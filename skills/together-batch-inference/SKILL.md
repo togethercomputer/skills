@@ -1,6 +1,6 @@
 ---
 name: together-batch-inference
-description: "Use this skill for Together AI Batch API workflows: preparing JSONL inputs, uploading batch files, creating asynchronous jobs, polling status, downloading outputs, and optimizing large offline inference runs for lower cost. Reach for it whenever the user needs high-volume, non-interactive inference rather than real-time chat or evaluation jobs."
+description: "High-volume, asynchronous offline inference at up to 50% lower cost via Together AI's Batch API. Prepare JSONL inputs, upload files, create jobs, poll status, and download outputs. Reach for it whenever the user needs non-interactive bulk inference rather than real-time chat or evaluation jobs."
 ---
 
 # Together Batch Inference

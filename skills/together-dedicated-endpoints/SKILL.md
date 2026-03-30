@@ -1,6 +1,6 @@
 ---
 name: together-dedicated-endpoints
-description: "Use this skill for Together AI dedicated endpoint workflows: selecting dedicated-eligible models, sizing hardware, creating single-tenant endpoints, deploying fine-tuned or uploaded models, autoscaling, and managing endpoint lifecycle. Reach for it whenever the user needs predictable always-on hosting rather than serverless inference, custom containers, or raw clusters."
+description: "Single-tenant GPU endpoints on Together AI with autoscaling and no rate limits. Deploy fine-tuned or uploaded models, size hardware, and manage endpoint lifecycle. Reach for it whenever the user needs predictable always-on hosting rather than serverless inference, custom containers, or raw clusters."
 ---
 
 # Together Dedicated Endpoints

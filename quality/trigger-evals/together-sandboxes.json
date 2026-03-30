@@ -4,11 +4,11 @@
     "should_trigger": true
   },
   {
-    "query": "I want an agent to write Python and execute it in Together Code Interpreter with session reuse.",
+    "query": "I want an agent to write Python and execute it in a Together Sandbox with session reuse.",
     "should_trigger": true
   },
   {
-    "query": "Show me how to upload a file to Together Code Interpreter and inspect the returned display outputs.",
+    "query": "Show me how to upload a file to Together Sandboxes and inspect the returned display outputs.",
     "should_trigger": true
   },
   {

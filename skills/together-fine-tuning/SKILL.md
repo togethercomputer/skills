@@ -1,6 +1,6 @@
 ---
 name: together-fine-tuning
-description: "Use this skill for Together AI fine-tuning workflows: LoRA or full fine-tuning, DPO preference tuning, VLM training, function-calling tuning, reasoning tuning, and BYOM uploads. Reach for it whenever the user wants to adapt a model on custom data rather than only run inference, evaluate outputs, or host an existing model."
+description: "LoRA, full fine-tuning, DPO preference tuning, VLM training, function-calling tuning, reasoning tuning, and BYOM uploads on Together AI. Reach for it whenever the user wants to adapt a model on custom data rather than only run inference, evaluate outputs, or host an existing model."
 ---
 
 # Together Fine-Tuning

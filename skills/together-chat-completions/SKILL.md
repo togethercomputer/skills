@@ -1,6 +1,6 @@
 ---
 name: together-chat-completions
-description: "Use this skill for Together AI serverless chat inference: real-time or streaming chat apps, multi-turn conversations, tool and function calling, structured JSON outputs, and reasoning-capable models. Reach for it whenever the user wants to build or debug text generation on Together AI's OpenAI-compatible chat/completions API, unless they specifically need batch jobs, embeddings, fine-tuning, dedicated endpoints, dedicated containers, or GPU clusters."
+description: "Real-time and streaming text generation via Together AI's OpenAI-compatible chat/completions API, including multi-turn conversations, tool and function calling, structured JSON outputs, and reasoning models. Reach for it whenever the user wants to build or debug text generation on Together AI, unless they specifically need batch jobs, embeddings, fine-tuning, dedicated endpoints, dedicated containers, or GPU clusters."
 ---
 
 # Together Chat Completions

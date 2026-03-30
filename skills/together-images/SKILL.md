@@ -1,6 +1,6 @@
 ---
 name: together-images
-description: "Use this skill for Together AI image workflows: text-to-image generation, image editing with Kontext, FLUX model selection, LoRA-based styling, reference-image guidance, and local image downloads. Reach for it whenever the user wants to generate or edit images on Together AI rather than create videos or build text-only chat applications."
+description: "Text-to-image generation and image editing via Together AI, including FLUX and Kontext models, LoRA-based styling, reference-image guidance, and local image downloads. Reach for it whenever the user wants to generate or edit images on Together AI rather than create videos or build text-only chat applications."
 ---
 
 # Together Images

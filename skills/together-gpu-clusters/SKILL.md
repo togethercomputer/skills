@@ -1,6 +1,6 @@
 ---
 name: together-gpu-clusters
-description: "Use this skill for Together AI GPU clusters and raw infrastructure workflows: provisioning on-demand or reserved clusters, choosing Kubernetes vs Slurm, attaching shared storage, scaling, getting credentials, and operating cluster-backed ML or HPC jobs. Reach for it when the user needs multi-node compute or infrastructure control rather than a managed model endpoint."
+description: "On-demand and reserved GPU clusters (H100, H200, B200) on Together AI with Kubernetes or Slurm orchestration, shared storage, credential management, and cluster scaling for ML and HPC jobs. Reach for it when the user needs multi-node compute or infrastructure control rather than a managed model endpoint."
 ---
 
 # Together GPU Clusters
@@ -30,7 +30,7 @@ Typical fits:
 
 - Use `together-dedicated-endpoints` for managed single-model hosting
 - Use `together-dedicated-containers` for containerized inference without owning the full cluster
-- Use `together-code-interpreter` for short-lived remote Python execution
+- Use `together-sandboxes` for short-lived remote Python execution
 - Use `together-fine-tuning` for managed training jobs instead of raw cluster operations
 
 ## Quick Routing

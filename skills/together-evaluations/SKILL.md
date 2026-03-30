@@ -1,6 +1,6 @@
 ---
 name: together-evaluations
-description: "Use this skill for Together AI LLM-as-a-judge workflows: classify, score, and compare evaluations; judge model selection; external-provider judges or targets; and result polling or downloads. Reach for it whenever the user wants to benchmark outputs, grade model responses, compare A/B variants, or operationalize automated evaluations on Together AI."
+description: "LLM-as-a-judge evaluation framework on Together AI. Classify, score, and compare model outputs, select judge models, use external-provider judges or targets, poll results and download reports. Reach for it whenever the user wants to benchmark outputs, grade responses, compare A/B variants, or operationalize automated evaluations."
 ---
 
 # Together AI Evaluations

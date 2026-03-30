@@ -32,7 +32,7 @@ SKILL_ORDER = [
     "together-fine-tuning",
     "together-batch-inference",
     "together-evaluations",
-    "together-code-interpreter",
+    "together-sandboxes",
     "together-dedicated-endpoints",
     "together-dedicated-containers",
     "together-gpu-clusters",
