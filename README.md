@@ -30,7 +30,7 @@ Each skill contains:
 | **together-fine-tuning** | Use this skill for Together AI fine-tuning workflows: LoRA or full fine-tuning, DPO preference tuning, VLM training, ... | `dpo_workflow.py`, `finetune_workflow.py`, `function_calling_finetune.py`, `reasoning_finetune.py`, `vlm_finetune.py` |
 | **together-batch-inference** | Use this skill for Together AI Batch API workflows: preparing JSONL inputs, uploading batch files, creating asynchron... | `batch_workflow.py` |
 | **together-evaluations** | Use this skill for Together AI LLM-as-a-judge workflows: classify, score, and compare evaluations; judge model select... | `run_evaluation.py` |
-| **together-code-interpreter** | Use this skill for Together AI Code Interpreter workflows: remote Python execution, session reuse, file uploads, data... | `execute_with_session.py` |
+| **together-sandboxes** | Use this skill for Together AI Sandboxes workflows: remote Python execution, session reuse, file uploads, data analys... | `execute_with_session.py` |
 | **together-dedicated-endpoints** | Use this skill for Together AI dedicated endpoint workflows: selecting dedicated-eligible models, sizing hardware, cr... | `deploy_finetuned.py`, `manage_endpoint.py`, `upload_custom_model.py` |
 | **together-dedicated-containers** | Use this skill for Together AI Dedicated Container Inference workflows: building custom Dockerized inference workers,... | `queue_client.py`, `sprocket_hello_world.py` |
 | **together-gpu-clusters** | Use this skill for Together AI GPU clusters and raw infrastructure workflows: provisioning on-demand or reserved clus... | `manage_cluster.py`, `manage_storage.py` |

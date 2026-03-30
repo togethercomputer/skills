@@ -30,7 +30,7 @@ Typical fits:
 
 - Use `together-dedicated-endpoints` for managed single-model hosting
 - Use `together-dedicated-containers` for containerized inference without owning the full cluster
-- Use `together-code-interpreter` for short-lived remote Python execution
+- Use `together-sandboxes` for short-lived remote Python execution
 - Use `together-fine-tuning` for managed training jobs instead of raw cluster operations
 
 ## Quick Routing

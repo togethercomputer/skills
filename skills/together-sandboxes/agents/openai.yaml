@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together Sandboxes"
+  short_description: "Together AI remote Python execution"
+  default_prompt: "Use $together-sandboxes to run Python remotely on Together AI with session reuse, uploads, and chart outputs."

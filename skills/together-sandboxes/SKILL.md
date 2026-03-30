@@ -1,13 +1,13 @@
 ---
-name: together-code-interpreter
-description: "Use this skill for Together AI Code Interpreter workflows: remote Python execution, session reuse, file uploads, data analysis, plots, and stateful notebook-like runs through the TCI API. Reach for it whenever the user wants managed remote Python execution on Together AI instead of local execution, raw clusters, or full model hosting."
+name: together-sandboxes
+description: "Use this skill for Together AI Sandboxes workflows: remote Python execution, session reuse, file uploads, data analysis, plots, and stateful notebook-like runs through the Sandboxes API. Reach for it whenever the user wants managed remote Python execution on Together AI instead of local execution, raw clusters, or full model hosting."
 ---
 
-# Together Code Interpreter
+# Together Sandboxes
 
 ## Overview
 
-Use Together Code Interpreter when the user wants to execute Python remotely in a managed sandbox.
+Use Together Sandboxes when the user wants to execute Python remotely in a managed sandbox.
 
 Typical fits:
 
@@ -64,5 +64,5 @@ Typical fits:
 
 ## Official Docs
 
-- [Together Code Interpreter](https://docs.together.ai/docs/together-code-interpreter)
-- [TCI API](https://docs.together.ai/reference/tci-execute)
+- [Together Sandboxes](https://docs.together.ai/docs/together-code-interpreter)
+- [Sandboxes API](https://docs.together.ai/reference/tci-execute)

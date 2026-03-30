@@ -1,4 +1,4 @@
-# Code Interpreter API Reference
+# Sandboxes API Reference
 ## Contents
 
 - [Endpoints](#endpoints)
