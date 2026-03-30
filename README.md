@@ -26,7 +26,7 @@ Each skill contains:
 | **together-images** | Use this skill for Together AI image workflows: text-to-image generation, image editing with Kontext, FLUX model sele... | `generate_image.py`, `kontext_editing.py`, `lora_generation.py` |
 | **together-video** | Use this skill for Together AI video workflows: text-to-video generation, image-to-video with keyframe control, model... | `generate_video.py`, `image_to_video.py` |
 | **together-audio** | Use this skill for Together AI audio workflows: text-to-speech over REST, streaming, or realtime WebSocket APIs, plus... | `stt_realtime.py`, `stt_transcribe.py`, `tts_generate.py`, `tts_websocket.py` |
-| **together-embeddings** | Use this skill for Together AI embedding, retrieval, and reranking workflows: generating dense vectors, building sema... | `embed_and_rerank.py`, `rag_pipeline.py` |
+| **together-embeddings** | Use this skill for Together AI embedding, retrieval, and reranking workflows: generating dense vectors, building sema... | `embed_and_rerank.py`, `rag_pipeline.py`, `semantic_search.py` |
 | **together-fine-tuning** | Use this skill for Together AI fine-tuning workflows: LoRA or full fine-tuning, DPO preference tuning, VLM training, ... | `dpo_workflow.py`, `finetune_workflow.py`, `function_calling_finetune.py`, `reasoning_finetune.py`, `vlm_finetune.py` |
 | **together-batch-inference** | Use this skill for Together AI Batch API workflows: preparing JSONL inputs, uploading batch files, creating asynchron... | `batch_workflow.py` |
 | **together-evaluations** | Use this skill for Together AI LLM-as-a-judge workflows: classify, score, and compare evaluations; judge model select... | `run_evaluation.py` |
