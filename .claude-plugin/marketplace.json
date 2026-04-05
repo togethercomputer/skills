@@ -1,57 +1,13 @@
-[
-  {
-    "name": "togetherai-skills",
-    "source": "https://github.com/togethercomputer/skills",
-    "description": "Agent Skills for Together AI platform — inference, training, embeddings, audio, video, images, function calling, and infrastructure",
-    "skills": [
-      {
-        "name": "together-chat-completions",
-        "description": "Serverless chat and text completion inference via Together AI's OpenAI-compatible API. Access 100+ open-source models with pay-per-token pricing. Includes function calling (tool use), structured outputs (JSON mode, json_schema, regex), and reasoning/thinking models."
-      },
-      {
-        "name": "together-images",
-        "description": "Generate and edit images via Together AI's image generation API. Models include FLUX.1, FLUX.2, Kontext, Seedream, Stable Diffusion."
-      },
-      {
-        "name": "together-video",
-        "description": "Generate videos from text and image prompts via Together AI. 15+ models including Veo 2/3, Sora 2, Kling 2.1."
-      },
-      {
-        "name": "together-audio",
-        "description": "Text-to-speech (TTS) and speech-to-text (STT) via Together AI. TTS models include Orpheus, Kokoro, Cartesia Sonic."
-      },
-      {
-        "name": "together-embeddings",
-        "description": "Generate text embeddings and rerank documents via Together AI. Embedding models include BGE, GTE, E5, UAE families."
-      },
-      {
-        "name": "together-fine-tuning",
-        "description": "Fine-tune open-source LLMs on Together AI with LoRA, Full fine-tuning, DPO preference tuning, VLM, and BYOM."
-      },
-      {
-        "name": "together-batch-inference",
-        "description": "Process large volumes of inference requests asynchronously at up to 50% lower cost via Together AI's Batch API."
-      },
-      {
-        "name": "together-evaluations",
-        "description": "Evaluate LLM outputs using Together AI's LLM-as-a-Judge framework with Classify, Score, and Compare evaluation types."
-      },
-      {
-        "name": "together-sandboxes",
-        "description": "Execute Python code in a sandboxed environment via Together Sandboxes. Stateful sessions with data science packages."
-      },
-      {
-        "name": "together-dedicated-endpoints",
-        "description": "Deploy models on dedicated single-tenant GPU endpoints via Together AI. Autoscaling, no rate limits, predictable latency."
-      },
-      {
-        "name": "together-dedicated-containers",
-        "description": "Deploy custom Dockerized inference workloads on Together AI's managed GPU infrastructure using Sprocket SDK and Jig CLI."
-      },
-      {
-        "name": "together-gpu-clusters",
-        "description": "Provision on-demand and reserved GPU clusters (Instant Clusters) on Together AI with H100, H200, and B200 hardware."
-      }
-    ]
-  }
-]
+{
+  "name": "togetherai-skills",
+  "owner": {
+    "name": "Together AI"
+  },
+  "plugins": [
+    {
+      "name": "togetherai-skills",
+      "description": "Agent Skills for Together AI platform — inference, training, embeddings, audio, video, images, function calling, and infrastructure",
+      "source": "./"
+    }
+  ]
+}
