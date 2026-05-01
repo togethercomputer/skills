@@ -238,14 +238,10 @@ curl -X GET "https://api.together.xyz/v1/batches" \
 
 ## Models with 50% Discount
 
-- `Qwen/Qwen2.5-7B-Instruct-Turbo`
 - `meta-llama/Llama-3.3-70B-Instruct-Turbo`
-- `meta-llama/Llama-3-70b-chat-hf`
-- `mistralai/Mixtral-8x7B-Instruct-v0.1`
-- `zai-org/GLM-4.5-Air-FP8`
-- `openai/whisper-large-v3`
 
-All serverless models support batch processing — models not listed have no discount.
+
+All serverless models support batch processing — models not listed have no discount. The 50% discount does not apply to dedicated endpoint usage.
 
 ## Rate Limits
 
