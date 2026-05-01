@@ -143,43 +143,6 @@ python skills/together-batch-inference/scripts/batch_workflow.py
 
 Scripts use the **Together Python v2 SDK** (`together>=2.0.0`) with keyword-only arguments, updated method names, and current response shapes.
 
-## Skill Structure
-
-```
-togetherai-skills/
-├── quality/
-│   └── trigger-evals/         # Skill trigger test sets
-├── scripts/                   # Repo tooling, generators, validators
-└── skills/
-    └── together-<product>/
-        ├── SKILL.md           # Core instructions (always loaded on trigger)
-        ├── agents/
-        │   └── openai.yaml    # OpenAI/Codex interface metadata
-        ├── references/        # Detailed docs (loaded when needed)
-        │   ├── models.md      # Supported models, IDs, context lengths
-        │   ├── api-reference.md
-        │   └── ...
-        └── scripts/           # Runnable Python examples (v2 SDK)
-            └── <workflow>.py
-```
-
-### How skills are loaded
-
-1. **Metadata** (YAML frontmatter) — Always available to the agent (~100 words). Used to decide whether to load the skill.
-2. **Body** (Markdown) — Loaded when the skill is triggered. It should stay lean and focus on routing, high-signal rules, and the next resource to open.
-3. **References** — Loaded on demand when the agent needs deeper detail (model lists, full API specs).
-4. **Scripts** — Available as runnable code that the agent can reference or execute directly.
-5. **OpenAI metadata** — `agents/openai.yaml` gives OpenAI/Codex surfaces a display name, short description, and default prompt.
-
-## Quality Guardrails
-
-This repo now treats skills as agent artifacts rather than long tutorials:
-
-- `SKILL.md` files are intentionally short and routing-oriented
-- Long references include a `## Contents` section near the top
-- Each skill has trigger eval examples in `quality/trigger-evals/`
-- Multi-step Python workflows are validated for current v2 SDK usage and safer tempfile handling
-
 ## SDK Compatibility
 
 > **Version bump:** This repo now requires `together>=2.0.0`. If you are upgrading from v1, see the [migration guide](https://docs.together.ai/docs/v2-migration-guide) for breaking changes in method names, argument styles, and response shapes.
