@@ -31,7 +31,7 @@ from together import Together
 client = Together()
 
 MODEL_SOURCES = ("serverless", "dedicated", "external")
-JUDGE_MODEL = "deepseek-ai/DeepSeek-V3.1"
+JUDGE_MODEL = "deepseek-ai/DeepSeek-V4-Pro"
 EVAL_MODEL = "Qwen/Qwen3.5-9B"
 DEFAULT_EVAL_SYSTEM_TEMPLATE = "You are a helpful assistant."
 DEFAULT_INPUT_TEMPLATE = "{{prompt}}"
