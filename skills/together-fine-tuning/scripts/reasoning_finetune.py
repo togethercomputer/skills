@@ -9,8 +9,8 @@ Reasoning datasets use conversational format where assistant messages
 include a `reasoning` (or `reasoning_content`) field containing the
 model's chain of thought, and a `content` field for the final answer.
 
-Supported models: Qwen3 family (0.6B-235B), GLM-4.6, GLM-4.7,
-Qwen3-Next-80B-A3B-Thinking.
+Supported models: Qwen3.5 family (0.8B-397B), Qwen3 family (0.6B-235B),
+GLM-5.1, GLM-5, GLM-4.7, GLM-4.6, Qwen3-Next-80B-A3B-Thinking.
 
 Usage:
     python reasoning_finetune.py

@@ -165,7 +165,7 @@ evaluation = client.evals.create(
     parameters={
         "input_data_file_path": "file-abc123",
         "judge": {
-            "model": "deepseek-ai/DeepSeek-V3.1",
+            "model": "deepseek-ai/DeepSeek-V4-Pro",
             "model_source": "serverless",
             "system_template": "Classify the response as Toxic or Non-toxic.",
         },
@@ -193,7 +193,7 @@ const evaluation = await client.evals.create({
   parameters: {
     input_data_file_path: "file-abc123",
     judge: {
-      model: "deepseek-ai/DeepSeek-V3.1",
+      model: "deepseek-ai/DeepSeek-V4-Pro",
       model_source: "serverless",
       system_template: "Classify the response as Toxic or Non-toxic.",
     },
@@ -220,7 +220,7 @@ curl -X POST "https://api.together.xyz/v1/evaluation" \
     "type": "classify",
     "parameters": {
       "judge": {
-        "model": "deepseek-ai/DeepSeek-V3.1",
+        "model": "deepseek-ai/DeepSeek-V4-Pro",
         "model_source": "serverless",
         "system_template": "Classify the response as Toxic or Non-toxic."
       },
@@ -247,7 +247,7 @@ evaluation = client.evals.create(
     parameters={
         "input_data_file_path": "file-abc123",
         "judge": {
-            "model": "deepseek-ai/DeepSeek-V3.1",
+            "model": "deepseek-ai/DeepSeek-V4-Pro",
             "model_source": "serverless",
             "system_template": "Rate the toxicity of the response from 1 to 10.",
         },
@@ -272,7 +272,7 @@ const evaluation = await client.evals.create({
   parameters: {
     input_data_file_path: "file-abc123",
     judge: {
-      model: "deepseek-ai/DeepSeek-V3.1",
+      model: "deepseek-ai/DeepSeek-V4-Pro",
       model_source: "serverless",
       system_template: "Rate the toxicity of the response from 1 to 10.",
     },
@@ -299,7 +299,7 @@ curl -X POST "https://api.together.xyz/v1/evaluation" \
     "type": "score",
     "parameters": {
       "judge": {
-        "model": "deepseek-ai/DeepSeek-V3.1",
+        "model": "deepseek-ai/DeepSeek-V4-Pro",
         "model_source": "serverless",
         "system_template": "Rate the toxicity of the response from 1 to 10."
       },
@@ -327,7 +327,7 @@ evaluation = client.evals.create(
     parameters={
         "input_data_file_path": "file-abc123",
         "judge": {
-            "model": "deepseek-ai/DeepSeek-V3.1",
+            "model": "deepseek-ai/DeepSeek-V4-Pro",
             "model_source": "serverless",
             "system_template": "Assess which model has smarter and more helpful responses.",
         },
@@ -357,7 +357,7 @@ const evaluation = await client.evals.create({
   parameters: {
     input_data_file_path: "file-abc123",
     judge: {
-      model: "deepseek-ai/DeepSeek-V3.1",
+      model: "deepseek-ai/DeepSeek-V4-Pro",
       model_source: "serverless",
       system_template:
         "Assess which model has smarter and more helpful responses.",
@@ -390,7 +390,7 @@ curl -X POST "https://api.together.xyz/v1/evaluation" \
     "type": "compare",
     "parameters": {
       "judge": {
-        "model": "deepseek-ai/DeepSeek-V3.1",
+        "model": "deepseek-ai/DeepSeek-V4-Pro",
         "model_source": "serverless",
         "system_template": "Assess which model has smarter and more helpful responses."
       },
@@ -424,7 +424,7 @@ evaluation = client.evals.create(
     parameters={
         "input_data_file_path": "file-abc123",
         "judge": {
-            "model": "deepseek-ai/DeepSeek-V3.1",
+            "model": "deepseek-ai/DeepSeek-V4-Pro",
             "model_source": "serverless",
             "system_template": (
                 "Assess which response is better. Consider clarity, accuracy, and usefulness."
@@ -488,7 +488,7 @@ evaluation = client.evals.create(
     parameters={
         "input_data_file_path": "file-abc123",
         "judge": {
-            "model": "deepseek-ai/DeepSeek-V3.1",
+            "model": "deepseek-ai/DeepSeek-V4-Pro",
             "model_source": "serverless",
             "system_template": "Classify the response as Toxic or Non-toxic.",
         },
@@ -664,7 +664,7 @@ curl -X GET "https://api.together.xyz/v1/files/<RESULT_FILE_ID>/content" \
 
 | Source | Description | Model field |
 |--------|-------------|-------------|
-| `serverless` | Together AI serverless models with structured output support | Model name (e.g., `deepseek-ai/DeepSeek-V3.1`) |
+| `serverless` | Together AI serverless models with structured output support | Model name (e.g., `deepseek-ai/DeepSeek-V4-Pro`) |
 | `dedicated` | Your deployed dedicated endpoint | Endpoint ID |
 | `external` | Third-party providers via shortcuts or custom URL | Provider shortcut (e.g., `openai/gpt-5`) |
 

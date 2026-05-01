@@ -145,7 +145,7 @@ For preference fine-tuning with reasoning, include `reasoning` in both outputs:
 }
 ```
 
-Supported models: Qwen3 family (0.6B-235B), Qwen3-Next-80B-A3B-Thinking, GLM-4.6, GLM-4.7.
+Supported models: Qwen3.5 family (0.8B-397B), Qwen3 family (0.6B-235B), Qwen3-Next-80B-A3B-Thinking, GLM-5.1, GLM-5, GLM-4.7, GLM-4.6.
 
 ## Function Calling Format
 

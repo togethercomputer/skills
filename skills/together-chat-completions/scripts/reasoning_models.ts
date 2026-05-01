@@ -62,7 +62,7 @@ async function deepseekR1ThinkTags(): Promise<void> {
   console.log("=== DeepSeek R1 (<think> tags) ===");
 
   const stream = await client.chat.completions.create({
-    model: "deepseek-ai/DeepSeek-R1",
+    model: "deepseek-ai/DeepSeek-V4-Pro",
     messages: [
       { role: "user", content: "Which number is bigger 9.9 or 9.11?" },
     ],

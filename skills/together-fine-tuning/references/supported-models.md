@@ -26,16 +26,22 @@
 
 | Organization | Model | API String | Context (SFT) |
 |-------------|-------|-----------|---------------|
+| Qwen | Qwen3.5 397B A17B | `Qwen/Qwen3.5-397B-A17B` | 32K |
+| Qwen | Qwen3.5 122B A10B | `Qwen/Qwen3.5-122B-A10B` | 65K |
 | Moonshot | Kimi K2.5 | `moonshotai/Kimi-K2.5` | 32K |
 | Moonshot | Kimi K2 Thinking | `moonshotai/Kimi-K2-Thinking` | 32K |
 | Moonshot | Kimi K2 Instruct 0905 | `moonshotai/Kimi-K2-Instruct-0905` | 32K |
 | Moonshot | Kimi K2 Base | `moonshotai/Kimi-K2-Base` | 32K |
+| Z.ai | GLM-5.1 | `zai-org/GLM-5.1` | 50K |
+| Z.ai | GLM-5 | `zai-org/GLM-5` | 50K |
 | Z.ai | GLM-4.7 | `zai-org/GLM-4.7` | 128K |
 | Z.ai | GLM-4.6 | `zai-org/GLM-4.6` | 128K |
 | OpenAI | GPT-OSS 120B | `openai/gpt-oss-120b` | 16K |
 | OpenAI | GPT-OSS 20B | `openai/gpt-oss-20b` | 24K |
+| DeepSeek | DeepSeek-R1-0528 | `deepseek-ai/DeepSeek-R1-0528` | 131K |
 | DeepSeek | DeepSeek-R1 | `deepseek-ai/DeepSeek-R1` | 131K |
 | DeepSeek | DeepSeek-V3.1 | `deepseek-ai/DeepSeek-V3.1` | 131K |
+| DeepSeek | DeepSeek-V3-0324 | `deepseek-ai/DeepSeek-V3-0324` | 131K |
 | DeepSeek | DeepSeek-V3 | `deepseek-ai/DeepSeek-V3` | 131K |
 | Qwen | Qwen3 235B A22B | `Qwen/Qwen3-235B-A22B` | 41K |
 | Qwen | Qwen3 235B Instruct | `Qwen/Qwen3-235B-A22B-Instruct-2507` | 49K |
@@ -52,6 +58,10 @@
 
 | Organization | Model | API String | Context (SFT) |
 |-------------|-------|-----------|---------------|
+| Qwen | Qwen3.5 27B | `Qwen/Qwen3.5-27B` | 32K |
+| Qwen | Qwen3.5 9B | `Qwen/Qwen3.5-9B` | 65K |
+| Qwen | Qwen3.5 35B A3B | `Qwen/Qwen3.5-35B-A3B` | 65K |
+| Qwen | Qwen3.6 35B A3B | `Qwen/Qwen3.6-35B-A3B` | 65K |
 | Qwen | Qwen3 32B | `Qwen/Qwen3-32B` | 41K |
 | Qwen | Qwen3 14B | `Qwen/Qwen3-14B` | 41K |
 | Qwen | Qwen3 8B | `Qwen/Qwen3-8B` | 41K |
@@ -62,6 +72,9 @@
 | Qwen | Qwen2.5 7B Instruct | `Qwen/Qwen2.5-7B-Instruct` | 32K |
 | Meta | Llama 3.1 8B | `meta-llama/Meta-Llama-3.1-8B-Instruct-Reference` | 131K |
 | DeepSeek | R1 Distill Qwen 14B | `deepseek-ai/DeepSeek-R1-Distill-Qwen-14B` | 65K |
+| NVIDIA | Nemotron Nano 9B v2 | `nvidia/NVIDIA-Nemotron-Nano-9B-v2` | 32K |
+| Google | Gemma 4 31B IT | `google/gemma-4-31B-it` | 49K |
+| Google | Gemma 4 26B A4B IT | `google/gemma-4-26B-A4B-it` | 49K |
 | Google | Gemma 3 27B | `google/gemma-3-27b-it` | 49K |
 | Google | Gemma 3 12B | `google/gemma-3-12b-it` | 65K |
 | Mistral | Mixtral 8x7B | `mistralai/Mixtral-8x7B-Instruct-v0.1` | 32K |
@@ -71,6 +84,9 @@
 
 | Organization | Model | API String | Context (SFT) |
 |-------------|-------|-----------|---------------|
+| Qwen | Qwen3.5 4B | `Qwen/Qwen3.5-4B` | 131K |
+| Qwen | Qwen3.5 2B | `Qwen/Qwen3.5-2B` | 131K |
+| Qwen | Qwen3.5 0.8B | `Qwen/Qwen3.5-0.8B` | 131K |
 | Qwen | Qwen3 4B | `Qwen/Qwen3-4B` | 41K |
 | Qwen | Qwen3 1.7B | `Qwen/Qwen3-1.7B` | 41K |
 | Qwen | Qwen3 0.6B | `Qwen/Qwen3-0.6B` | 41K |
@@ -124,12 +140,14 @@ Same models as LoRA, but batch sizes are generally smaller. Key full-fine-tuning
 
 | Organization | Model | API String |
 |-------------|-------|-----------|
+| Qwen | Qwen3.5 family | `Qwen/Qwen3.5-*` (0.8B, 2B, 4B, 9B, 27B, 35B-A3B, 122B-A10B, 397B-A17B) |
 | Qwen | Qwen3 0.6B - 235B | `Qwen/Qwen3-*` (all sizes and base variants) |
-| Qwen | Qwen3 32B 16k | `Qwen/Qwen3-32B-16k` |
 | Qwen | Qwen3 30B A3B | `Qwen/Qwen3-30B-A3B` (and base) |
 | Qwen | Qwen3-Next 80B Thinking | `Qwen/Qwen3-Next-80B-A3B-Thinking` |
-| Z.ai | GLM 4.6 | `zai-org/GLM-4.6` |
+| Z.ai | GLM 5.1 | `zai-org/GLM-5.1` |
+| Z.ai | GLM 5 | `zai-org/GLM-5` |
 | Z.ai | GLM 4.7 | `zai-org/GLM-4.7` |
+| Z.ai | GLM 4.6 | `zai-org/GLM-4.6` |
 
 ## DPO/Preference Training
 

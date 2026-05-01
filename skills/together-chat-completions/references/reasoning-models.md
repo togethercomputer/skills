@@ -14,15 +14,17 @@
 
 | Model | API String | Type | Context | Tool Calling |
 |-------|-----------|------|---------|--------------|
-| DeepSeek R1 | `deepseek-ai/DeepSeek-R1` | Reasoning only | 164K | No |
-| DeepSeek V3.1 | `deepseek-ai/DeepSeek-V3.1` | Hybrid (off by default) | 164K | Non-reasoning only |
+| DeepSeek-V4-Pro | `deepseek-ai/DeepSeek-V4-Pro` | Hybrid (on by default) | 512K | Yes |
+| GLM-5.1 | `zai-org/GLM-5.1` | Hybrid (on by default) | 200K | Yes |
 | GLM-5 | `zai-org/GLM-5` | Hybrid (on by default) | 200K | Yes |
 | GPT-OSS 120B | `openai/gpt-oss-120b` | Adjustable effort | 128K | No |
 | GPT-OSS 20B | `openai/gpt-oss-20b` | Adjustable effort | 128K | No |
-| Kimi K2.5 | `moonshotai/Kimi-K2.5` | Hybrid (on by default) | 256K | Yes |
-| MiniMax M2.5 | `MiniMaxAI/MiniMax-M2.5` | Reasoning only | 229K | No |
-| Qwen3.5 397B | `Qwen/Qwen3.5-397B-A17B` | Hybrid (on by default) | 128K | No |
-| Qwen3.5 9B | `Qwen/Qwen3.5-9B` | Hybrid (on by default) | 128K | No |
+| Kimi K2.6 | `moonshotai/Kimi-K2.6` | Hybrid (on by default) | 262K | Yes |
+| Kimi K2.5 | `moonshotai/Kimi-K2.5` | Hybrid (on by default) | 262K | Yes |
+| MiniMax M2.7 | `MiniMaxAI/MiniMax-M2.7` | Reasoning only | 202K | Yes |
+| Qwen3.5 397B | `Qwen/Qwen3.5-397B-A17B` | Hybrid (on by default) | 262K | Yes |
+| Qwen3.5 9B | `Qwen/Qwen3.5-9B` | Hybrid (on by default) | 262K | Yes |
+| Qwen3.6 Plus | `Qwen/Qwen3.6-Plus` | Hybrid (on by default) | 1M | Yes |
 
 **Type definitions:**
 - **Reasoning only**: Always produces reasoning tokens. Cannot be toggled off.
@@ -100,14 +102,14 @@ curl -X POST "https://api.together.xyz/v1/chat/completions" \
 Hybrid models support `reasoning={"enabled": True/False}` to toggle reasoning on or off.
 
 **Models supporting this parameter:**
-- `deepseek-ai/DeepSeek-V3.1` (off by default)
+- `deepseek-ai/DeepSeek-V4-Pro` (on by default)
 - `Qwen/Qwen3.5-397B-A17B` (on by default)
 - `Qwen/Qwen3.5-9B` (on by default)
+- `Qwen/Qwen3.6-Plus` (on by default)
+- `moonshotai/Kimi-K2.6` (on by default)
 - `moonshotai/Kimi-K2.5` (on by default)
+- `zai-org/GLM-5.1` (on by default)
 - `zai-org/GLM-5` (on by default)
-
-Note: For DeepSeek V3.1, function calling only works in non-reasoning mode
-(`reasoning={"enabled": False}`).
 
 ### Python -- Enable Reasoning
 
@@ -117,7 +119,7 @@ from together import Together
 client = Together()
 
 stream = client.chat.completions.create(
-    model="moonshotai/Kimi-K2.5",
+    model="moonshotai/Kimi-K2.6",
     messages=[
         {"role": "user", "content": "Which number is bigger, 9.11 or 9.9? Think carefully."},
     ],
@@ -155,7 +157,7 @@ type ReasoningDelta = ChatCompletionChunk.Choice.Delta & {
 };
 
 const params: ReasoningParams = {
-  model: "moonshotai/Kimi-K2.5",
+  model: "moonshotai/Kimi-K2.6",
   messages: [
     {
       role: "user",
@@ -181,7 +183,7 @@ for await (const chunk of stream) {
 
 ```python
 response = client.chat.completions.create(
-    model="moonshotai/Kimi-K2.5",
+    model="moonshotai/Kimi-K2.6",
     messages=[{"role": "user", "content": "What is the capital of France?"}],
     reasoning={"enabled": False},
     temperature=0.6,
@@ -202,13 +204,13 @@ response = client.chat.completions.create(
 
 ## Controlling Reasoning Depth via Prompting
 
-For models without `reasoning_effort` (e.g., DeepSeek R1), influence thinking depth through the
+For hybrid models without `reasoning_effort`, influence thinking depth through the
 prompt:
 
 ```python
 # Ask for concise reasoning
 response = client.chat.completions.create(
-    model="deepseek-ai/DeepSeek-R1",
+    model="deepseek-ai/DeepSeek-V4-Pro",
     messages=[
         {
             "role": "user",
@@ -220,7 +222,7 @@ response = client.chat.completions.create(
 
 # Or suggest a reasoning budget
 response = client.chat.completions.create(
-    model="deepseek-ai/DeepSeek-R1",
+    model="deepseek-ai/DeepSeek-V4-Pro",
     messages=[
         {
             "role": "user",
@@ -239,14 +241,14 @@ response = client.chat.completions.create(
 
 ### Separate reasoning field (most models)
 
-Models like Kimi K2.5, GLM-5, DeepSeek V3.1, GPT-OSS, and Qwen3.5 return reasoning in a dedicated
+Models like Kimi K2.6, GLM-5.1, DeepSeek-V4-Pro, GPT-OSS, and Qwen3.5 return reasoning in a dedicated
 `reasoning` field on the response message or streaming delta.
 
 **Non-streaming (Python):**
 
 ```python
 response = client.chat.completions.create(
-    model="moonshotai/Kimi-K2.5",
+    model="moonshotai/Kimi-K2.6",
     messages=[{"role": "user", "content": "Say test 10 times"}],
 )
 print("Reasoning:", response.choices[0].message.reasoning)
@@ -257,7 +259,7 @@ print("Answer:", response.choices[0].message.content)
 
 ```typescript
 const response = await together.chat.completions.create({
-  model: "moonshotai/Kimi-K2.5",
+  model: "moonshotai/Kimi-K2.6",
   messages: [{ role: "user", content: "Say test 10 times" }],
 } as any);
 
@@ -269,7 +271,7 @@ console.log("Answer:", response.choices[0].message.content);
 
 ```python
 stream = client.chat.completions.create(
-    model="moonshotai/Kimi-K2.5",
+    model="moonshotai/Kimi-K2.6",
     messages=[{"role": "user", "content": "Which number is bigger, 9.11 or 9.9?"}],
     stream=True,
 )
@@ -289,7 +291,7 @@ for chunk in stream:
 import type { ChatCompletionChunk } from "together-ai/resources/chat/completions";
 
 const stream = await together.chat.completions.stream({
-  model: "moonshotai/Kimi-K2.5",
+  model: "moonshotai/Kimi-K2.6",
   messages: [
     { role: "user", content: "Which number is bigger, 9.11 or 9.9?" },
   ],
@@ -302,66 +304,6 @@ for await (const chunk of stream) {
   if (delta?.reasoning) process.stdout.write(delta.reasoning);
   if (delta?.content) process.stdout.write(delta.content);
 }
-```
-
-### DeepSeek R1 -- `<think>` tags in content
-
-DeepSeek R1 outputs reasoning inside `<think>` tags within the `content` field.
-
-**Streaming (Python):**
-
-```python
-stream = client.chat.completions.create(
-    model="deepseek-ai/DeepSeek-R1",
-    messages=[{"role": "user", "content": "Which number is bigger 9.9 or 9.11?"}],
-    stream=True,
-)
-for chunk in stream:
-    print(chunk.choices[0].delta.content or "", end="", flush=True)
-```
-
-**Streaming (TypeScript):**
-
-```typescript
-const stream = await together.chat.completions.create({
-  model: "deepseek-ai/DeepSeek-R1",
-  messages: [{ role: "user", content: "Which number is bigger 9.9 or 9.11?" }],
-  stream: true,
-});
-
-for await (const chunk of stream) {
-  process.stdout.write(chunk.choices[0]?.delta?.content || "");
-}
-```
-
-Output:
-```
-<think>
-Let me compare 9.9 and 9.11...
-9.9 = 9.90, and 9.90 > 9.11
-</think>
-
-**Answer:** 9.9 is bigger.
-```
-
-**Parsing `<think>` tags (Python):**
-
-```python
-import re
-
-content = response.choices[0].message.content
-think_match = re.search(r"<think>(.*?)</think>", content, re.DOTALL)
-thinking = think_match.group(1).strip() if think_match else ""
-answer = re.sub(r"<think>.*?</think>", "", content, flags=re.DOTALL).strip()
-```
-
-**Parsing `<think>` tags (TypeScript):**
-
-```typescript
-const content = response.choices[0].message.content ?? "";
-const thinkMatch = content.match(/<think>([\s\S]*?)<\/think>/);
-const thinking = thinkMatch ? thinkMatch[1].trim() : "";
-const answer = content.replace(/<think>[\s\S]*?<\/think>/, "").trim();
 ```
 
 ## Structured Outputs with Reasoning
@@ -386,7 +328,7 @@ class MathReasoning(BaseModel):
     final_answer: str
 
 completion = client.chat.completions.create(
-    model="deepseek-ai/DeepSeek-R1",
+    model="deepseek-ai/DeepSeek-V4-Pro",
     messages=[
         {
             "role": "system",
@@ -428,7 +370,7 @@ const mathReasoningSchema = z.object({
 const jsonSchema = z.toJSONSchema(mathReasoningSchema);
 
 const completion = await together.chat.completions.create({
-  model: "deepseek-ai/DeepSeek-R1",
+  model: "deepseek-ai/DeepSeek-V4-Pro",
   messages: [
     {
       role: "system",
@@ -454,22 +396,18 @@ if (completion?.choices?.[0]?.message?.content) {
 
 ## Best Practices by Model
 
-### DeepSeek R1
-- **Temperature:** 0.5-0.7 (recommended 0.6)
-- **Top-p:** 0.95 recommended
-- **System prompts:** Omit -- put all instructions in user message
-- **Prompting:** High-level objectives, let model determine methodology
-- **Few-shot:** Avoid -- consistently degrades performance
-- **Chain-of-thought:** Do not prompt "think step by step" (model already reasons)
-- **Math tasks:** Include "put your final answer within \boxed{}" in prompt
-- Avoid micromanaging reasoning steps
+### DeepSeek-V4-Pro
+- Hybrid reasoning model with very long context (512K)
+- Toggle reasoning via `reasoning={"enabled": True/False}`
+- Strong performance on math, code, and agentic tool use
+- Avoid micromanaging reasoning steps -- let the model determine methodology
 
-### Kimi K2.5
+### Kimi K2.6 / K2.5
 - Temperature 1.0 for thinking mode, 0.6 for instant mode
 - Supports both reasoning and non-reasoning modes
 - Excels at multi-turn tool calling with reasoning interleaved
 
-### GLM-5
+### GLM-5.1 / GLM-5
 - Thinking is enabled by default
 - Supports Preserved Thinking: set `"clear_thinking": false` in `chat_template_kwargs`
 - Preserved Thinking retains reasoning across turns for better agentic workflows

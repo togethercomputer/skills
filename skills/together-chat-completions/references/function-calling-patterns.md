@@ -705,8 +705,8 @@ const final = await together.chat.completions.create({
 
 ## Supported Models
 
-openai/gpt-oss-120b, openai/gpt-oss-20b, moonshotai/Kimi-K2.5, zai-org/GLM-5, zai-org/GLM-4.5-Air-FP8,
-MiniMaxAI/MiniMax-M2.5, Qwen/Qwen3-Next-80B-A3B-Instruct, Qwen/Qwen3.5-397B-A17B,
-Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8, deepseek-ai/DeepSeek-R1, deepseek-ai/DeepSeek-V3,
-meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8, meta-llama/Llama-3.3-70B-Instruct-Turbo,
-Qwen/Qwen2.5-7B-Instruct-Turbo, mistralai/Mistral-Small-24B-Instruct-2501
+openai/gpt-oss-120b, openai/gpt-oss-20b, moonshotai/Kimi-K2.6, moonshotai/Kimi-K2.5,
+zai-org/GLM-5.1, zai-org/GLM-5, MiniMaxAI/MiniMax-M2.7, Qwen/Qwen3.5-397B-A17B,
+Qwen/Qwen3.5-9B, Qwen/Qwen3.6-Plus, Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8,
+Qwen/Qwen3-235B-A22B-Instruct-2507-tput, deepseek-ai/DeepSeek-V4-Pro,
+meta-llama/Llama-3.3-70B-Instruct-Turbo, Qwen/Qwen2.5-7B-Instruct-Turbo, google/gemma-4-31B-it
