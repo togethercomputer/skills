@@ -358,7 +358,7 @@ class MathReasoning(BaseModel):
     final_answer: str
 
 completion = client.chat.completions.create(
-    model="deepseek-ai/DeepSeek-R1",
+    model="deepseek-ai/DeepSeek-V4-Pro",
     messages=[
         {
             "role": "system",
@@ -400,7 +400,7 @@ const mathReasoningSchema = z.object({
 const jsonSchema = z.toJSONSchema(mathReasoningSchema);
 
 const completion = await together.chat.completions.create({
-  model: "deepseek-ai/DeepSeek-R1",
+  model: "deepseek-ai/DeepSeek-V4-Pro",
   messages: [
     {
       role: "system",
@@ -508,23 +508,22 @@ console.log(`Title: ${result.title}`);
 ### Top Models (json_schema, json_object, regex)
 - `openai/gpt-oss-120b`
 - `openai/gpt-oss-20b`
+- `moonshotai/Kimi-K2.6`
 - `moonshotai/Kimi-K2.5`
+- `zai-org/GLM-5.1`
 - `zai-org/GLM-5`
-- `zai-org/GLM-4.5-Air-FP8`
-- `MiniMaxAI/MiniMax-M2.5`
+- `MiniMaxAI/MiniMax-M2.7`
 - `Qwen/Qwen3.5-397B-A17B`
+- `Qwen/Qwen3.6-Plus`
 - `Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8`
-- `deepseek-ai/DeepSeek-R1`
-- `deepseek-ai/DeepSeek-V3`
-- `deepseek-ai/DeepSeek-V3.1`
-- `meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8`
+- `deepseek-ai/DeepSeek-V4-Pro`
 
 ### Additional Supported Models
 - `meta-llama/Llama-3.3-70B-Instruct-Turbo`
 - `Qwen/Qwen2.5-7B-Instruct-Turbo`
+- `Qwen/Qwen3.5-9B`
+- `google/gemma-4-31B-it`
 - `google/gemma-3n-E4B-it`
-- `mistralai/Mistral-Small-24B-Instruct-2501`
-- `mistralai/Mistral-7B-Instruct-v0.2`
 
 ## Troubleshooting
 
@@ -541,5 +540,5 @@ console.log(`Title: ${result.title}`);
 3. Use `json_schema` mode when you need guaranteed structure
 4. Use `json_object` for simpler cases where prompt guidance is sufficient
 5. Use `regex` mode for simple constrained outputs (classification, IDs, phone numbers)
-6. Works with vision models (e.g., `meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8`)
-7. Works with reasoning models (e.g., `deepseek-ai/DeepSeek-R1`)
+6. Works with vision models (e.g., `Qwen/Qwen3.5-397B-A17B`)
+7. Works with reasoning models (e.g., `deepseek-ai/DeepSeek-V4-Pro`)

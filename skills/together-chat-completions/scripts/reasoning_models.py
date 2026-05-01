@@ -61,7 +61,7 @@ def deepseek_r1_think_tags() -> None:
     """DeepSeek R1 outputs reasoning in <think> tags within content."""
     print("=== DeepSeek R1 (<think> tags) ===")
     stream = client.chat.completions.create(
-        model="deepseek-ai/DeepSeek-R1",
+        model="deepseek-ai/DeepSeek-V4-Pro",
         messages=[
             {"role": "user", "content": "Which number is bigger 9.9 or 9.11?"},
         ],
