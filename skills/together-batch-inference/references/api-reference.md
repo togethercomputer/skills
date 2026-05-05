@@ -238,12 +238,7 @@ curl -X GET "https://api.together.xyz/v1/batches" \
 
 ## Models with 50% Discount
 
-- `Qwen/Qwen2.5-7B-Instruct-Turbo`
 - `meta-llama/Llama-3.3-70B-Instruct-Turbo`
-- `meta-llama/Llama-3-70b-chat-hf`
-- `mistralai/Mixtral-8x7B-Instruct-v0.1`
-- `zai-org/GLM-4.5-Air-FP8`
-- `openai/whisper-large-v3`
 
 Most serverless models support batch processing through the chat completions endpoint; models not listed above have no discount. A small number of serverless models are not available for batch and will fail if submitted, currently `deepseek-ai/DeepSeek-R1-0528-tput` and `deepseek-ai/DeepSeek-V3.1`.
 

@@ -126,7 +126,7 @@ async function reasoningJsonExample(): Promise<void> {
   const jsonSchema = z.toJSONSchema(mathReasoningSchema);
 
   const completion = await client.chat.completions.create({
-    model: "deepseek-ai/DeepSeek-R1",
+    model: "deepseek-ai/DeepSeek-V4-Pro",
     messages: [
       {
         role: "system",

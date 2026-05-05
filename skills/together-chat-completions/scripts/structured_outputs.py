@@ -114,7 +114,7 @@ def reasoning_json_example() -> None:
     """Extract structured JSON from a reasoning model."""
     print("=== json_schema + reasoning model ===")
     completion = client.chat.completions.create(
-        model="deepseek-ai/DeepSeek-R1",
+        model="deepseek-ai/DeepSeek-V4-Pro",
         messages=[
             {
                 "role": "system",
