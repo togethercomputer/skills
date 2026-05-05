@@ -240,7 +240,17 @@ curl -X GET "https://api.together.xyz/v1/batches" \
 
 - `meta-llama/Llama-3.3-70B-Instruct-Turbo`
 
-Most serverless models support batch processing through the chat completions endpoint; models not listed above have no discount. A small number of serverless models are not available for batch and will fail if submitted, currently `deepseek-ai/DeepSeek-R1-0528-tput` and `deepseek-ai/DeepSeek-V3.1`.
+Most serverless models support batch processing through the chat completions endpoint; models not listed above have no discount. The following serverless models are not currently available for batch and will fail if submitted:
+
+- `deepseek-ai/DeepSeek-R1`
+- `deepseek-ai/DeepSeek-V3.1`
+- `deepseek-ai/DeepSeek-V4-Pro`
+- `MiniMaxAI/MiniMax-M2.7`
+- `moonshotai/Kimi-K2.5`
+- `moonshotai/Kimi-K2.6`
+- `Qwen/Qwen3.5-397B-A17B`
+- `zai-org/GLM-5`
+- `zai-org/GLM-5.1`
 
 ## Rate Limits
 
