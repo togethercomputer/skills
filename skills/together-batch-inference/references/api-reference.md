@@ -245,7 +245,7 @@ curl -X GET "https://api.together.xyz/v1/batches" \
 - `zai-org/GLM-4.5-Air-FP8`
 - `openai/whisper-large-v3`
 
-All serverless models support batch processing — models not listed have no discount.
+Most serverless models support batch processing through the chat completions endpoint; models not listed above have no discount. A small number of serverless models are not available for batch and will fail if submitted, currently `deepseek-ai/DeepSeek-R1-0528-tput` and `deepseek-ai/DeepSeek-V3.1`.
 
 ## Rate Limits
 
