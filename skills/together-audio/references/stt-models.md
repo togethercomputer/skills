@@ -3,10 +3,12 @@
 
 - [Model Catalog](#model-catalog)
 - [Supported Input Formats](#supported-input-formats)
+- [Limits](#limits)
 - [Audio Transcriptions](#audio-transcriptions)
 - [Audio Translations](#audio-translations)
 - [Realtime Transcription (WebSocket)](#realtime-transcription)
 - [Response Formats](#response-formats)
+- [Errors and Troubleshooting](#errors-and-troubleshooting)
 - [Common Workflows](#common-workflows)
 - [Async Support](#async-support)
 
@@ -37,6 +39,21 @@ The guide and reference both list:
 - `.m4a` (`audio/mp4`)
 - `.webm` (`audio/webm`)
 - `.flac` (`audio/flac`)
+
+## Limits
+
+Both `/v1/audio/transcriptions` and `/v1/audio/translations` enforce the same caps.
+
+| Limit | Value | Notes |
+|-------|-------|-------|
+| Max file size (direct upload) | 500 MB | Requests above this are rejected at the edge with `HTTP 413 Payload Too Large`. |
+| Max file size (URL fetch) | 1 GB | When you submit an HTTPS URL on the `file` field instead of binary, the server downloads up to 1 GB. Larger downloads fail with `400 file_too_large`. |
+| Max audio duration | 4 hours per request | Longer audio is rejected with `400 audio_too_long`. Split into ≤ 4 h segments and submit separately. |
+
+Tips:
+- For payloads larger than 500 MB, host the file at a public HTTPS URL and pass that URL as the `file` field — the 500 MB edge cap only applies to direct uploads.
+- For audio longer than 4 hours, split into ≤ 4 h chunks before submitting.
+- Real-time/streaming transports are unaffected by these batch upload limits.
 
 ## Audio Transcriptions
 
@@ -189,6 +206,20 @@ Speaker segment example:
   "words": [{"word": "Hello", "start": 6.268, "end": 11.314, "speaker_id": "SPEAKER_01"}]
 }
 ```
+
+## Errors and Troubleshooting
+
+`/v1/audio/transcriptions` and `/v1/audio/translations` share the same code path and return the same error codes.
+
+| Response | Meaning | Recommended action |
+|----------|---------|--------------------|
+| `400 audio_too_long` | Audio duration exceeds the 4 hour cap. | Split the file into ≤ 4 h segments and submit separately. |
+| `400 file_too_large` | A URL-fetched audio download exceeded the 1 GB server-side cap. | Compress the source, or split into smaller files. |
+| `400 unsupported_format` | The audio container or codec could not be decoded. | Re-encode to a supported format. Run `ffprobe` on the file to confirm it is valid audio. |
+| `400 invalid_params` | Request parameters failed validation. | Check the API reference for the endpoint. |
+| `413 Payload Too Large` | A direct upload exceeded the 500 MB edge limit. | Submit the file via an HTTPS URL on the `file` field instead, or split the file. The 413 response is plain HTML, not JSON. |
+| `429` | Rate limit exceeded. | See serverless rate limits. |
+| `500 processing_failed` | Internal decode failure after the file was accepted. | Verify the file is valid audio with `ffprobe`. If it is, contact Together support with the response `id`. |
 
 ## Common Workflows
 
