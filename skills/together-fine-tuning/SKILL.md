@@ -57,7 +57,7 @@ Supported workflows in this repo:
 2. Validate dataset format before spending tokens on training.
 3. Upload training data and keep the returned file ID.
 4. Create the job with explicit method-specific parameters.
-5. Monitor job state, events, and checkpoints before handing off to deployment.
+5. Monitor job state, events, checkpoints, and per-step training metrics before handing off to deployment.
 
 ## High-Signal Rules
 
