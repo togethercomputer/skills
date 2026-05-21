@@ -58,6 +58,7 @@ Use Together AI audio APIs for:
 - REST TTS returns a `BinaryAPIResponse`; call `response.write_to_file(path)` to save it. Do NOT use `stream_to_file` (it does not exist on this object).
 - Streaming TTS (`stream=True`) returns a `Stream` of `AudioSpeechStreamChunk` objects. Iterate chunks, check `chunk.type`, and decode `base64.b64decode(chunk.delta)` for audio data. There is no file-writing helper on the stream object.
 - Use `client.audio.transcriptions.create()` for transcription and `client.audio.translations.create()` for translation.
+- Batch transcription and translation share hard limits: 500 MB direct upload, 1 GB URL-fetch, 4 hours of audio per request. For larger payloads, pass a public HTTPS URL on `file=`; for longer audio, split into ≤ 4 h chunks. See the Limits section of [references/stt-models.md](references/stt-models.md).
 - Realtime APIs require audio-format discipline; confirm PCM expectations before streaming bytes.
 - Diarization and word timestamps change response shape; code for the richer verbose output explicitly.
 
