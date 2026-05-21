@@ -27,6 +27,7 @@ These models are current in the latest text-to-speech guide and are not listed i
 | Rime Arcana v2 | `rime-labs/rime-arcana-v2` | Dedicated / Reserved | REST, Streaming, WebSocket | Dedicated only |
 | Rime Mist v3 (Beta) | `rime-labs/rime-mist-v3` | Dedicated / Reserved | REST, Streaming, WebSocket | Dedicated only |
 | Rime Mist v2 | `rime-labs/rime-mist-v2` | Dedicated / Reserved | REST, Streaming, WebSocket | Dedicated only |
+| MiniMax Speech 2.8 Turbo | `minimax/speech-2.8-turbo` | Dedicated / Reserved | REST, Streaming, WebSocket | Dedicated only |
 | MiniMax Speech 2.6 Turbo | `minimax/speech-2.6-turbo` | Dedicated / Reserved | REST, Streaming, WebSocket | Dedicated only |
 
 Notes:
@@ -219,3 +220,8 @@ Regional examples include:
 
 `English_DeterminedMan`, `English_Diligent_Man`, `English_expressive_narrator`,
 `English_FriendlyNeighbor`, `English_Graceful_Lady`, `Japanese_GentleButler`
+
+### MiniMax Speech 2.8 Turbo
+
+`English_CalmWoman`, `English_CaptivatingStoryteller`, `English_CharmingQueen`,
+`English_Comedian`, `English_ConfidentWoman`, `English_Cute_Girl`
