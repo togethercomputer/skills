@@ -320,14 +320,19 @@ def run_compare(args: argparse.Namespace, dataset: list[dict[str, Any]]) -> None
             external_base_url=args.model_b_external_base_url,
         )
 
+    parameters: dict[str, Any] = {
+        "input_data_file_path": file_id,
+        "judge": build_judge_config(args, DEFAULT_COMPARE_TEMPLATE),
+        "model_a": model_a,
+        "model_b": model_b,
+    }
+    if args.disable_position_bias_correction:
+        parameters["disable_position_bias_correction"] = True
+        print("Position-bias correction disabled — running a single judge pass")
+
     evaluation = client.evals.create(
         type="compare",
-        parameters={
-            "input_data_file_path": file_id,
-            "judge": build_judge_config(args, DEFAULT_COMPARE_TEMPLATE),
-            "model_a": model_a,
-            "model_b": model_b,
-        },
+        parameters=parameters,
     )
     print(f"Created evaluation: {evaluation.workflow_id}")
 
@@ -409,6 +414,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model-b-external-api-token", help="API key for external model B")
     parser.add_argument("--model-b-external-base-url", help="Custom OpenAI-compatible base URL for model B")
     parser.add_argument(
+        "--disable-position-bias-correction",
+        action="store_true",
+        help=(
+            "Compare only: skip the flipped-order judge pass and run a single pass. "
+            "Halves judge cost and latency at the expense of position-bias correction."
+        ),
+    )
+    parser.add_argument(
         "--poll-interval",
         type=int,
         default=5,
@@ -424,6 +437,8 @@ def parse_args() -> argparse.Namespace:
         parser.error("--model-a-column and --model-b-column must be provided together")
     if args.type != "compare" and (args.model_a_column or args.model_b_column):
         parser.error("--model-a-column and --model-b-column only apply to --type compare")
+    if args.type != "compare" and args.disable_position_bias_correction:
+        parser.error("--disable-position-bias-correction only applies to --type compare")
     return args
 
 

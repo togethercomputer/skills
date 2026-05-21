@@ -71,6 +71,9 @@ Authentication: `Authorization: Bearer $TOGETHER_API_KEY`
 | `input_data_file_path` | string | Yes | Uploaded dataset file ID |
 | `model_a` | ModelConfig or string | No | Model A config or dataset column name |
 | `model_b` | ModelConfig or string | No | Model B config or dataset column name |
+| `disable_position_bias_correction` | boolean | No | Defaults to `false`. When `false`, the judge runs twice per sample (A then B, then B then A) and the verdicts are reconciled to cancel position bias; disagreements become "Tie". Set to `true` to run only the original-order pass, halving judge cost and latency at the cost of position-bias correction. |
+
+When both `model_a` and `model_b` are model configuration objects (not pre-generated column references), Together runs their inference in parallel, reducing total wall-clock time.
 
 ## Judge Model Configuration
 
@@ -79,6 +82,9 @@ Authentication: `Authorization: Bearer $TOGETHER_API_KEY`
 | `model` | string | Yes | Model name, endpoint ID, or external shortcut |
 | `model_source` | string | Yes | `serverless`, `dedicated`, or `external` |
 | `system_template` | string | Yes | Jinja2 system prompt for the judge |
+| `max_tokens` | integer | No | Max tokens for the judge. Defaults to 32768. Increase for reasoning judges (e.g., Gemini or o-series) that consume output budget for chain-of-thought. |
+| `temperature` | float | No | Sampling temperature for the judge. Defaults to 0.05. |
+| `num_workers` | integer | No | Concurrent workers for judge inference. Defaults: `serverless` → 25, `dedicated` → 5 (minimum), `external` → 2 for first-party APIs (OpenAI, Anthropic, Google) or 20 for proxy/aggregator endpoints (e.g. OpenRouter). Override to tune throughput. |
 | `external_api_token` | string | No | API key for external providers |
 | `external_base_url` | string | No | Custom OpenAI-compatible base URL |
 
@@ -92,6 +98,7 @@ Authentication: `Authorization: Bearer $TOGETHER_API_KEY`
 | `input_template` | string | Yes | Jinja2 input template (e.g., `{{prompt}}`) |
 | `max_tokens` | integer | Yes | Maximum generation tokens |
 | `temperature` | float | Yes | Generation temperature (0 to 2) |
+| `num_workers` | integer | No | Concurrent workers for target inference. Defaults: `serverless` → 25, `dedicated` → 5 (minimum), `external` → 2 for first-party APIs or 20 for proxy endpoints. Override to tune throughput. |
 | `external_api_token` | string | No | API key for external providers |
 | `external_base_url` | string | No | Custom OpenAI-compatible base URL |
 
@@ -725,6 +732,7 @@ together evals create [OPTIONS]
 | `--model-a-source [serverless\|dedicated\|external]` | Compare: source of model A |
 | `--model-b TEXT` | Compare: model B name |
 | `--model-b-source [serverless\|dedicated\|external]` | Compare: source of model B |
+| `--disable-position-bias-correction` | Compare: skip the flipped-order judge pass and run only a single judge pass (original order). Halves judge cost and latency at the expense of position-bias correction. Default: off (two-pass mode). |
 
 ### List
 
