@@ -34,10 +34,10 @@ type ReasoningParams = CompletionCreateParamsStreaming & {
 
 // --- 1. Reasoning field (streaming) ---
 async function reasoningFieldStreaming(): Promise<void> {
-  console.log("=== Reasoning Field (Kimi K2.5 streaming) ===");
+  console.log("=== Reasoning Field (Kimi K2.6 streaming) ===");
 
   const stream = await client.chat.completions.stream({
-    model: "moonshotai/Kimi-K2.5",
+    model: "moonshotai/Kimi-K2.6",
     messages: [
       { role: "user", content: "Which number is bigger, 9.11 or 9.9?" },
     ],
@@ -110,12 +110,12 @@ async function reasoningEffortExample(): Promise<void> {
 
 // --- 4. Toggle reasoning on hybrid models ---
 async function toggleReasoning(): Promise<void> {
-  console.log("=== Toggle Reasoning (Kimi K2.5) ===");
+  console.log("=== Toggle Reasoning (Kimi K2.6) ===");
 
   // Reasoning enabled (thinking mode)
   console.log("  [reasoning=true]");
   const enabledParams: ReasoningParams = {
-    model: "moonshotai/Kimi-K2.5",
+    model: "moonshotai/Kimi-K2.6",
     messages: [
       { role: "user", content: "What is the capital of France?" },
     ],
@@ -140,7 +140,7 @@ async function toggleReasoning(): Promise<void> {
   // Reasoning disabled (instant mode)
   console.log("  [reasoning=false]");
   const disabledParams = {
-    model: "moonshotai/Kimi-K2.5",
+    model: "moonshotai/Kimi-K2.6",
     messages: [
       { role: "user", content: "What is the capital of France?" },
     ] as ChatCompletionMessageParam[],

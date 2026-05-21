@@ -20,7 +20,6 @@
 | GPT-OSS 120B | `openai/gpt-oss-120b` | Adjustable effort | 128K | No |
 | GPT-OSS 20B | `openai/gpt-oss-20b` | Adjustable effort | 128K | No |
 | Kimi K2.6 | `moonshotai/Kimi-K2.6` | Hybrid (on by default) | 262K | Yes |
-| Kimi K2.5 | `moonshotai/Kimi-K2.5` | Hybrid (on by default) | 262K | Yes |
 | MiniMax M2.7 | `MiniMaxAI/MiniMax-M2.7` | Reasoning only | 202K | Yes |
 | Qwen3.5 397B | `Qwen/Qwen3.5-397B-A17B` | Hybrid (on by default) | 262K | Yes |
 | Qwen3.5 9B | `Qwen/Qwen3.5-9B` | Hybrid (on by default) | 262K | Yes |
@@ -107,7 +106,6 @@ Hybrid models support `reasoning={"enabled": True/False}` to toggle reasoning on
 - `Qwen/Qwen3.5-9B` (on by default)
 - `Qwen/Qwen3.6-Plus` (on by default)
 - `moonshotai/Kimi-K2.6` (on by default)
-- `moonshotai/Kimi-K2.5` (on by default)
 - `zai-org/GLM-5.1` (on by default)
 - `zai-org/GLM-5` (on by default)
 
@@ -402,7 +400,7 @@ if (completion?.choices?.[0]?.message?.content) {
 - Strong performance on math, code, and agentic tool use
 - Avoid micromanaging reasoning steps -- let the model determine methodology
 
-### Kimi K2.6 / K2.5
+### Kimi K2.6
 - Temperature 1.0 for thinking mode, 0.6 for instant mode
 - Supports both reasoning and non-reasoning modes
 - Excels at multi-turn tool calling with reasoning interleaved

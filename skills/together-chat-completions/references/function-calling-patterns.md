@@ -705,7 +705,7 @@ const final = await together.chat.completions.create({
 
 ## Supported Models
 
-openai/gpt-oss-120b, openai/gpt-oss-20b, moonshotai/Kimi-K2.6, moonshotai/Kimi-K2.5,
+openai/gpt-oss-120b, openai/gpt-oss-20b, moonshotai/Kimi-K2.6,
 zai-org/GLM-5.1, zai-org/GLM-5, MiniMaxAI/MiniMax-M2.7, Qwen/Qwen3.5-397B-A17B,
 Qwen/Qwen3.5-9B, Qwen/Qwen3.6-Plus, Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8,
 Qwen/Qwen3-235B-A22B-Instruct-2507-tput, deepseek-ai/DeepSeek-V4-Pro,

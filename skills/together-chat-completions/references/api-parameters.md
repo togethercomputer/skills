@@ -268,7 +268,7 @@ for await (const chunk of stream) {
 
 ```python
 stream = client.chat.completions.create(
-    model="moonshotai/Kimi-K2.5",
+    model="moonshotai/Kimi-K2.6",
     messages=[{"role": "user", "content": "Which is bigger, 9.11 or 9.9?"}],
     reasoning={"enabled": True},
     temperature=1.0,
@@ -293,7 +293,7 @@ type ReasoningDelta = ChatCompletionChunk.Choice.Delta & {
 };
 
 const stream = await together.chat.completions.create({
-  model: "moonshotai/Kimi-K2.5",
+  model: "moonshotai/Kimi-K2.6",
   messages: [{ role: "user", content: "Which is bigger, 9.11 or 9.9?" }],
   reasoning: { enabled: true },
   temperature: 1.0,
