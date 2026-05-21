@@ -58,6 +58,7 @@ type ScriptArgs = {
   modelBColumn?: string;
   modelBExternalApiToken?: string;
   modelBExternalBaseUrl?: string;
+  disablePositionBiasCorrection: boolean;
   pollInterval: number;
   downloadResults?: string;
 };
@@ -103,12 +104,21 @@ Flags:
   --model-b-column COLUMN
   --model-b-external-api-token TOKEN
   --model-b-external-base-url URL
+  --disable-position-bias-correction
   --poll-interval SECONDS
   --download-results PATH`);
 }
 
-function parseFlagMap(argv: string[]): Record<string, string> {
+const BOOLEAN_FLAGS = new Set(["disable-position-bias-correction"]);
+
+type ParsedFlags = {
+  values: Record<string, string>;
+  bools: Set<string>;
+};
+
+function parseFlagMap(argv: string[]): ParsedFlags {
   const values: Record<string, string> = {};
+  const bools = new Set<string>();
 
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
@@ -119,15 +129,20 @@ function parseFlagMap(argv: string[]): Record<string, string> {
     if (!arg.startsWith("--")) {
       throw new Error(`Unexpected argument: ${arg}`);
     }
+    const flagName = arg.slice(2);
+    if (BOOLEAN_FLAGS.has(flagName)) {
+      bools.add(flagName);
+      continue;
+    }
     const next = argv[i + 1];
     if (!next || next.startsWith("--")) {
       throw new Error(`Missing value for ${arg}`);
     }
-    values[arg.slice(2)] = next;
+    values[flagName] = next;
     i += 1;
   }
 
-  return values;
+  return { values, bools };
 }
 
 function parseEvalType(value: string | undefined): EvalType {
@@ -158,7 +173,7 @@ function parseNumber(value: string | undefined, fallback: number, flagName: stri
 }
 
 function parseScriptArgs(): ScriptArgs {
-  const flags = parseFlagMap(process.argv.slice(2));
+  const { values: flags, bools } = parseFlagMap(process.argv.slice(2));
   const type = parseEvalType(flags.type);
 
   const args: ScriptArgs = {
@@ -188,6 +203,7 @@ function parseScriptArgs(): ScriptArgs {
     modelBColumn: flags["model-b-column"],
     modelBExternalApiToken: flags["model-b-external-api-token"],
     modelBExternalBaseUrl: flags["model-b-external-base-url"],
+    disablePositionBiasCorrection: bools.has("disable-position-bias-correction"),
     pollInterval: parseNumber(flags["poll-interval"], 5, "--poll-interval"),
     downloadResults: flags["download-results"],
   };
@@ -197,6 +213,9 @@ function parseScriptArgs(): ScriptArgs {
   }
   if (args.type !== "compare" && (args.modelAColumn || args.modelBColumn)) {
     throw new Error("--model-a-column and --model-b-column only apply to --type compare");
+  }
+  if (args.type !== "compare" && args.disablePositionBiasCorrection) {
+    throw new Error("--disable-position-bias-correction only applies to --type compare");
   }
 
   return args;
@@ -484,14 +503,20 @@ async function runCompare(args: ScriptArgs, dataset: DatasetRow[]): Promise<void
     console.log(`Using dataset columns for comparisons: ${modelA} vs ${modelB}`);
   }
 
+  const parameters: Record<string, unknown> = {
+    input_data_file_path: fileId,
+    judge: buildJudgeConfig(args, DEFAULT_COMPARE_TEMPLATE),
+    model_a: modelA,
+    model_b: modelB,
+  };
+  if (args.disablePositionBiasCorrection) {
+    parameters.disable_position_bias_correction = true;
+    console.log("Position-bias correction disabled — running a single judge pass");
+  }
+
   const evaluation = await client.evals.create({
     type: "compare",
-    parameters: {
-      input_data_file_path: fileId,
-      judge: buildJudgeConfig(args, DEFAULT_COMPARE_TEMPLATE),
-      model_a: modelA,
-      model_b: modelB,
-    },
+    parameters: parameters as any,
   });
   console.log(`Created evaluation: ${evaluation.workflow_id}`);
 
