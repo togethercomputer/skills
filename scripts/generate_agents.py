@@ -149,27 +149,35 @@ def update_readme(skills: list[dict[str, str]]) -> str:
 
 
 def validate_marketplace(skills: list[dict[str, str]]) -> list[str]:
-    """Check that marketplace.json skill names match SKILL.md names."""
+    """Validate the .claude-plugin/marketplace.json structure.
+
+    Skills are auto-discovered from skills/*/SKILL.md and are not enumerated
+    in marketplace.json, so we only validate the top-level schema shape here:
+    a root object with `name`, `owner`, and a non-empty `plugins` array.
+    """
     errors: list[str] = []
     if not MARKETPLACE_PATH.exists():
         errors.append("Missing .claude-plugin/marketplace.json")
         return errors
 
     import json
-    data = json.loads(MARKETPLACE_PATH.read_text(encoding="utf-8"))
-    marketplace_names = set()
-    for plugin in data:
-        for s in plugin.get("skills", []):
-            marketplace_names.add(s["name"])
+    try:
+        data = json.loads(MARKETPLACE_PATH.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        errors.append(f"marketplace.json is not valid JSON: {e}")
+        return errors
 
-    skill_names = {s["name"] for s in skills}
-    missing = skill_names - marketplace_names
-    extra = marketplace_names - skill_names
+    if not isinstance(data, dict):
+        errors.append("marketplace.json root must be an object, not a list")
+        return errors
 
-    if missing:
-        errors.append(f"Skills in SKILL.md but not in marketplace.json: {missing}")
-    if extra:
-        errors.append(f"Skills in marketplace.json but not in SKILL.md: {extra}")
+    for key in ("name", "owner", "plugins"):
+        if key not in data:
+            errors.append(f"marketplace.json missing required key: {key}")
+
+    plugins = data.get("plugins")
+    if not isinstance(plugins, list) or not plugins:
+        errors.append("marketplace.json `plugins` must be a non-empty array")
 
     return errors
 
