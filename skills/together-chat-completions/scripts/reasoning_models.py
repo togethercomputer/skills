@@ -21,9 +21,9 @@ client = Together()
 
 def reasoning_field_streaming() -> None:
     """Most reasoning models return a separate `reasoning` field."""
-    print("=== Reasoning Field (Kimi K2.5 streaming) ===")
+    print("=== Reasoning Field (Kimi K2.6 streaming) ===")
     stream = client.chat.completions.create(
-        model="moonshotai/Kimi-K2.5",
+        model="moonshotai/Kimi-K2.6",
         messages=[
             {"role": "user", "content": "Which number is bigger, 9.11 or 9.9?"},
         ],
@@ -49,7 +49,7 @@ def reasoning_field_non_streaming() -> None:
     """Non-streaming access to reasoning field."""
     print("=== Reasoning Field (non-streaming) ===")
     response = client.chat.completions.create(
-        model="moonshotai/Kimi-K2.5",
+        model="moonshotai/Kimi-K2.6",
         messages=[{"role": "user", "content": "What is 15% of 240?"}],
     )
     print(f"Reasoning: {response.choices[0].message.reasoning[:200]}...")
@@ -106,12 +106,12 @@ def reasoning_effort_example() -> None:
 
 def toggle_reasoning() -> None:
     """Enable/disable reasoning on hybrid models."""
-    print("=== Toggle Reasoning (Kimi K2.5) ===")
+    print("=== Toggle Reasoning (Kimi K2.6) ===")
 
     # Reasoning enabled (thinking mode)
     print("  [reasoning=True]")
     stream = client.chat.completions.create(
-        model="moonshotai/Kimi-K2.5",
+        model="moonshotai/Kimi-K2.6",
         messages=[{"role": "user", "content": "What is the capital of France?"}],
         reasoning={"enabled": True},
         temperature=1.0,
@@ -134,7 +134,7 @@ def toggle_reasoning() -> None:
     # Reasoning disabled (instant mode)
     print("  [reasoning=False]")
     response = client.chat.completions.create(
-        model="moonshotai/Kimi-K2.5",
+        model="moonshotai/Kimi-K2.6",
         messages=[{"role": "user", "content": "What is the capital of France?"}],
         reasoning={"enabled": False},
         temperature=0.6,
