@@ -17,6 +17,7 @@
 | Organization | Model | API String | Context | Quant |
 |-------------|-------|-----------|---------|-------|
 | MiniMax | MiniMax M2.7 | `MiniMaxAI/MiniMax-M2.7` | 202,752 | FP4 |
+| Qwen | Qwen3.7 Max | `Qwen/Qwen3.7-Max` | - | - |
 | Qwen | Qwen3.5 397B A17B | `Qwen/Qwen3.5-397B-A17B` | 262,144 | BF16 |
 | Qwen | Qwen3.6 Plus | `Qwen/Qwen3.6-Plus` | 1,000,000 | - |
 | Qwen | Qwen3.5 9B | `Qwen/Qwen3.5-9B` | 262,144 | FP8 |
