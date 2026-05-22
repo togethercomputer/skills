@@ -5,7 +5,7 @@
 - [Installation](#installation)
 - [Core Pattern](#core-pattern)
 - [`sprocket.Sprocket` Base Class](#sprocketsprocket-base-class)
-- [`sprocket.run(sprocket, name, use_torchrun=False)`](#sprocketrun)
+- [`sprocket.run(sprocket, name=None, use_torchrun=False)`](#sprocketrun)
 - [`sprocket.FileOutput`](#sprocketfileoutput)
 - [`sprocket.emit_info(info: dict)`](#sprocketemitinfo)
 - [`sprocket.InputOutputProcessor`](#sprocketinputoutputprocessor)
@@ -49,7 +49,7 @@ class MyModel(sprocket.Sprocket):
         pass
 
 if __name__ == "__main__":
-    sprocket.run(MyModel(), "my-deployment")
+    sprocket.run(MyModel())
 ```
 
 ## `sprocket.Sprocket` Base Class
@@ -69,12 +69,12 @@ if __name__ == "__main__":
 | `processor` | `Type[InputOutputProcessor]` | `InputOutputProcessor` | Custom I/O processor |
 | `warmup_inputs` | `list[dict]` | `[]` | Inputs for cache warmup |
 
-## `sprocket.run(sprocket, name, use_torchrun=False)`
+## `sprocket.run(sprocket, name=None, use_torchrun=False)`
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `sprocket` | Sprocket | Your Sprocket instance |
-| `name` | str | Deployment name (used for queue routing) |
+| `name` | str \| None | Optional deployment/queue name. If omitted, Sprocket reads it from the `TOGETHER_DEPLOYMENT_NAME` environment variable that the platform injects at runtime. Pass explicitly only when you need to override the platform-provided name. |
 | `use_torchrun` | bool | Enable multi-GPU mode. Default: False |
 
 ## `sprocket.FileOutput`
@@ -87,7 +87,7 @@ def predict(self, args):
     return {"video": sprocket.FileOutput("output.mp4"), "duration": 10.5}
 ```
 
-The file is uploaded after `predict()` returns, and the path is replaced with a public URL in the final result.
+The file is uploaded after `predict()` returns, and the path is replaced with an access URL in the final result. The URL is not publicly readable -- clients must authenticate with their Together API key (e.g. `Authorization: Bearer $TOGETHER_API_KEY`) when fetching it.
 
 ## `sprocket.emit_info(info: dict)`
 
@@ -167,7 +167,7 @@ class MultiGPUModel(sprocket.Sprocket):
             return {"video": sprocket.FileOutput("result.mp4")}
         # Other ranks return None
 
-sprocket.run(MultiGPUModel(), "my-model", use_torchrun=True)
+sprocket.run(MultiGPUModel(), use_torchrun=True)
 ```
 
 Config for multi-GPU:
