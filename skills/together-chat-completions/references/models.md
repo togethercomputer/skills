@@ -6,10 +6,10 @@
 |----------|-------|-----------|-------------|
 | Chat (best) | Kimi K2.6 | `moonshotai/Kimi-K2.6` | `MiniMaxAI/MiniMax-M2.7`, `openai/gpt-oss-120b` |
 | Reasoning | DeepSeek-V4-Pro | `deepseek-ai/DeepSeek-V4-Pro` | `moonshotai/Kimi-K2.6`, `Qwen/Qwen3.6-Plus` |
-| Coding Agents | Qwen3-Coder 480B | `Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8` | `moonshotai/Kimi-K2.6`, `deepseek-ai/DeepSeek-V4-Pro` |
+| Coding Agents | GLM-5.1 | `zai-org/GLM-5.1` | `moonshotai/Kimi-K2.6`, `deepseek-ai/DeepSeek-V4-Pro`, `MiniMaxAI/MiniMax-M2.7` |
 | Small & Fast | GPT-OSS 20B | `openai/gpt-oss-20b` | `Qwen/Qwen2.5-7B-Instruct-Turbo`, `google/gemma-3n-E4B-it` |
 | Medium General | GPT-OSS 120B | `openai/gpt-oss-120b` | `zai-org/GLM-5` |
-| Function Calling | GLM-5.1 | `zai-org/GLM-5.1` | `moonshotai/Kimi-K2.6`, `Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8` |
+| Function Calling | GLM-5.1 | `zai-org/GLM-5.1` | `moonshotai/Kimi-K2.6`, `deepseek-ai/DeepSeek-V4-Pro` |
 | Vision | Qwen3.5 397B | `Qwen/Qwen3.5-397B-A17B` | `moonshotai/Kimi-K2.5`, `google/gemma-4-31B-it` |
 
 ## Full Chat Model Catalog
@@ -21,7 +21,6 @@
 | Qwen | Qwen3.5 397B A17B | `Qwen/Qwen3.5-397B-A17B` | 262,144 | BF16 |
 | Qwen | Qwen3.6 Plus | `Qwen/Qwen3.6-Plus` | 1,000,000 | - |
 | Qwen | Qwen3.5 9B | `Qwen/Qwen3.5-9B` | 262,144 | FP8 |
-| Qwen | Qwen3-Coder 480B | `Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8` | 256,000 | FP8 |
 | Qwen | Qwen3 235B Instruct | `Qwen/Qwen3-235B-A22B-Instruct-2507-tput` | 262,144 | FP8 |
 | Moonshot | Kimi K2.6 | `moonshotai/Kimi-K2.6` | 262,144 | FP4 |
 | Moonshot | Kimi K2.5 | `moonshotai/Kimi-K2.5` | 262,144 | FP4 |
