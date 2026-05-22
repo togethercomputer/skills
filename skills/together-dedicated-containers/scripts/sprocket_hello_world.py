@@ -82,4 +82,4 @@ class HelloModel(sprocket.Sprocket):
 
 
 if __name__ == "__main__":
-    sprocket.run(HelloModel(), "my-org/hello-model")
+    sprocket.run(HelloModel())
