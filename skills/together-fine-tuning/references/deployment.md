@@ -153,7 +153,24 @@ for event in events.data:
 checkpoints = client.fine_tuning.list_checkpoints(id=job_id)
 for cp in checkpoints:
     print(f"Step {cp.step}: {cp.metrics}")
+
+# List per-step training metrics (loss, learning rate, grad norm, eval/loss, ...)
+metrics = client.fine_tuning.list_metrics(job_id)
+for step in metrics.metrics:
+    print(step)
 ```
+
+`list_metrics` accepts optional filters for trimming long runs:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `global_step_from` | int | Return only metrics with `global_step` >= this value |
+| `global_step_to` | int | Return only metrics with `global_step` <= this value |
+| `logged_at_from` | str or datetime | Return only metrics logged at or after this ISO 8601 timestamp |
+| `logged_at_to` | str or datetime | Return only metrics logged at or before this ISO 8601 timestamp |
+| `resolution` | int | Cap the response at this many uniformly sampled training points (eval metrics are always returned in full) |
+
+Each entry is either a training step (`train/global_step`, `train/loss`, `train/learning_rate`, `train/grad_norm`, ...) or an eval step (`eval/loss`, ...). When both occur at the same step, two separate objects are returned.
 
 ### CLI
 
@@ -161,10 +178,14 @@ for cp in checkpoints:
 together fine-tuning retrieve <JOB_ID>
 together fine-tuning list-events <JOB_ID>
 together fine-tuning list-checkpoints <JOB_ID>
+together fine-tuning list-metrics <JOB_ID>            # ASCII charts (default)
+together fine-tuning list-metrics <JOB_ID> --json     # raw JSON output
 together fine-tuning list
 together fine-tuning cancel <JOB_ID>
 together fine-tuning delete <JOB_ID>
 ```
+
+`list-metrics` also accepts `--global-step-from`, `--global-step-to`, `--logged-at-from`, `--logged-at-to`, and `--resolution` for the same filtering behavior as the Python SDK.
 
 ### cURL
 
