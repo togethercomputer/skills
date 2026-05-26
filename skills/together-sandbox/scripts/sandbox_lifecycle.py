@@ -22,21 +22,49 @@ from together_sandbox import (
 )
 
 
+async def run_exec(
+    sandbox,
+    command: str,
+    args: list[str] | None = None,
+    cwd: str | None = None,
+    env: dict[str, str] | None = None,
+    poll_interval: float = 0.5,
+) -> tuple[int, str]:
+    """Execute a command and wait for completion. Returns (exit_code, output)."""
+    if args is None:
+        args = ["-c", command]
+        command = "bash"
+
+    exec_item = await sandbox.execs.create(
+        command, args, autorun=True, cwd=cwd, env=env,
+    )
+
+    while True:
+        exec_info = await sandbox.execs.get(exec_item.id)
+        if exec_info.status == "finished":
+            break
+        await asyncio.sleep(poll_interval)
+
+    outputs = await sandbox.execs.get_output(exec_item.id)
+    full_output = "".join(o.output for o in outputs)
+    return exec_info.exit_code, full_output
+
+
 async def main():
     async with TogetherSandbox() as sdk:
         # --- Step 1: Create a snapshot from a Docker image ---
         print("=== Creating snapshot from python:3.11-slim ===")
         t0 = time.time()
-        result = await sdk.snapshots.create(CreateImageSnapshotParams(
+        snap_result = await sdk.snapshots.create(CreateImageSnapshotParams(
             image="python:3.11-slim",
         ))
-        print(f"Snapshot created: {result.snapshot_id} ({time.time() - t0:.1f}s)")
+        print(f"Snapshot created: {snap_result.snapshot_id} ({time.time() - t0:.1f}s)")
 
         # --- Step 2: Create and start a sandbox ---
         print("\n=== Creating and starting sandbox ===")
         t0 = time.time()
         model = await sdk.sandboxes.create(
-            snapshot_id=result.snapshot_id,
+            snapshot_id=snap_result.snapshot_id,
             millicpu=2000,
             memory_bytes=4 * 1024**3,
             disk_bytes=10 * 1024**3,
@@ -47,20 +75,19 @@ async def main():
 
         # --- Step 3: Configure DNS (required for network access) ---
         print("\n=== Configuring DNS ===")
-        await sandbox.execs.exec("bash", ["-c",
+        await run_exec(sandbox,
             'echo "nameserver 1.1.1.1" > /etc/resolv.conf && '
-            'echo "nameserver 8.8.8.8" >> /etc/resolv.conf'
-        ])
+            'echo "nameserver 8.8.8.8" >> /etc/resolv.conf')
         print("DNS configured")
 
         # --- Step 4: Execute commands ---
         print("\n=== Executing commands ===")
-        result = await sandbox.execs.exec("bash", ["-c", "python3 --version"])
-        print(f"Python version: {result['output'].strip()}")
+        exit_code, output = await run_exec(sandbox, "python3 --version")
+        print(f"Python version: {output.strip()}")
 
-        result = await sandbox.execs.exec("bash", ["-c", "echo hello from sandbox"])
-        print(f"Output: {result['output'].strip()}")
-        print(f"Exit code: {result['exit_code']}")
+        exit_code, output = await run_exec(sandbox, "echo hello from sandbox")
+        print(f"Output: {output.strip()}")
+        print(f"Exit code: {exit_code}")
 
         # --- Step 5: File operations ---
         print("\n=== File operations ===")
@@ -81,8 +108,8 @@ print(f"Sum 1-100: {total}")
         print(f"Read back: {len(content)} chars")
 
         # Execute it
-        result = await sandbox.execs.exec("python3", ["/tmp/info.py"])
-        print(f"Script output:\n{result['output']}")
+        exit_code, output = await run_exec(sandbox, "python3 /tmp/info.py")
+        print(f"Script output:\n{output}")
 
         # List directory
         files = await sandbox.directories.list("/tmp")
@@ -94,7 +121,7 @@ print(f"Sum 1-100: {total}")
         print("Sandbox shut down")
 
         # --- Step 7: Clean up snapshot ---
-        await sdk.snapshots.delete_by_id(result.snapshot_id)
+        await sdk.snapshots.delete_by_id(snap_result.snapshot_id)
         print("Snapshot deleted")
 
 

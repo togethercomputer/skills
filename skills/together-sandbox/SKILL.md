@@ -51,7 +51,7 @@ Typical fits:
 3. Create a sandbox from the snapshot using `sdk.sandboxes.create()` with CPU, memory, and disk specs.
 4. Start the sandbox using `sdk.sandboxes.start()`, which returns a connected `Sandbox` object.
 5. Configure DNS inside the sandbox as the first exec (sandboxes have no DNS by default).
-6. Execute commands with `sandbox.execs.exec()` and read/write files with `sandbox.files`.
+6. Execute commands with `sandbox.execs.create()` and poll results with `sandbox.execs.get_output()`. Read/write files with `sandbox.files`.
 7. For RL: collect reward files from the sandbox filesystem after test execution.
 8. Shut down with `sandbox.shutdown()` or hibernate with `sandbox.hibernate()` to capture state.
 
@@ -61,7 +61,8 @@ Typical fits:
 - The SDK is not yet on PyPI. Install from GitHub: `pip install "together-sandbox @ git+https://github.com/togethercomputer/together-sandbox.git#subdirectory=together-sandbox-python"`.
 - Sandboxes have no DNS by default. Run `echo "nameserver 1.1.1.1" > /etc/resolv.conf` as your first exec or all network calls will fail.
 - Tools installed via pip land in `/root/.local/bin`, which is not on PATH. Run `export PATH="/root/.local/bin:$PATH"` before using them.
-- Exec commands use `sandbox.execs.exec("bash", ["-c", "your command"])`. The first argument is the binary, the second is the args list.
+- Command execution is two-step: `exec_item = await sandbox.execs.create("bash", ["-c", "cmd"], autorun=True)` then poll `await sandbox.execs.get_output(exec_item.id)` for results. There is no single-call `exec()` method.
+- `get_output()` returns `list[ExecStdout]`. Each item has `.output` (str) and `.exit_code` (int or Unset). Poll until an item has `exit_code` set to know the command finished.
 - `sdk.sandboxes.create()` returns a `SandboxModel` (metadata). `sdk.sandboxes.start()` returns a connected `Sandbox` with exec and file access. These are two separate steps.
 - The SDK handles authentication automatically. Set `TOGETHER_API_KEY` and the two-auth system (management API + in-sandbox Pint API) is abstracted away.
 - Ephemeral sandboxes (`ephemeral=True`) auto-delete on stop and cannot hibernate. Use for disposable training runs.

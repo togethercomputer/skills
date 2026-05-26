@@ -25,6 +25,34 @@ from together_sandbox import (
 BATCH_SIZE = 4  # Number of parallel sandboxes (set low for demo; production uses 32-256)
 
 
+async def run_exec(
+    sandbox,
+    command: str,
+    args: list[str] | None = None,
+    cwd: str | None = None,
+    env: dict[str, str] | None = None,
+    poll_interval: float = 0.5,
+) -> tuple[int, str]:
+    """Execute a command and wait for completion. Returns (exit_code, output)."""
+    if args is None:
+        args = ["-c", command]
+        command = "bash"
+
+    exec_item = await sandbox.execs.create(
+        command, args, autorun=True, cwd=cwd, env=env,
+    )
+
+    while True:
+        exec_info = await sandbox.execs.get(exec_item.id)
+        if exec_info.status == "finished":
+            break
+        await asyncio.sleep(poll_interval)
+
+    outputs = await sandbox.execs.get_output(exec_item.id)
+    full_output = "".join(o.output for o in outputs)
+    return exec_info.exit_code, full_output
+
+
 async def main():
     async with TogetherSandbox() as sdk:
         # --- Step 1: Create a shared snapshot ---
@@ -71,19 +99,16 @@ async def main():
         # --- Step 4: Execute in all sandboxes concurrently ---
         print(f"\n=== Executing in all {BATCH_SIZE} sandboxes ===")
 
-        async def execute_task(sandbox: object, index: int) -> dict:
-            # Simulate a reward computation
-            result = await sandbox.execs.exec("python3", ["-c", f"""
-import random
-random.seed({index})
-reward = random.uniform(0.0, 1.0)
-print(f"Sandbox {index}: reward = {{reward:.4f}}")
-"""])
+        async def execute_task(sandbox, index: int) -> dict:
+            exit_code, output = await run_exec(sandbox,
+                f"python3 -c 'import random; random.seed({index}); "
+                f"reward = random.uniform(0.0, 1.0); "
+                f"print(f\"Sandbox {index}: reward = {{reward:.4f}}\")'")
             return {
                 "sandbox_id": sandbox.id,
                 "index": index,
-                "output": result["output"].strip(),
-                "exit_code": result["exit_code"],
+                "output": output.strip(),
+                "exit_code": exit_code,
             }
 
         exec_results = await asyncio.gather(*[
