@@ -1,0 +1,26 @@
+[
+  {
+    "query": "Create isolated sandbox environments from a Docker image and run multi-turn bash commands for an RL training loop on Together AI.",
+    "should_trigger": true
+  },
+  {
+    "query": "I need to fan out 32 parallel sandboxes for GRPO reward computation using the together-sandbox SDK.",
+    "should_trigger": true
+  },
+  {
+    "query": "Set up a golden image snapshot with dependencies installed, then create ephemeral sandboxes from it for coding agent rollouts.",
+    "should_trigger": true
+  },
+  {
+    "query": "Run Python remotely on Together AI with session reuse and generate a matplotlib chart.",
+    "should_trigger": false
+  },
+  {
+    "query": "Fine-tune a Llama model on my custom dataset with LoRA on Together AI.",
+    "should_trigger": false
+  },
+  {
+    "query": "Provision a multi-node H100 cluster on Together AI and run a distributed training job.",
+    "should_trigger": false
+  }
+]

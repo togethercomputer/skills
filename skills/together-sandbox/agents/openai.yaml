@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together Sandbox"
+  short_description: "Together AI isolated container execution for RL and coding agents"
+  default_prompt: "Use $together-sandbox to create isolated gVisor sandboxes from Docker images, execute multi-turn bash commands, and manage files for RL training, agent rollouts, and code evaluation on Together AI."
