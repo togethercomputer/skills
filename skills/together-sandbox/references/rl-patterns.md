@@ -3,7 +3,6 @@
 ## Contents
 
 - [Overview](#overview)
-- [Helper: run_exec](#helper-run_exec)
 - [The GRPO Training Loop](#the-grpo-training-loop)
 - [Pattern 1: Golden Image Setup](#pattern-1-golden-image-setup)
 - [Pattern 2: Batch Sandbox Fan-out](#pattern-2-batch-sandbox-fan-out)
@@ -17,41 +16,6 @@
 Together Sandbox is the execution layer for RL training loops that interleave model inference with sandbox-based code execution. The primary workload is GRPO (Group Relative Policy Optimization), where each training step creates a batch of sandboxes, runs coding agent rollouts, computes rewards via test suites, and feeds trajectories back to the training service.
 
 The customer orchestrates the RL loop. Together controls the capacity behind the APIs.
-
-## Helper: run_exec
-
-The SDK's exec API is two-step (create + poll). This helper wraps both into a single call. All patterns below use it.
-
-```python
-import asyncio
-
-async def run_exec(
-    sandbox,
-    command: str,
-    args: list[str] | None = None,
-    cwd: str | None = None,
-    env: dict[str, str] | None = None,
-    poll_interval: float = 0.5,
-) -> tuple[int, str]:
-    """Execute a command and wait for completion. Returns (exit_code, output)."""
-    if args is None:
-        args = ["-c", command]
-        command = "bash"
-
-    exec_item = await sandbox.execs.create(
-        command, args, autorun=True, cwd=cwd, env=env,
-    )
-
-    while True:
-        exec_info = await sandbox.execs.get(exec_item.id)
-        if exec_info.status == "finished":
-            break
-        await asyncio.sleep(poll_interval)
-
-    outputs = await sandbox.execs.get_output(exec_item.id)
-    full_output = "".join(o.output for o in outputs)
-    return exec_info.exit_code, full_output
-```
 
 ## The GRPO Training Loop
 
@@ -109,12 +73,16 @@ async def setup_golden_image():
         sandbox = await sdk.sandboxes.start(model.id)
 
         # Configure DNS (required for pip install)
-        await run_exec(sandbox, 'echo "nameserver 1.1.1.1" > /etc/resolv.conf && '
-                                'echo "nameserver 8.8.8.8" >> /etc/resolv.conf')
+        await sandbox.execs.exec("bash", ["-c",
+            'echo "nameserver 1.1.1.1" > /etc/resolv.conf && '
+            'echo "nameserver 8.8.8.8" >> /etc/resolv.conf'
+        ])
 
         # Install dependencies
-        exit_code, output = await run_exec(sandbox, 'pip install numpy pytest torch transformers')
-        print(f"pip install: exit {exit_code}")
+        result = await sandbox.execs.exec("bash", ["-c",
+            'pip install numpy pytest torch transformers'
+        ])
+        print(f"pip install: exit {result['exit_code']}")
 
         # Upload reward function
         await sandbox.files.create("/app/reward_fn.py", """
@@ -126,7 +94,7 @@ def compute_reward(test_file: str) -> float:
 """)
 
         # Hibernate to capture state as new snapshot
-        await sandbox.hibernate()
+        await sdk.sandboxes.hibernate(sandbox.id)
         print("Golden image created via hibernate.")
 
 asyncio.run(setup_golden_image())
@@ -188,9 +156,10 @@ async def execute_rollout(sandbox, task_prompt: str) -> list[dict]:
     trajectory = []
 
     # Configure environment
-    await run_exec(sandbox,
+    await sandbox.execs.exec("bash", ["-c",
         'echo "nameserver 1.1.1.1" > /etc/resolv.conf && '
-        'echo "nameserver 8.8.8.8" >> /etc/resolv.conf')
+        'echo "nameserver 8.8.8.8" >> /etc/resolv.conf'
+    ])
 
     for turn in range(10):  # max 10 turns
         # In a real RL loop, the command comes from the inference API
@@ -199,12 +168,12 @@ async def execute_rollout(sandbox, task_prompt: str) -> list[dict]:
         if command is None:
             break  # Agent decided to stop
 
-        exit_code, output = await run_exec(sandbox, command)
+        result = await sandbox.execs.exec("bash", ["-c", command])
         observation = {
             "turn": turn,
             "command": command,
-            "stdout": output,
-            "exit_code": exit_code,
+            "stdout": result["output"],
+            "exit_code": result["exit_code"],
         }
         trajectory.append(observation)
 
@@ -232,6 +201,7 @@ Collect rewards from all sandboxes in a GRPO group. All rewards must be present 
 
 ```python
 async def collect_group_rewards(
+    sdk,
     sandboxes: list,
     test_command: str = "python3 -m pytest /tmp/tests/ -q",
     reward_path: str = "/tmp/reward.txt",
@@ -241,10 +211,10 @@ async def collect_group_rewards(
     async def collect_one(sandbox) -> float | None:
         try:
             # Run test suite
-            exit_code, output = await run_exec(sandbox, test_command)
+            result = await sandbox.execs.exec("bash", ["-c", test_command])
 
             # Write reward based on test result
-            reward = 1.0 if exit_code == 0 else 0.0
+            reward = 1.0 if result["exit_code"] == 0 else 0.0
             await sandbox.files.create(reward_path, str(reward))
 
             # Read it back (validates file API round-trip)
