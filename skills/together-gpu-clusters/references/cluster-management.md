@@ -4,6 +4,7 @@
 - [Cluster Architecture](#cluster-architecture)
 - [Access Methods](#access-methods)
 - [Slurm Configuration](#slurm-configuration)
+  - [Startup Scripts (Slinky v1.0 only)](#startup-scripts-slinky-v10-only)
 - [GPU Access in Containers](#gpu-access-in-containers)
 - [Scaling](#scaling)
 - [Storage](#storage)
@@ -114,6 +115,42 @@ ConstrainRAMSpace=yes
 
 Changes require restarting the Slurm controller via `kubectl rollout restart` and verifying
 with `scontrol` and `sinfo`.
+
+### Startup Scripts (Slinky v1.0 only)
+
+Lifecycle scripts that run automatically at node startup, job start, and job completion.
+Configure under cluster **Specs and configuration -> Slurm configuration -> Edit**. Every
+script must start with a shebang (`#!/bin/bash`); saving triggers a live Slurm reconfigure,
+so test on a non-critical cluster first.
+
+| Script | Runs on | When |
+|--------|---------|------|
+| Worker init | Each worker | Node boot, before jobs |
+| Login init | Login node | Login-node startup |
+| Worker prolog | Each worker | Before job (first job step by default; see `PrologFlags=Alloc`) |
+| Worker epilog | Each worker | After job ends |
+| Controller prolog | `slurmctld` | At job allocation |
+| Controller epilog | `slurmctld` | At job completion |
+| Extra slurm.conf | All nodes | Appended verbatim to `slurm.conf` |
+
+**Failure modes:**
+
+- Worker prolog or epilog non-zero exit -> node set to `DRAIN`. A worker prolog failure additionally requeues batch jobs and cancels interactive jobs (`salloc`, `srun`).
+- Controller prolog non-zero exit -> batch job requeued, interactive job cancelled; node not affected.
+- Controller epilog non-zero exit -> logged, no other effect.
+
+Resume a drained node:
+
+```shell
+sudo scontrol update NodeName=<node_name> State=resume Reason="script fixed"
+```
+
+**Rules:**
+
+- Do not call Slurm commands (`squeue`, `scontrol`, `sacctmgr`) inside a prolog or epilog; this can deadlock the scheduler.
+- By default the worker prolog runs at first job step, not at allocation. Add `PrologFlags=Alloc` to **Extra slurm.conf** to run at allocation.
+- After edits, existing workers may keep cached scripts via Slurm's configless mechanism. New jobs on those workers continue using the old scripts until the worker restarts.
+- Use `set -e` in init scripts so failures surface immediately; use `SLURM_JOB_ID` and `SLURM_JOB_USER` in prolog/epilog to scope cleanup to the running job.
 
 ## GPU Access in Containers
 
