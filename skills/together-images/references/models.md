@@ -25,7 +25,6 @@
 | Black Forest Labs | FLUX.1.1 [pro] | `black-forest-labs/FLUX.1.1-pro` | - |
 | Black Forest Labs | FLUX.1 Kontext [pro] | `black-forest-labs/FLUX.1-kontext-pro` | 28 |
 | Black Forest Labs | FLUX.1 Kontext [max] | `black-forest-labs/FLUX.1-kontext-max` | 28 |
-| Black Forest Labs | FLUX.1 Krea [dev] | `black-forest-labs/FLUX.1-krea-dev` | 28 |
 | ByteDance | Seedream 4.0 | `ByteDance-Seed/Seedream-4.0` | - |
 | ByteDance | Seedream 3.0 | `ByteDance-Seed/Seedream-3.0` | - |
 | Qwen | Qwen Image | `Qwen/Qwen-Image` | - |
