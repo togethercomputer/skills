@@ -49,6 +49,8 @@ clearly offline batch processing, vector retrieval, model training, or infrastru
 - **Tool calling or function calling**
   - Read [references/function-calling-patterns.md](references/function-calling-patterns.md)
   - Start from [scripts/tool_call_loop.py](scripts/tool_call_loop.py) or [scripts/tool_call_loop.ts](scripts/tool_call_loop.ts)
+- **Designing tools, schemas, or tool_choice for reliability**
+  - Read the "Best Practices" section in [references/function-calling-patterns.md](references/function-calling-patterns.md)
 - **Structured outputs**
   - Read [references/structured-outputs.md](references/structured-outputs.md)
   - Start from [scripts/structured_outputs.py](scripts/structured_outputs.py) or [scripts/structured_outputs.ts](scripts/structured_outputs.ts)
@@ -77,6 +79,8 @@ clearly offline batch processing, vector retrieval, model training, or infrastru
 - Use `client.chat.completions.create()` for Python and `client.chat.completions.create()` for TypeScript.
 - Preserve full `messages` history for multi-turn conversations; do not rebuild context from final text only.
 - For tools, implement the full loop: model tool call -> execute tool -> append tool result -> second model call.
+- For tool definitions, prefer `enum` over free-form strings, set `"additionalProperties": false`, and add `"strict": true` on the function definition when you need argument generation to conform to the schema.
+- Tool names must not contain spaces, periods, or dashes. Branch on `finish_reason` (`"tool_calls"` vs `"stop"`) instead of assuming a tool was called, and parse `function.arguments` as JSON inside a try/except.
 - Prefer `json_schema` over looser JSON modes when the user needs stable machine-readable output.
 - Use reasoning models only when the task benefits from deeper deliberation; otherwise prefer cheaper standard models.
 - To combine tool calling with structured output, use a two-phase approach: Phase 1 sends `tools` (no `response_format`), Phase 2 sends `response_format` (no `tools`) after tool results are appended.
