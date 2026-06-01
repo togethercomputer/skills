@@ -22,6 +22,7 @@
 | Qwen | Qwen3.6 Plus | `Qwen/Qwen3.6-Plus` | 1,000,000 | - |
 | Qwen | Qwen3.5 9B | `Qwen/Qwen3.5-9B` | 262,144 | FP8 |
 | Qwen | Qwen3 235B Instruct | `Qwen/Qwen3-235B-A22B-Instruct-2507-tput` | 262,144 | FP8 |
+| Qwen | Qwen3 Coder 480B A35B Instruct | `Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8` | 262,144 | FP8 |
 | Moonshot | Kimi K2.6 | `moonshotai/Kimi-K2.6` | 262,144 | FP4 |
 | DeepSeek | DeepSeek-V4-Pro | `deepseek-ai/DeepSeek-V4-Pro` | 512,000 | FP4 |
 | OpenAI | GPT-OSS 120B | `openai/gpt-oss-120b` | 128,000 | MXFP4 |
