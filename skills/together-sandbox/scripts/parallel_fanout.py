@@ -10,8 +10,11 @@ Usage:
     python parallel_fanout.py
 
 Requires:
-    pip install "together-sandbox @ git+https://github.com/togethercomputer/together-sandbox.git#subdirectory=together-sandbox-python"
+    pip install together-sandbox
     export TOGETHER_API_KEY=your_key
+
+Full SDK reference:
+    https://github.com/togethercomputer/together-sandbox/blob/main/docs/python-sdk.md
 """
 
 import asyncio
