@@ -19,11 +19,11 @@ const client = new Together({
 });
 
 async function basicGeneration(): Promise<void> {
-  console.log("=== Basic Generation (FLUX.1 Schnell) ===");
+  console.log("=== Basic Generation (FLUX.2 Dev) ===");
   const response = await client.images.generate({
-    model: "black-forest-labs/FLUX.1-schnell",
+    model: "black-forest-labs/FLUX.2-dev",
     prompt: "A serene mountain landscape at sunset with a lake reflection",
-    steps: 4,
+    steps: 20,
   });
   console.log(`  Image URL: ${response.data[0].url}`);
 }
@@ -57,10 +57,10 @@ async function kontextEditing(): Promise<void> {
 async function multipleVariations(): Promise<void> {
   console.log("\n=== Multiple Variations ===");
   const response = await client.images.generate({
-    model: "black-forest-labs/FLUX.1-schnell",
+    model: "black-forest-labs/FLUX.2-dev",
     prompt: "A cute robot assistant helping in a modern office",
     n: 4,
-    steps: 4,
+    steps: 20,
   });
   for (let i = 0; i < response.data.length; i++) {
     console.log(`  Variation ${i + 1}: ${response.data[i].url}`);
@@ -70,8 +70,9 @@ async function multipleVariations(): Promise<void> {
 async function base64Response(): Promise<void> {
   console.log("\n=== Base64 Response ===");
   const response = await client.images.generate({
-    model: "black-forest-labs/FLUX.1-schnell",
+    model: "black-forest-labs/FLUX.2-dev",
     prompt: "A cat in outer space",
+    steps: 20,
     response_format: "base64",
   });
   const data = response.data[0].b64_json ?? "";
