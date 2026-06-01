@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together RL"
+  short_description: "GRPO reinforcement-learning post-training with sandboxed rewards"
+  default_prompt: "Use $together-rl to run a GRPO training loop on Together AI with rewards computed by executing code in a sandbox."
