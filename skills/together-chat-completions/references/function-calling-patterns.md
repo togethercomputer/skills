@@ -5,6 +5,7 @@
 - [Combining Tool Calls with Structured Output](#combining-tool-calls-with-structured-output)
 - [Processing Tool Calls](#processing-tool-calls)
 - [tool_choice Parameter](#toolchoice-parameter)
+- [Best Practices](#best-practices)
 - [Supported Models](#supported-models)
 
 
@@ -702,6 +703,119 @@ const final = await together.chat.completions.create({
 | `"required"` | Model must call at least one function |
 | `"none"` | Never call functions |
 | `{"type": "function", "function": {"name": "fn"}}` | Force specific function |
+
+## Best Practices
+
+The quality of tool definitions, system prompt, and selection controls determines how reliably the
+model calls functions. Apply these rules when building or debugging a tool-calling app.
+
+### Write tight function descriptions
+
+The description is the only context the model has for deciding when to call a tool and how to fill
+its arguments. Treat it as a short spec:
+
+- State what the tool does and when to use it (and when not to).
+- Describe each parameter's meaning, expected format, and effect on the result.
+- Note caveats: what the tool does not return, edge cases.
+- Describe what the output represents.
+
+Aim for three to four sentences per tool. If a new engineer could correctly call the function from
+the schema alone, the model can too. Fold concrete examples into the description prose or the
+system prompt — the OpenAI-compatible tool schema (`type`, `function.name`,
+`function.description`, `function.parameters`) has no separate examples field.
+
+### Make invalid states unrepresentable
+
+Constrain what the model can produce via JSON Schema rather than validating after the fact:
+
+- Give every parameter a type. Use `enum` whenever the valid values are a fixed set.
+- List the parameters the model must supply in `required`. Leave optional ones out.
+- Replace contradictory flag pairs (e.g. `on: bool, off: bool`) with a single `enum` field
+  (`state: ["on", "off"]`).
+- Set `"additionalProperties": false` on the parameters object so the model cannot add unknown
+  fields.
+- For stricter conformance, add `"strict": true` to the function definition. Together's API accepts
+  it and constrains generated arguments to match your schema:
+
+```python
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_current_weather",
+            "description": "Get the current temperature for a location.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {"type": "string", "description": "City and state, e.g. San Francisco, CA"},
+                    "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
+                },
+                "required": ["location"],
+                "additionalProperties": False,
+            },
+            "strict": True,
+        },
+    }
+]
+```
+
+### Keep the active tool set small
+
+More tools means more chances to pick the wrong one. Aim for fewer than 20 active tools in `tools`
+per request, and evaluate as the set grows.
+
+- Consolidate related operations: prefer one `manage_ticket` with an `action` enum over separate
+  `create_ticket` / `update_ticket` / `close_ticket` tools.
+- Namespace tool names across services: `github_list_prs`, `slack_send_message`.
+- Scope tools per turn: pass only the subset relevant to the current conversation, not the whole
+  catalog.
+- Tool names must not contain spaces, periods, or dashes (e.g. `get_current_weather`, not
+  `get current weather` or `get-current-weather`).
+
+### Offload work from the model to your code
+
+Don't ask the model to produce information the application already has:
+
+- Drop arguments you already know. If `order_id` is held in app state, expose `submit_refund()`
+  with no arguments and inject the id in your code when executing the call.
+- Combine always-sequential calls into one tool. One round trip is more reliable than two.
+
+### Guide the model with the system prompt
+
+- Give the model a role: `You are a travel planning assistant with access to weather and
+  restaurant tools.`
+- State when to use each tool, and when not to.
+- Forbid guessing: `Do not guess values. If a required detail is missing, ask the user for it
+  before calling a tool.`
+- Encourage clarification when the request is ambiguous.
+
+### Handle responses and errors robustly
+
+Tool calls come back in `message.tool_calls`, not `message.content` (which is often `null` on a
+tool-calling turn). Build the loop defensively:
+
+- Check `finish_reason`: `"tool_calls"` means run a tool; `"stop"` means a normal text reply.
+  Branch on it instead of assuming a tool was called.
+- Parse `function.arguments` as JSON inside a try/except — handle malformed or incomplete JSON.
+- On tool failure, return a clear error payload in the `tool` message content (for example
+  `{"error": "No stock found for symbol XYZ"}`) so the model can recover, rather than throwing.
+- Validate high-consequence calls (orders, refunds, deletes) with the user before executing.
+- Validate and sanitize arguments before acting on them; keep secrets out of tool arguments.
+
+### Tune for reliable calls
+
+- Lower the temperature (e.g. `0`) to make tool selection and argument generation more
+  deterministic. Raise it only when more varied behavior is needed.
+- Stream when latency matters: tool calls stream incrementally through `delta.tool_calls`.
+- Watch the token budget: tool descriptions and schemas count toward input tokens. Tighten or
+  split the tool set if you approach the limit.
+
+### When to fine-tune
+
+Strong descriptions and a focused tool set cover most cases. For higher accuracy across a large
+tool catalog or a difficult domain-specific task, fine-tune a model on your own tool-calling data.
+See the `together-fine-tuning` skill for the function-calling dataset format and training
+workflow.
 
 ## Supported Models
 
