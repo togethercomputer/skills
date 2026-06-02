@@ -51,10 +51,10 @@ client = Together()
 
 response = client.images.generate(
     prompt="A sunset over mountains",
-    model="black-forest-labs/FLUX.1-schnell",
+    model="black-forest-labs/FLUX.2-dev",
     width=1024,
     height=1024,
-    steps=4,
+    steps=20,
     n=1,
 )
 print(response.data[0].url)
@@ -66,10 +66,10 @@ const together = new Together();
 
 const response = await together.images.generate({
   prompt: "A sunset over mountains",
-  model: "black-forest-labs/FLUX.1-schnell",
+  model: "black-forest-labs/FLUX.2-dev",
   width: 1024,
   height: 1024,
-  steps: 4,
+  steps: 20,
   n: 1,
 });
 console.log(response.data[0].url);
@@ -81,10 +81,10 @@ curl -X POST "https://api.together.xyz/v1/images/generations" \
   -H "Content-Type: application/json" \
   -d '{
     "prompt": "A sunset over mountains",
-    "model": "black-forest-labs/FLUX.1-schnell",
+    "model": "black-forest-labs/FLUX.2-dev",
     "width": 1024,
     "height": 1024,
-    "steps": 4,
+    "steps": 20,
     "n": 1
   }'
 ```
@@ -96,10 +96,10 @@ Use `n` to request multiple candidate images from the same prompt in one call:
 ```python
 response = client.images.generate(
     prompt="A cozy reading nook with warm afternoon light",
-    model="black-forest-labs/FLUX.1-schnell",
+    model="black-forest-labs/FLUX.2-dev",
     width=1024,
     height=1024,
-    steps=4,
+    steps=20,
     n=4,
 )
 
@@ -110,10 +110,10 @@ for image in response.data:
 ```typescript
 const response = await together.images.generate({
   prompt: "A cozy reading nook with warm afternoon light",
-  model: "black-forest-labs/FLUX.1-schnell",
+  model: "black-forest-labs/FLUX.2-dev",
   width: 1024,
   height: 1024,
-  steps: 4,
+  steps: 20,
   n: 4,
 });
 
@@ -295,7 +295,7 @@ curl -X POST "https://api.together.xyz/v1/images/generations" \
 ```json
 {
   "id": "img-abc123",
-  "model": "black-forest-labs/FLUX.1-schnell",
+  "model": "black-forest-labs/FLUX.2-dev",
   "object": "list",
   "data": [
     {
@@ -312,7 +312,7 @@ With `response_format="base64"`:
 ```json
 {
   "id": "img-abc123",
-  "model": "black-forest-labs/FLUX.1-schnell",
+  "model": "black-forest-labs/FLUX.2-dev",
   "object": "list",
   "data": [
     {

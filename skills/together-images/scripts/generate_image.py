@@ -21,10 +21,10 @@ client = Together()
 
 def generate_image_url(
     prompt: str,
-    model: str = "black-forest-labs/FLUX.1-schnell",
+    model: str = "black-forest-labs/FLUX.2-dev",
     width: int = 1024,
     height: int = 1024,
-    steps: int = 4,
+    steps: int = 20,
     n: int = 1,
     seed: int | None = None,
 ) -> list[str]:
@@ -50,10 +50,10 @@ def generate_image_url(
 def generate_and_save(
     prompt: str,
     output_path: str = "output.png",
-    model: str = "black-forest-labs/FLUX.1-schnell",
+    model: str = "black-forest-labs/FLUX.2-dev",
     width: int = 1024,
     height: int = 1024,
-    steps: int = 4,
+    steps: int = 20,
 ) -> str:
     """Generate an image and save it locally via base64."""
     response = client.images.generate(
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     print("=== Basic Generation ===")
     generate_image_url(
         prompt="A serene mountain landscape at sunset, digital art",
-        steps=4,
+        steps=20,
     )
 
     # --- Example 2: Save locally ---
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     generate_and_save(
         prompt="A futuristic city skyline with flying cars",
         output_path="city.png",
-        steps=4,
+        steps=20,
     )
 
     # --- Example 3: Multiple variations ---
@@ -122,7 +122,7 @@ if __name__ == "__main__":
     generate_image_url(
         prompt="A cute robot reading a book",
         n=3,
-        steps=4,
+        steps=20,
     )
 
     # --- Example 4: Reproducible with seed ---
@@ -130,7 +130,7 @@ if __name__ == "__main__":
     generate_image_url(
         prompt="Abstract geometric pattern in blue and gold",
         seed=42,
-        steps=4,
+        steps=20,
     )
 
     # --- Example 5: FLUX.2 with prompt upsampling ---
