@@ -20,7 +20,6 @@ These models are current in the latest speech-to-text guide and are not listed i
 | Model | API String | Access | Capabilities |
 |-------|-----------|--------|--------------|
 | Whisper Large v3 | `openai/whisper-large-v3` | Serverless | Realtime, translation, diarization |
-| Voxtral Mini 3B | `mistralai/Voxtral-Mini-3B-2507` | Serverless | Transcription |
 | Deepgram Flux | `deepgram/deepgram-flux` | Dedicated / Reserved | Realtime |
 | Deepgram Nova 3 | `deepgram/deepgram-nova-3` | Dedicated / Reserved | Transcription |
 | Deepgram Nova 3 Multilingual | `deepgram/deepgram-nova-3-multilingual` | Dedicated / Reserved | Transcription |
@@ -29,7 +28,7 @@ These models are current in the latest speech-to-text guide and are not listed i
 Notes:
 - The `/audio/transcriptions` and `/audio/translations` reference schemas currently enumerate
   `openai/whisper-large-v3` in the request body.
-- The broader guide model catalog also includes Voxtral, Parakeet, and dedicated-endpoint Deepgram models.
+- The broader guide model catalog also includes Parakeet and dedicated-endpoint Deepgram models.
 
 ## Supported Input Formats
 
