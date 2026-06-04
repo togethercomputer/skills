@@ -110,6 +110,17 @@
 
 Note: Long-context fine-tuning of Llama 3.1 models (32K-131K) is only supported using LoRA.
 
+### Max LoRA rank caps
+
+The `lora_r` parameter defaults to 64 but is capped per model. Setting `lora_r` above the cap returns an error.
+
+| Cap | Models |
+|-----|--------|
+| 16 | Moonshot Kimi K2 family (`Kimi-K2.5`, `Kimi-K2-Thinking`, `Kimi-K2-Instruct-0905`, `Kimi-K2-Instruct`, `Kimi-K2-Base`) |
+| 16 | Z.ai GLM-5, GLM-5.1 |
+| 16 | DeepSeek R1 / R1-0528 / V3 / V3.1 / V3-0324 (and `-Base` variants); R1-Distill variants stay at 64 |
+| 64 | All other LoRA-supported models (default) |
+
 ## Full Fine-tuning
 
 Same models as LoRA, but batch sizes are generally smaller. Key full-fine-tuning-only models:

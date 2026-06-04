@@ -101,7 +101,7 @@ Options:
 | `learning_rate` | float | ~1e-5 | Learning rate |
 | `warmup_ratio` | float | 0 | Warmup step ratio |
 | `lora` | bool | true | Use LoRA method |
-| `lora_r` | int | 64 | LoRA rank |
+| `lora_r` | int | 64 | LoRA rank. Per-model max -- 64 for most models; 16 for Moonshot Kimi-K2 family, Z.ai GLM-5/5.1, and DeepSeek R1/V3 (non-distill) families. See [supported-models.md](supported-models.md). |
 | `lora_alpha` | int | 16 | LoRA scaling factor |
 | `train_on_inputs` | bool/str | "auto" | Train on prompts/user msgs |
 | `n_evals` | int | 0 | Validation evaluations (>0 to use validation set) |
