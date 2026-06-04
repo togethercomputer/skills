@@ -24,6 +24,7 @@
 | Qwen | Qwen3 235B Instruct | `Qwen/Qwen3-235B-A22B-Instruct-2507-tput` | 262,144 | FP8 |
 | Moonshot | Kimi K2.6 | `moonshotai/Kimi-K2.6` | 262,144 | FP4 |
 | DeepSeek | DeepSeek-V4-Pro | `deepseek-ai/DeepSeek-V4-Pro` | 512,000 | FP4 |
+| NVIDIA | Nemotron 3 Ultra 550B A55B | `nvidia/nemotron-3-ultra-550b-a55b` | 512,300 | NVFP4 |
 | OpenAI | GPT-OSS 120B | `openai/gpt-oss-120b` | 128,000 | MXFP4 |
 | OpenAI | GPT-OSS 20B | `openai/gpt-oss-20b` | 128,000 | MXFP4 |
 | Z.ai | GLM-5.1 | `zai-org/GLM-5.1` | 202,752 | FP4 |
