@@ -29,6 +29,7 @@
 | ByteDance | Seedream 3.0 | `ByteDance-Seed/Seedream-3.0` | - |
 | Qwen | Qwen Image | `Qwen/Qwen-Image` | - |
 | Ideogram | Ideogram 3.0 | `ideogram/ideogram-3.0` | - |
+| Ideogram | Ideogram 4.0 | `ideogram/ideogram-4.0` | - |
 | HiDream | HiDream-I1-Full | `HiDream-ai/HiDream-I1-Full` | - |
 | HiDream | HiDream-I1-Dev | `HiDream-ai/HiDream-I1-Dev` | - |
 | HiDream | HiDream-I1-Fast | `HiDream-ai/HiDream-I1-Fast` | - |
