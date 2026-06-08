@@ -26,6 +26,23 @@ from together import Together
 client = Together()
 
 
+def wait_for_file_ready(file_id: str, poll_interval: int = 5) -> None:
+    """Block until server-side fine-tuning validation finishes for ``file_id``."""
+    while True:
+        meta = client.files.retrieve(file_id)
+        if meta.processing_status == "COMPLETED":
+            return
+        if meta.processing_status == "INVALID_FORMAT":
+            raise ValueError(
+                f"file {file_id} is not suitable for fine-tuning: {meta.validation_report}"
+            )
+        if meta.processing_status == "FAILED":
+            raise RuntimeError(
+                f"file {file_id} processing did not complete: {meta.validation_report}"
+            )
+        time.sleep(poll_interval)
+
+
 def sample_sft_data() -> list[dict]:
     """Return a small SFT dataset for the DPO warm-up stage."""
     return [
@@ -159,6 +176,12 @@ def main() -> None:
             dpo_path.unlink(missing_ok=True)
     print(f"SFT file: {sft_file.id}")
     print(f"DPO file: {dpo_file.id}")
+
+    # Wait for server-side validation on both files before starting training.
+    print("Waiting for server-side validation...")
+    wait_for_file_ready(sft_file.id)
+    wait_for_file_ready(dpo_file.id)
+    print("Files ready for fine-tuning.")
 
     # --- 4. Step 1: Run SFT job first ---
     print("\n--- Step 1: SFT Training ---")

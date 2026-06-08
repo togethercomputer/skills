@@ -254,14 +254,58 @@ For preference fine-tuning with function calling, the `tools` field goes inside 
 
 ## Data Validation
 
+Validation runs in two stages:
+
+1. **Client-side structural check** (local). Runs by default inside `client.files.upload(..., check=True)` or with `together files check`. Verifies only basic formatting: UTF-8 encoding, one JSON object per line, minimum sample count, and maximum file size. Pass `check=False` to skip (useful for very large files).
+2. **Server-side schema validation** (during ingestion). Runs after upload and performs the full fine-tuning schema check (conversation roles, tool calls, required fields, etc.). The file is only usable for fine-tuning once `processing_status` becomes `COMPLETED`. If validation rejects the dataset, `processing_status` becomes `INVALID_FORMAT` and `validation_report.error` carries a user-facing reason.
+
 ```python
+import time
 from together import Together
 
 client = Together()
 
-# Upload with validation enabled
+# 1. Upload with the local structural check enabled (default).
 file = client.files.upload(file="my_data.jsonl", purpose="fine-tune", check=True)
 print(file.id)  # file-abc123
+
+# 2. Poll until server-side validation finishes before creating a fine-tuning job.
+while True:
+    meta = client.files.retrieve(file.id)
+    if meta.processing_status == "COMPLETED":
+        break
+    if meta.processing_status == "INVALID_FORMAT":
+        # meta.validation_report["error"] carries a user-facing reason.
+        raise ValueError(
+            f"file is not suitable for fine-tuning: {meta.validation_report}"
+        )
+    if meta.processing_status == "FAILED":
+        raise RuntimeError(
+            f"file processing did not complete: {meta.validation_report}"
+        )
+    time.sleep(5)
+```
+
+Treat `processing_status` as the authoritative readiness signal; the `validation_report` schema may evolve. A successful response looks like:
+
+```json
+{
+  "processing_status": "COMPLETED",
+  "validation_report": {"valid": true, "dataset_format": "conversation", "nlines": 7199}
+}
+```
+
+A user-correctable failure looks like:
+
+```json
+{
+  "processing_status": "INVALID_FORMAT",
+  "validation_report": {
+    "valid": false,
+    "error_type": "INVALID_FORMAT",
+    "error": "Line 7: `messages[1]` must contain a `role` field"
+  }
+}
 ```
 
 ```shell
@@ -269,12 +313,14 @@ print(file.id)  # file-abc123
 together files check my_data.jsonl
 together files upload my_data.jsonl
 
-# Upload without format checking
+# Upload without the local structural check
 together files upload my_data.jsonl --no-check
 
-# List and manage files
-together files list
+# Inspect server-side validation status (processing_status / validation_report)
 together files retrieve <FILE-ID>
+
+# List and download files
+together files list
 together files retrieve-content <FILE-ID>
 ```
 

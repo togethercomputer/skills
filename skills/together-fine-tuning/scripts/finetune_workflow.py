@@ -25,6 +25,27 @@ from together import Together
 client = Together()
 
 
+def wait_for_file_ready(file_id: str, poll_interval: int = 5) -> None:
+    """Block until server-side fine-tuning validation finishes for ``file_id``.
+
+    Raises ``ValueError`` if the dataset is rejected (``INVALID_FORMAT``) and
+    ``RuntimeError`` for any other terminal failure.
+    """
+    while True:
+        meta = client.files.retrieve(file_id)
+        if meta.processing_status == "COMPLETED":
+            return
+        if meta.processing_status == "INVALID_FORMAT":
+            raise ValueError(
+                f"file {file_id} is not suitable for fine-tuning: {meta.validation_report}"
+            )
+        if meta.processing_status == "FAILED":
+            raise RuntimeError(
+                f"file {file_id} processing did not complete: {meta.validation_report}"
+            )
+        time.sleep(poll_interval)
+
+
 def sample_training_data() -> list[dict]:
     """Return a small conversational dataset for demonstration."""
     return [
@@ -128,6 +149,11 @@ def main() -> None:
             data_path.unlink(missing_ok=True)
     file_id = file_response.id
     print(f"Uploaded file: {file_id}")
+
+    # Wait for server-side validation before spending tokens on training.
+    print("Waiting for server-side validation...")
+    wait_for_file_ready(file_id)
+    print("File ready for fine-tuning.")
 
     # --- 3. Create LoRA fine-tuning job ---
     job = client.fine_tuning.create(
