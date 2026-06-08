@@ -20,13 +20,16 @@ Example: `2x_nvidia_h100_80gb_sxm`
 
 ## GPU Types
 
+Currently offered hardware families:
+
 | GPU | Memory | Notes |
 |-----|--------|-------|
-| H100 SXM | 80GB | Highest performance, recommended for production |
-| A100 SXM | 80GB | Good balance of cost and performance |
-| A100 PCIe | 80GB | Cost-effective option |
-| L40 | 48GB | Mid-range option |
-| RTX-6000 | 24GB | Entry-level for smaller models |
+| H100 SXM | 80GB | Production workhorse, broad model coverage |
+| H200 SXM | 140GB | Larger HBM than H100 for memory-bound workloads |
+| B200 SXM | 180GB | Highest performance, largest single-GPU memory |
+
+A100, L40, L40S, and RTX 6000 are no longer offered for new dedicated endpoints. The `/v1/hardware`
+endpoint may still return deprecated SKUs; treat only H100, H200, and B200 as deployable.
 
 Hardware availability varies by region and demand. Use the API or CLI to get current options:
 
@@ -53,10 +56,11 @@ together endpoints hardware --model Qwen/Qwen3.5-9B-FP8 --available
 | `2x_nvidia_h100_80gb_sxm` | H100 | 2 | Medium models (7-20B) |
 | `4x_nvidia_h100_80gb_sxm` | H100 | 4 | Large models (70B) |
 | `8x_nvidia_h100_80gb_sxm` | H100 | 8 | Very large models (120B+, MoE) |
-| `1x_nvidia_a100_80gb_sxm` | A100 | 1 | Small models, cost-effective |
-| `2x_nvidia_a100_80gb_sxm` | A100 | 2 | Medium models, cost-effective |
-| `4x_nvidia_a100_80gb_sxm` | A100 | 4 | Large models, cost-effective |
-| `8x_nvidia_a100_80gb_sxm` | A100 | 8 | Very large models, cost-effective |
+| `1x_nvidia_h200_140gb_sxm` | H200 | 1 | Memory-bound small/medium models |
+| `4x_nvidia_h200_140gb_sxm` | H200 | 4 | Large models with bigger KV cache |
+| `8x_nvidia_h200_140gb_sxm` | H200 | 8 | Very large or long-context models |
+| `1x_nvidia_b200_180gb_sxm` | B200 | 1 | Highest single-GPU performance |
+| `8x_nvidia_b200_180gb_sxm` | B200 | 8 | Maximum throughput / largest models |
 
 ## Hardware Availability Status
 
@@ -72,7 +76,7 @@ together endpoints hardware --model Qwen/Qwen3.5-9B-FP8 --available
 {
   "object": "hardware",
   "id": "1x_nvidia_h100_80gb_sxm",
-  "pricing": { "cents_per_minute": 6.0 },
+  "pricing": { "cents_per_minute": 10.82 },
   "specs": {
     "gpu_type": "h100",
     "gpu_link": "sxm",
@@ -91,17 +95,36 @@ together endpoints hardware --model Qwen/Qwen3.5-9B-FP8 --available
 - **Stop endpoint** to pause charges
 - Price varies by hardware configuration (check `cents_per_minute`)
 
+### Single-GPU on-demand rates
+
+Reference prices for the currently-offered single-GPU SKUs (multiply by GPU count for multi-GPU
+configurations of the same family; for the authoritative live rates always call the API or CLI):
+
+| Hardware ID | Cost/hour |
+|-------------|-----------|
+| `1x_nvidia_h100_80gb_sxm` | $6.49 |
+| `1x_nvidia_h200_140gb_sxm` | $7.89 |
+| `1x_nvidia_b200_180gb_sxm` | $11.95 |
+
+Multi-GPU hardware IDs share the single-GPU suffix, e.g. four H100s use `4x_nvidia_h100_80gb_sxm`.
+Cost scales linearly with the GPU count.
+
+Each running replica bills independently and stops billing as soon as it is scaled down. Run
+`together endpoints hardware --model <MODEL_ID>` (or `tg endpoints hardware --model <MODEL_ID>`)
+for the per-model list with current per-minute rates.
+
 ## GPU Selection Guide
 
 | Need | Recommendation |
 |------|---------------|
-| Small models (up to 9B) | 1x H100 or 1x A100 |
-| Medium models (7-20B) | 1-2x H100/A100 |
-| Large models (70B) | 4-8x H100/A100 |
-| Very large / MoE models (120B+) | 8x H100 |
-| Maximum throughput | 8x H100 + multiple replicas |
-| Cost-effective | A100 (lower per-minute cost) |
-| Maximum performance | H100 (faster inference) |
+| Small models (up to 9B) | 1x H100 |
+| Medium models (7-20B) | 1-2x H100 |
+| Large models (70B) | 4-8x H100 or 4x H200 |
+| Very large / MoE models (120B+) | 8x H100, 8x H200, or 8x B200 |
+| Maximum throughput | 8x B200 + multiple replicas |
+| Cost-effective baseline | H100 (lowest per-hour rate of currently-offered SKUs) |
+| Long-context / memory-bound | H200 or B200 (larger HBM) |
+| Maximum performance | B200 (newest generation, highest single-GPU speed) |
 
 Fine-tuned and custom-uploaded models may require larger hardware than their base parameter count
 suggests. For example, a fine-tuned 8B model may only be eligible for 4x or 8x H100 configs.
