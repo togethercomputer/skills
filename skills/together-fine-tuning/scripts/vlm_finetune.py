@@ -28,6 +28,23 @@ from together import Together
 client = Together()
 
 
+def wait_for_file_ready(file_id: str, poll_interval: int = 5) -> None:
+    """Block until server-side fine-tuning validation finishes for ``file_id``."""
+    while True:
+        meta = client.files.retrieve(file_id)
+        if meta.processing_status == "COMPLETED":
+            return
+        if meta.processing_status == "INVALID_FORMAT":
+            raise ValueError(
+                f"file {file_id} is not suitable for fine-tuning: {meta.validation_report}"
+            )
+        if meta.processing_status == "FAILED":
+            raise RuntimeError(
+                f"file {file_id} processing did not complete: {meta.validation_report}"
+            )
+        time.sleep(poll_interval)
+
+
 def url_to_base64(url: str, mime_type: str = "image/jpeg") -> str:
     """Download an image URL and return a base64 data URI."""
     response = requests.get(url, timeout=60)
@@ -137,6 +154,11 @@ def main() -> None:
         if data_path is not None:
             data_path.unlink(missing_ok=True)
     print(f"Uploaded file: {file_resp.id}")
+
+    # Wait for server-side validation before starting training.
+    print("Waiting for server-side validation...")
+    wait_for_file_ready(file_resp.id)
+    print("File ready for fine-tuning.")
 
     # --- 3. Start VLM LoRA fine-tuning ---
     job = client.fine_tuning.create(
