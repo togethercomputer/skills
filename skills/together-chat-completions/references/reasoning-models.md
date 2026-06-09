@@ -21,6 +21,7 @@
 | GPT-OSS 20B | `openai/gpt-oss-20b` | Adjustable effort | 128K | No |
 | Kimi K2.6 | `moonshotai/Kimi-K2.6` | Hybrid (on by default) | 262K | Yes |
 | MiniMax M2.7 | `MiniMaxAI/MiniMax-M2.7` | Reasoning only | 202K | Yes |
+| Nemotron 3 Ultra 550B A55B | `nvidia/nemotron-3-ultra-550b-a55b` | Hybrid (on by default) | 512K | Yes |
 | Qwen3.5 397B | `Qwen/Qwen3.5-397B-A17B` | Hybrid (on by default) | 262K | Yes |
 | Qwen3.5 9B | `Qwen/Qwen3.5-9B` | Hybrid (on by default) | 262K | Yes |
 | Qwen3.6 Plus | `Qwen/Qwen3.6-Plus` | Hybrid (on by default) | 1M | Yes |
@@ -106,6 +107,7 @@ Hybrid models support `reasoning={"enabled": True/False}` to toggle reasoning on
 - `Qwen/Qwen3.5-9B` (on by default)
 - `Qwen/Qwen3.6-Plus` (on by default)
 - `moonshotai/Kimi-K2.6` (on by default)
+- `nvidia/nemotron-3-ultra-550b-a55b` (on by default)
 - `zai-org/GLM-5.1` (on by default)
 - `zai-org/GLM-5` (on by default)
 
@@ -414,3 +416,8 @@ if (completion?.choices?.[0]?.message?.content) {
 - Use `reasoning_effort` to control depth
 - Set `max_tokens` to ~30,000 with `reasoning_effort="high"`
 - Build Tier 1+ required
+
+### Nemotron 3 Ultra 550B A55B
+- Hybrid reasoning model with 512K context
+- Defaults to high reasoning effort
+- To switch to medium effort, pass `chat_template_kwargs={"medium_effort": True}` instead of `reasoning_effort`
