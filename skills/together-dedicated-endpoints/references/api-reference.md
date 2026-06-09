@@ -322,7 +322,7 @@ together endpoints hardware --model Qwen/Qwen3.5-9B-FP8 --json
 {
   "object": "hardware",
   "id": "1x_nvidia_h100_80gb_sxm",
-  "pricing": { "cents_per_minute": 6.0 },
+  "pricing": { "cents_per_minute": 10.82 },
   "specs": {
     "gpu_type": "h100",
     "gpu_link": "sxm",
