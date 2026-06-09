@@ -9,7 +9,7 @@
 | Coding Agents | GLM-5.1 | `zai-org/GLM-5.1` | `moonshotai/Kimi-K2.6`, `deepseek-ai/DeepSeek-V4-Pro`, `MiniMaxAI/MiniMax-M2.7` |
 | Small & Fast | GPT-OSS 20B | `openai/gpt-oss-20b` | `Qwen/Qwen2.5-7B-Instruct-Turbo`, `google/gemma-3n-E4B-it` |
 | Medium General | GPT-OSS 120B | `openai/gpt-oss-120b` | `zai-org/GLM-5` |
-| Function Calling | GLM-5.1 | `zai-org/GLM-5.1` | `moonshotai/Kimi-K2.6`, `Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8` |
+| Function Calling | GLM-5.1 | `zai-org/GLM-5.1` | `moonshotai/Kimi-K2.6`, `MiniMaxAI/MiniMax-M2.7` |
 | Vision | Qwen3.5 397B | `Qwen/Qwen3.5-397B-A17B` | `Qwen/Qwen3.5-9B`, `google/gemma-4-31B-it` |
 
 ## Full Chat Model Catalog
