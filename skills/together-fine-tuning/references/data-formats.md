@@ -12,6 +12,7 @@
 - [VLM Instruction Format](#vlm-instruction-format)
 - [File Formats](#file-formats)
 - [Loss Masking](#loss-masking)
+- [Sample Weights](#sample-weights)
 - [Data Validation](#data-validation)
 - [Converting Image URLs to Base64](#converting-image-urls-to-base64)
 
@@ -245,12 +246,42 @@ For preference fine-tuning with function calling, the `tools` field goes inside 
 
 ## Loss Masking
 
-- **Conversational format**: Use `weight: 0` on specific messages to exclude from loss
+- **Conversational format**: Use `weight: 0` on specific messages to exclude from loss (only `0` and `1` are accepted on messages; `1` is the default)
 - **`train_on_inputs` parameter**:
   - `"auto"` (default): Framework decides based on format
   - `true`: Train on everything including user messages/prompts
   - `false`: Only train on assistant/completion text
 - **Parquet format**: Set label to -100 for tokens to exclude
+- **Per-sample loss scaling**: Add a top-level `"weight"` to a JSONL sample to multiply the loss for all of its tokens (see [Sample Weights](#sample-weights))
+
+## Sample Weights
+
+All JSONL fine-tuning formats (conversational, instruction, generic text, preference, reasoning, function calling) and all training methods support an optional top-level `"weight"` key on each JSON object. The value is a non-negative float that acts as a loss multiplier on every token in that sample, letting you up- or down-weight individual examples without changing the dataset itself.
+
+- Top-level `weight` is a non-negative float (e.g. `0.1`, `1.0`, `2.5`); `1.0` is the implicit default if omitted
+- Distinct from the per-message `weight` field in conversational data, which only accepts `0` or `1` and gates whether a message's tokens enter the loss at all
+- Sample weights and message weights can be combined in the same file
+- Setting a sample's top-level `weight` to `0` effectively drops it from the loss while still keeping it in the dataset (e.g. for packing statistics)
+
+```json
+{
+  "messages": [
+    {"role": "system", "content": "This is a system prompt."},
+    {"role": "user", "content": "Hello, how are you?"},
+    {"role": "assistant", "content": "I'm doing well, thank you! How can I help you?"},
+    {"role": "user", "content": "Can you explain machine learning?", "weight": 0},
+    {"role": "assistant", "content": "Machine learning is...", "weight": 1}
+  ],
+  "weight": 0.9
+}
+{
+  "messages": [
+    {"role": "user", "content": "Can you explain why?"},
+    {"role": "assistant", "content": "I can't."}
+  ],
+  "weight": 0.1
+}
+```
 
 ## Data Validation
 
