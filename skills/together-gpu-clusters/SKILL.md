@@ -45,8 +45,8 @@ Typical fits:
   - Read [references/cluster-management.md](references/cluster-management.md)
 - **Troubleshooting node health, PVCs, or scheduling**
   - Read [references/cluster-management.md](references/cluster-management.md)
-- **tcloud CLI workflows**
-  - Read [references/tcloud-cli.md](references/tcloud-cli.md)
+- **Together CLI workflows**
+  - Read [references/cli.md](references/cli.md)
 
 ## Workflow
 
@@ -74,7 +74,7 @@ Typical fits:
 - **Cluster API reference**: [references/api-reference.md](references/api-reference.md)
 - **Operational guide**: [references/cluster-management.md](references/cluster-management.md)
 - **Operational troubleshooting**: [references/cluster-management.md](references/cluster-management.md)
-- **CLI guide**: [references/tcloud-cli.md](references/tcloud-cli.md)
+- **CLI guide**: [references/cli.md](references/cli.md)
 - **Python cluster management**: [scripts/manage_cluster.py](scripts/manage_cluster.py)
 - **TypeScript cluster management**: [scripts/manage_cluster.ts](scripts/manage_cluster.ts)
 - **Python storage management**: [scripts/manage_storage.py](scripts/manage_storage.py)

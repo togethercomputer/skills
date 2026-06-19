@@ -2,54 +2,70 @@
 ## Contents
 
 - [Installation](#installation)
+- [Authentication](#authentication)
 - [Cluster Commands](#cluster-commands)
 - [Storage Commands](#storage-commands)
 - [Instance Types](#instance-types)
 - [Driver Versions](#driver-versions)
 
 
-The Together GPU Clusters CLI is available in two forms:
+The Together CLI (`tg`) is the supported command-line interface for managing GPU clusters. It ships with the Together Python SDK and replaces the legacy standalone `tcloud` binary.
 
-- **Together CLI**: `together beta clusters <subcommand>` (included with the Together Python SDK)
-- **Standalone tcloud**: `tcloud cluster <subcommand>` (standalone binary)
-
-Both CLIs provide equivalent functionality. This reference uses the `together beta clusters` form.
+`together` is also installed as an alias of `tg`. Examples in this reference use the `tg` form to match the official docs.
 
 ## Installation
 
-**Together CLI (via pip):**
+Install the CLI as a `uv` tool. The `[cli]` extra pulls in CLI-only dependencies without bloating the Python SDK:
+
 ```shell
-uv pip install "together>=2.0.0"
-together auth login
+uv tool install "together[cli]"
+tg --help
 ```
 
-**tcloud standalone binary:**
+Upgrade with:
 
-Mac (Universal):
 ```shell
-curl -LO https://tcloud-cli-downloads.s3.us-west-2.amazonaws.com/releases/latest/tcloud-darwin-universal.tar.gz
-tar xzf tcloud-darwin-universal.tar.gz
+uv tool upgrade "together[cli]"
 ```
 
-Linux (AMD64):
+For CI/CD, invoke the CLI directly with `uvx` to avoid a separate install step:
+
 ```shell
-curl -LO https://tcloud-cli-downloads.s3.us-west-2.amazonaws.com/releases/latest/tcloud-linux-amd64.tar.gz
-tar xzf tcloud-linux-amd64.tar.gz
+uvx "together[cli]" beta clusters list
 ```
 
-Authenticate tcloud:
+## Authentication
+
+The CLI authenticates via the `TOGETHER_API_KEY` environment variable. Get a key from [account settings](https://api.together.ai/settings/projects/~first/api-keys):
+
 ```shell
-tcloud sso login
+export TOGETHER_API_KEY=<your_key>
 ```
+
+You can also pass `--api-key` per command, but the environment variable is preferred in CI so the token does not appear in process lists or logs. If both are provided, `--api-key` takes precedence.
+
+## Global Flags
+
+Available on every command:
+
+| Flag | Description |
+|------|-------------|
+| `--json` | Return the response as JSON. Useful for scripting. |
+| `--non-interactive` | Disable interactive prompts. Required in CI/CD. |
+| `--api-key [string]` | Together API key. Falls back to `TOGETHER_API_KEY`. |
+| `--timeout [number]` | Request timeout, in seconds. |
+| `--max-retries [number]` | Maximum number of HTTP retries. |
+| `--debug` | Enable debug logging. |
+| `--help` | Print help for the prefixed command. |
 
 ## Cluster Commands
 
 ### `clusters create`
 
-Create a new GPU cluster.
+Create a new GPU cluster. Run with no flags to launch an interactive prompt that walks through the required fields.
 
 ```shell
-together beta clusters create [OPTIONS]
+tg beta clusters create [OPTIONS]
 ```
 
 **Options:**
@@ -62,46 +78,41 @@ together beta clusters create [OPTIONS]
 | `--region` | string | Region (use `clusters list-regions` to find valid regions) |
 | `--billing-type` | enum | `ON_DEMAND` or `RESERVED` |
 | `--duration-days` | number | Reservation length in days (only with `RESERVED` billing) |
-| `--driver-version` | enum | CUDA driver version (use `clusters list-regions` for options) |
+| `--nvidia-driver-version` | string | NVIDIA driver version (use `clusters list-regions` for options) |
+| `--cuda-version` | string | CUDA version (use `clusters list-regions` for options) |
 | `--cluster-type` | enum | `KUBERNETES` or `SLURM` |
 | `--volume` | string | Existing storage volume ID to attach |
+| `--non-interactive` | -- | Skip interactive prompts. Required in CI. |
 | `--json` | -- | Output in JSON format |
 
 **Examples:**
 
 ```shell
 # On-demand Kubernetes cluster with H100s
-together beta clusters create \
+tg beta clusters create \
   --name my-training-cluster \
   --num-gpus 8 \
   --gpu-type H100_SXM \
   --region us-central-8 \
-  --driver-version CUDA_12_6_560 \
+  --cuda-version 12.6 \
+  --nvidia-driver-version 560 \
   --billing-type ON_DEMAND \
-  --cluster-type KUBERNETES
+  --cluster-type KUBERNETES \
+  --non-interactive
 
 # Reserved Slurm cluster with H200s and attached storage
-together beta clusters create \
+tg beta clusters create \
   --name my-slurm-cluster \
   --num-gpus 16 \
   --gpu-type H200_SXM \
   --region us-central-8 \
-  --driver-version CUDA_12_6_560 \
+  --cuda-version 12.6 \
+  --nvidia-driver-version 560 \
   --billing-type RESERVED \
   --duration-days 30 \
   --cluster-type SLURM \
-  --volume <VOLUME_ID>
-```
-
-Equivalent tcloud command:
-```shell
-tcloud cluster create my-training-cluster \
-  --num-gpus 8 \
-  --instance-type H100-SXM \
-  --region us-central-8 \
-  --billing-type on_demand \
-  --shared-volume-name my-volume \
-  --size-tib 1
+  --volume <VOLUME_ID> \
+  --non-interactive
 ```
 
 ### `clusters list`
@@ -109,7 +120,7 @@ tcloud cluster create my-training-cluster \
 List all GPU clusters.
 
 ```shell
-together beta clusters list
+tg beta clusters list
 ```
 
 ### `clusters retrieve`
@@ -117,7 +128,7 @@ together beta clusters list
 Get details for a specific cluster.
 
 ```shell
-together beta clusters retrieve <CLUSTER_ID>
+tg beta clusters retrieve [CLUSTER_ID]
 ```
 
 ### `clusters update`
@@ -125,7 +136,7 @@ together beta clusters retrieve <CLUSTER_ID>
 Update the configuration of an existing cluster (scale GPU count or change cluster type).
 
 ```shell
-together beta clusters update <CLUSTER_ID> [OPTIONS]
+tg beta clusters update [CLUSTER_ID] [OPTIONS]
 ```
 
 **Options:**
@@ -140,15 +151,10 @@ together beta clusters update <CLUSTER_ID> [OPTIONS]
 
 ```shell
 # Scale up to 16 GPUs
-together beta clusters update <CLUSTER_ID> --num-gpus 16
+tg beta clusters update [CLUSTER_ID] --num-gpus 16
 
 # Switch to Slurm
-together beta clusters update <CLUSTER_ID> --cluster-type SLURM
-```
-
-Equivalent tcloud command:
-```shell
-tcloud cluster scale <CLUSTER_UUID> --num-gpus 16
+tg beta clusters update [CLUSTER_ID] --cluster-type SLURM
 ```
 
 ### `clusters delete`
@@ -156,12 +162,7 @@ tcloud cluster scale <CLUSTER_UUID> --num-gpus 16
 Delete a GPU cluster.
 
 ```shell
-together beta clusters delete <CLUSTER_ID>
-```
-
-Equivalent tcloud command:
-```shell
-tcloud cluster delete <CLUSTER_UUID>
+tg beta clusters delete [CLUSTER_ID]
 ```
 
 ### `clusters list-regions`
@@ -169,30 +170,27 @@ tcloud cluster delete <CLUSTER_UUID>
 List available regions, supported GPU types, and driver versions.
 
 ```shell
-together beta clusters list-regions
+tg beta clusters list-regions
 ```
 
 **Example output:**
 
 ```json
 {
-    "regions": [
-        {
-            "driver_versions": [
-                "CUDA_12_6_565",
-                "CUDA_12_5_555",
-                "CUDA_12_8_570",
-                "CUDA_12_9_575",
-                "CUDA_12_6_560",
-                "CUDA_12_4_550"
-            ],
-            "name": "us-central-8",
-            "supported_instance_types": [
-                "H100_SXM",
-                "H200_SXM"
-            ]
-        }
-    ]
+  "regions": [
+    {
+      "driver_versions": [
+        {"cuda_version": "12.9", "nvidia_driver_version": "575"},
+        {"cuda_version": "12.8", "nvidia_driver_version": "570"},
+        {"cuda_version": "12.6", "nvidia_driver_version": "560"}
+      ],
+      "name": "us-central-8",
+      "supported_instance_types": [
+        "H100_SXM",
+        "H200_SXM"
+      ]
+    }
+  ]
 }
 ```
 
@@ -201,7 +199,7 @@ together beta clusters list-regions
 Download Kubernetes credentials (kubeconfig) for a cluster.
 
 ```shell
-together beta clusters get-credentials <CLUSTER_ID> [OPTIONS]
+tg beta clusters get-credentials [CLUSTER_ID] [OPTIONS]
 ```
 
 **Options:**
@@ -216,22 +214,16 @@ together beta clusters get-credentials <CLUSTER_ID> [OPTIONS]
 **Examples:**
 
 ```shell
-# Write to default kubeconfig location
-together beta clusters get-credentials <CLUSTER_ID>
+# Merge into ~/.kube/config and switch the default context
+tg beta clusters get-credentials [CLUSTER_ID] --set-default-context
 
 # Write to a specific file
-together beta clusters get-credentials <CLUSTER_ID> --file ./kubeconfig.yaml
+tg beta clusters get-credentials [CLUSTER_ID] --file ./kubeconfig.yaml
 
 # Print to stdout
-together beta clusters get-credentials <CLUSTER_ID> --file -
-
-# Overwrite and set as default
-together beta clusters get-credentials <CLUSTER_ID> \
-  --overwrite-existing \
-  --set-default-context
+tg beta clusters get-credentials [CLUSTER_ID] --file -
 
 # Use the cluster
-export KUBECONFIG=~/.kube/config
 kubectl get nodes
 ```
 
@@ -245,7 +237,7 @@ bare metal paths. Volumes persist independently of cluster lifecycle.
 Create a new shared storage volume.
 
 ```shell
-together beta clusters storage create [OPTIONS]
+tg beta clusters storage create [OPTIONS]
 ```
 
 **Options:**
@@ -260,7 +252,7 @@ together beta clusters storage create [OPTIONS]
 **Example:**
 
 ```shell
-together beta clusters storage create \
+tg beta clusters storage create \
   --volume-name my-training-data \
   --size-tib 2 \
   --region us-central-8
@@ -271,7 +263,7 @@ together beta clusters storage create \
 List all shared storage volumes.
 
 ```shell
-together beta clusters storage list
+tg beta clusters storage list
 ```
 
 ### `clusters storage retrieve`
@@ -279,7 +271,7 @@ together beta clusters storage list
 Get details for a specific volume.
 
 ```shell
-together beta clusters storage retrieve <VOLUME_ID>
+tg beta clusters storage retrieve [VOLUME_ID]
 ```
 
 ### `clusters storage delete`
@@ -287,7 +279,7 @@ together beta clusters storage retrieve <VOLUME_ID>
 Delete a shared storage volume. The volume must not be attached to any cluster.
 
 ```shell
-together beta clusters storage delete <VOLUME_ID>
+tg beta clusters storage delete [VOLUME_ID]
 ```
 
 ## Instance Types
