@@ -386,9 +386,11 @@ print(final.choices[0].message.content)
 
 ```typescript
 import Together from "together-ai";
+import type { ChatCompletionMessageParam } from "together-ai/resources/chat/completions";
+
 const together = new Together();
 
-const messages: any[] = [
+const messages: ChatCompletionMessageParam[] = [
   {
     role: "system",
     content: "You are a helpful assistant that can access external functions.",
@@ -479,7 +481,9 @@ response2 = client.chat.completions.create(
 ```
 
 ```typescript
-const messages: any[] = [
+import type { ChatCompletionMessageParam } from "together-ai/resources/chat/completions";
+
+const messages: ChatCompletionMessageParam[] = [
   { role: "system", content: "You are a travel planning assistant." },
 ];
 
