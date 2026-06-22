@@ -1,0 +1,26 @@
+[
+  {
+    "query": "Run a GRPO reinforcement-learning loop on Together AI where the reward comes from running the model's generated code against a test suite.",
+    "should_trigger": true
+  },
+  {
+    "query": "I want to post-train a model with policy gradients using together-rl: sample rollouts, compute advantages, and call forward_backward and optim_step.",
+    "should_trigger": true
+  },
+  {
+    "query": "Train a coding model with RL where each candidate solution is executed in a sandbox and pass/fail is the reward.",
+    "should_trigger": true
+  },
+  {
+    "query": "Fine-tune Llama 3.1 8B on my instruction dataset with LoRA on Together AI.",
+    "should_trigger": false
+  },
+  {
+    "query": "Just run a chat completion with Llama 3.3 70B and stream the tokens.",
+    "should_trigger": false
+  },
+  {
+    "query": "Create an isolated sandbox from a Docker image and run some bash commands.",
+    "should_trigger": false
+  }
+]
