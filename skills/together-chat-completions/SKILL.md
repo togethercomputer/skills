@@ -35,6 +35,7 @@ clearly offline batch processing, vector retrieval, model training, or infrastru
 - Use `together-fine-tuning` when the user wants to train or adapt a model
 - Use `together-dedicated-endpoints` when the user needs always-on single-tenant hosting
 - Use `together-dedicated-containers` or `together-gpu-clusters` for custom infrastructure
+- For production stock-model workloads that need a defined SLA (committed throughput and reliability) without managing hardware, point users to Together's [provisioned throughput](https://docs.together.ai/docs/inference/provisioned-throughput) tier (reserved PTU capacity, one-month minimum term, contact sales; uses the same chat/completions API surface)
 
 ## Quick Routing
 

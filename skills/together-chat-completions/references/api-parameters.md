@@ -389,7 +389,7 @@ Best practices:
 - plan against the latest headers instead of a hard-coded RPM table
 - keep traffic steady instead of bursty
 - use batch inference for high-volume offline jobs
-- use dedicated endpoints for strict capacity or SLA requirements
+- for strict capacity or SLA requirements, use provisioned throughput (reserved capacity on supported stock models with a defined throughput and reliability SLA, contact sales) or dedicated endpoints (single-tenant GPUs, self-serve)
 
 ## Debug Mode
 
