@@ -334,6 +334,7 @@ During provisioning, nodes undergo automatic tests:
 - **GPU Burn (5 min)** -- stress test for thermal/power issues
 - **Single-Node NCCL** -- GPU-to-GPU communication within a node
 - **Multi-Node NCCL** -- cross-node GPU communication
+- **Storage Performance** -- sequential read/write throughput and data-integrity validation on attached storage volumes
 
 Nodes showing "Tests Failed" are not added to the cluster until repaired.
 
@@ -349,6 +350,9 @@ Nodes showing "Tests Failed" are not added to the cluster until repaired.
 
 **PCIe Performance:**
 - NVBandwidth: CPU-to-GPU, GPU-to-CPU bandwidth, GPU-CPU latency
+
+**Storage:**
+- Storage Performance: `fio` sequential read/write throughput plus a checksummed write/read-back for data-integrity validation against shared and local volumes attached to the cluster. Results include a **Skipped** state (in addition to Passed/Failed) -- on Kubernetes clusters the shared-storage portion reports **Skipped** with message `Shared volume PVC not created` until a shared-volume PVC exists (see the [Storage](#storage) section).
 
 ### Node Repair
 
