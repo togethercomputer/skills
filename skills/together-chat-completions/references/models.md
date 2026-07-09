@@ -34,7 +34,7 @@
 | Deep Cogito | Cogito v2.1 671B | `deepcogito/cogito-v2-1-671b` | 163,840 | - |
 | Google | Gemma 4 31B IT | `google/gemma-4-31B-it` | 262,144 | FP8 |
 | Google | Gemma 3N E4B | `google/gemma-3n-E4B-it` | 32,768 | FP8 |
-| Liquid AI | LFM2-24B-A2B | `LiquidAI/LFM2-24B-A2B` | 32,768 | - |
+| Liquid AI | LFM2.5-8B-A1B | `LiquidAI/LFM2.5-8B-A1B` | 32,768 | - |
 | Qwen | Qwen 2.5 7B Turbo | `Qwen/Qwen2.5-7B-Instruct-Turbo` | 32,768 | FP8 |
 | Essential AI | Rnj-1 Instruct | `essentialai/rnj-1-instruct` | 32,768 | BF16 |
 
