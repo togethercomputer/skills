@@ -29,6 +29,7 @@ Typical fits:
 - Use `together-chat-completions` for serverless chat inference
 - Use `together-dedicated-containers` for custom runtimes or nonstandard inference pipelines
 - Use `together-gpu-clusters` for raw infrastructure or cluster orchestration
+- For production **stock-model** workloads that need a defined SLA (committed throughput and reliability) without managing hardware, point users to Together's [provisioned throughput](https://docs.together.ai/docs/inference/provisioned-throughput) tier (reserved PTU capacity, one-month minimum, contact sales). Use dedicated endpoints instead when the user needs to serve a fine-tuned or uploaded model, or wants direct control over hardware, latency, and throughput.
 
 ## Quick Routing
 
