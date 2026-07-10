@@ -84,6 +84,8 @@ clearly offline batch processing, vector retrieval, model training, or infrastru
 - Tool names must not contain spaces, periods, or dashes. Branch on `finish_reason` (`"tool_calls"` vs `"stop"`) instead of assuming a tool was called, and parse `function.arguments` as JSON inside a try/except.
 - Prefer `json_schema` over looser JSON modes when the user needs stable machine-readable output.
 - Use reasoning models only when the task benefits from deeper deliberation; otherwise prefer cheaper standard models.
+- Preserved thinking uses the `reasoning` key on both output and input (the field is symmetric). When you pass a prior assistant turn back to the API, include `"reasoning": ...` on the assistant message; `reasoning_content` is still accepted on input for backward compatibility but prefer `reasoning` in new code.
+- Reasoning models nest extra token counts OpenAI-style (`usage.completion_tokens_details.reasoning_tokens`, `usage.prompt_tokens_details.cached_tokens`), but some non-reasoning models return `cached_tokens` flat at the top of `usage`. Read both locations defensively — clients that only check one shape will silently return `0`. See [references/reasoning-models.md](references/reasoning-models.md) for the defensive-read pattern.
 - To combine tool calling with structured output, use a two-phase approach: Phase 1 sends `tools` (no `response_format`), Phase 2 sends `response_format` (no `tools`) after tool results are appended.
 - Streaming works with `response_format`; accumulate chunks and parse the final concatenated string as JSON.
 - If the user needs many independent requests, combine this skill with `async_parallel.py` or hand off to batch inference.

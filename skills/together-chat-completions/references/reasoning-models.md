@@ -6,6 +6,7 @@
 - [Enabling and Disabling Reasoning (Hybrid Models)](#enabling-and-disabling-reasoning)
 - [Controlling Reasoning Depth via Prompting](#controlling-reasoning-depth-via-prompting)
 - [Reasoning Output Format](#reasoning-output-format)
+- [Tracking Reasoning and Cached Token Usage](#tracking-reasoning-and-cached-token-usage)
 - [Structured Outputs with Reasoning](#structured-outputs-with-reasoning)
 - [Best Practices by Model](#best-practices-by-model)
 
@@ -244,6 +245,11 @@ response = client.chat.completions.create(
 Models like Kimi K2.6, GLM-5.1, DeepSeek-V4-Pro, GPT-OSS, and Qwen3.5 return reasoning in a dedicated
 `reasoning` field on the response message or streaming delta.
 
+The field is symmetric: the model returns its chain of thought in `reasoning` (or `delta.reasoning`
+when streaming), and you pass it back under the same `reasoning` key when you send a prior assistant
+turn to the API for preserved thinking or multi-turn tool calling. The older `reasoning_content`
+key is still accepted on input for backward compatibility, but prefer `reasoning` for new code.
+
 **Non-streaming (Python):**
 
 ```python
@@ -305,6 +311,46 @@ for await (const chunk of stream) {
   if (delta?.content) process.stdout.write(delta.content);
 }
 ```
+
+## Tracking Reasoning and Cached Token Usage
+
+Reasoning output is billed as completion tokens. The extra token counts (reasoning tokens, cached
+prompt tokens) always live somewhere on `response.usage`, but their **location varies by model**, so
+read both shapes defensively.
+
+- **Reasoning models** (for example `deepseek-ai/DeepSeek-V4-Pro`, `Qwen/Qwen3.6-Plus`,
+  `zai-org/GLM-5.1`) nest them OpenAI-style:
+  - `usage.completion_tokens_details.reasoning_tokens`
+  - `usage.prompt_tokens_details.cached_tokens`
+- **Some non-reasoning models** (for example `meta-llama/Llama-3.3-70B-Instruct-Turbo`) return
+  `cached_tokens` flat at the top level of `usage`, with no `*_details` objects.
+
+A client configured for only one shape will silently return `0` for all others. Fall back across
+both locations:
+
+```python
+usage = response.usage
+reasoning_tokens = (
+    getattr(usage, "completion_tokens_details", None)
+    and getattr(usage.completion_tokens_details, "reasoning_tokens", 0)
+) or 0
+
+cached_tokens = (
+    getattr(usage, "prompt_tokens_details", None)
+    and getattr(usage.prompt_tokens_details, "cached_tokens", 0)
+) or getattr(usage, "cached_tokens", 0)
+```
+
+```typescript
+const usage = response.usage as any;
+const reasoningTokens =
+  usage?.completion_tokens_details?.reasoning_tokens ?? 0;
+const cachedTokens =
+  usage?.prompt_tokens_details?.cached_tokens ?? usage?.cached_tokens ?? 0;
+```
+
+`prompt_tokens`, `completion_tokens`, and `total_tokens` are always present at the top level of
+`usage` regardless of model type.
 
 ## Structured Outputs with Reasoning
 
