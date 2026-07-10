@@ -102,9 +102,9 @@ configurations of the same family; for the authoritative live rates always call 
 
 | Hardware ID | Cost/hour |
 |-------------|-----------|
-| `1x_nvidia_h100_80gb_sxm` | $6.49 |
-| `1x_nvidia_h200_140gb_sxm` | $7.89 |
-| `1x_nvidia_b200_180gb_sxm` | $11.95 |
+| `1x_nvidia_h100_80gb_sxm` | $5.40 |
+| `1x_nvidia_h200_140gb_sxm` | $6.60 |
+| `1x_nvidia_b200_180gb_sxm` | $9.00 |
 
 Multi-GPU hardware IDs share the single-GPU suffix, e.g. four H100s use `4x_nvidia_h100_80gb_sxm`.
 Cost scales linearly with the GPU count.
