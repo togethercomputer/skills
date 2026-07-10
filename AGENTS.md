@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This repository contains 12 agent skills for the Together AI platform. Each skill is a self-contained directory following the [Agent Skills specification](https://agentskills.io/specification).
+This repository contains 13 agent skills for the Together AI platform. Each skill is a self-contained directory following the [Agent Skills specification](https://agentskills.io/specification).
 
 ## Skill registry
 
@@ -17,6 +17,7 @@ This repository contains 12 agent skills for the Together AI platform. Each skil
 - **together-dedicated-endpoints**: Single-tenant GPU endpoints on Together AI with autoscaling and no rate limits. Deploy fine-tuned or uploaded models, size hardware, and manage endpoint lifecycle. Reach for it whenever the user needs predictable always-on hosting rather than serverless inference, custom containers, or raw clusters.
 - **together-dedicated-containers**: Custom Dockerized inference workers on Together AI's managed GPU infrastructure. Build with Sprocket SDK, configure with Jig CLI, submit async queue jobs, and poll results. Reach for it whenever the user needs container-level control rather than a standard model endpoint or raw cluster.
 - **together-gpu-clusters**: On-demand and reserved GPU clusters (H100, H200, B200) on Together AI with Kubernetes or Slurm orchestration, shared storage, credential management, and cluster scaling for ML and HPC jobs. Reach for it when the user needs multi-node compute or infrastructure control rather than a managed model endpoint.
+- **together-rl**: GRPO and policy-gradient reinforcement-learning post-training on Together AI via low-level training sessions: create a session, sample token-level rollouts, score them, and apply forward_backward plus optim_step. Pairs the RL training API with the together-sandbox SDK to compute rewards by executing model-generated code in isolated sandboxes (run a test suite; pass/fail becomes the reward). Reach for it whenever the user wants to train a model with reinforcement learning, run a GRPO loop, or compute verifiable code-execution rewards rather than managed supervised fine-tuning or plain inference.
 
 </skills>
 
