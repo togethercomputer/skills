@@ -512,7 +512,6 @@ console.log(`Title: ${result.title}`);
 - `zai-org/GLM-5.1`
 - `zai-org/GLM-5`
 - `MiniMaxAI/MiniMax-M2.7`
-- `Qwen/Qwen3.5-397B-A17B`
 - `Qwen/Qwen3.6-Plus`
 - `deepseek-ai/DeepSeek-V4-Pro`
 
@@ -538,5 +537,5 @@ console.log(`Title: ${result.title}`);
 3. Use `json_schema` mode when you need guaranteed structure
 4. Use `json_object` for simpler cases where prompt guidance is sufficient
 5. Use `regex` mode for simple constrained outputs (classification, IDs, phone numbers)
-6. Works with vision models (e.g., `Qwen/Qwen3.5-397B-A17B`)
+6. Works with vision models (e.g., `moonshotai/Kimi-K2.6`)
 7. Works with reasoning models (e.g., `deepseek-ai/DeepSeek-V4-Pro`)
