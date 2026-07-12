@@ -46,6 +46,8 @@ Typical fits:
   - Read [references/dedicated-models.md](references/dedicated-models.md)
 - **Hardware and sizing choices**
   - Read [references/hardware-options.md](references/hardware-options.md)
+- **Serve multiple LoRA adapters on one endpoint**
+  - Read the Multi-LoRA Adapters section in [references/api-reference.md](references/api-reference.md)
 
 ## Workflow
 
@@ -62,6 +64,7 @@ Typical fits:
 - Endpoint management uses endpoint IDs, while inference usually uses the endpoint name as `model`.
 - Autoscaling, auto-shutdown, prompt caching, and speculative decoding materially affect operations and cost.
 - For custom or fine-tuned models, do not skip the intermediate verification steps before deployment.
+- One LoRA-enabled endpoint can serve multiple adapters that share its base model (beta): attach/list/remove them on the running endpoint via `client.endpoints.adapters` and select by model name, instead of deploying separate hardware per adapter.
 
 ## Resource Map
 

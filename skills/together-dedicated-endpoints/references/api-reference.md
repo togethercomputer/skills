@@ -13,6 +13,7 @@
 - [Upload Model](#upload-model)
 - [List Models](#list-models)
 - [Using the Endpoint](#using-the-endpoint)
+- [Multi-LoRA Adapters](#multi-lora-adapters)
 - [Auto-Shutdown](#auto-shutdown)
 - [Speculative Decoding](#speculative-decoding)
 - [Prompt Caching](#prompt-caching)
@@ -459,6 +460,59 @@ curl -X POST "https://api.together.xyz/v1/chat/completions" \
     "messages": [{"role": "user", "content": "Hello!"}]
   }'
 ```
+
+## Multi-LoRA Adapters
+
+A single LoRA-enabled dedicated endpoint can serve multiple LoRA adapters that share the same base
+model. Attach, list, and remove adapters on a running endpoint (beta) without redeploying, then
+select among them by model name at inference time.
+
+Requirements: the endpoint must be a private dedicated endpoint with LoRA enabled, running a base
+model compatible with the adapter, and the adapter and endpoint must be owned by the same account.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST /endpoints/{id}/adapters` | Add adapter | Bind a LoRA adapter to the endpoint |
+| `GET /endpoints/{id}/adapters` | List adapters | List adapters bound to the endpoint |
+| `DELETE /endpoints/{id}/adapters` | Remove adapter | Unbind an adapter from the endpoint |
+
+Each adapter is identified by a combined `model_id` of the form `endpoint_name:adapter_model_name`,
+where `endpoint_name` must match the endpoint resolved from the endpoint ID and `adapter_model_name`
+is the adapter's uploaded `model_name`.
+
+```python
+from together import Together
+
+client = Together()
+
+# Attach
+result = client.endpoints.adapters.add(
+    "endpoint-abc123",
+    model_id="my-endpoint-name:my-adapter-model",
+)
+
+# List
+adapters = client.endpoints.adapters.list("endpoint-abc123")
+for adapter in adapters.data or []:
+    print(adapter.api_model_id, adapter.adapter_name, adapter.endpoint_name)
+
+# Remove
+client.endpoints.adapters.remove(
+    "endpoint-abc123",
+    model_id="my-endpoint-name:my-adapter-model",
+)
+```
+
+```shell
+together endpoints adapters add <ENDPOINT_ID> <ENDPOINT_NAME>:<ADAPTER_MODEL_NAME>
+together endpoints adapters list <ENDPOINT_ID>
+together endpoints adapters remove <ENDPOINT_ID> <ENDPOINT_NAME>:<ADAPTER_MODEL_NAME>
+```
+
+Once attached, send inference requests using the adapter model name (or the full
+`endpoint_name:adapter_model_name`) as the `model` parameter; requests route to the endpoint
+automatically. Note: the Python SDK exposes the combined identifier as `api_model_id` on the
+response object, while the raw API and TypeScript SDK use `model_id`.
 
 ## Auto-Shutdown
 
