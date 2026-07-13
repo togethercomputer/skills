@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together Kueue Queueing"
+  short_description: "Gate GPU jobs on quota with Kueue"
+  default_prompt: "Use $together-kueue to install Kueue and queue GPU jobs by quota on a Together AI Kubernetes cluster."
