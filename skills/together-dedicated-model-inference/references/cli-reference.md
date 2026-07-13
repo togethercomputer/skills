@@ -163,7 +163,7 @@ experiment (`abx_`), shadow experiment (`exp_`).
 ```bash
 tg beta endpoints rm dep_abc123          # delete a deployment (must be stopped)
 tg beta endpoints rm ep_abc123           # delete an endpoint with no deployments
-tg beta endpoints rm ep_abc123 --force   # tear down deployments too
+tg beta endpoints rm ep_abc123 --force   # tear down deployments too (must be STOPPED first)
 tg beta endpoints rm abx_abc123          # end an A/B test (traffic returns to control)
 tg beta endpoints rm exp_abc123          # stop a shadow experiment
 ```

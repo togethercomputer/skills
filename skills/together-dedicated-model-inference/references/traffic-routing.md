@@ -7,6 +7,7 @@ traffic: weighted splits, rollouts, A/B tests, and shadow experiments.
 
 - [How routing works](#how-routing-works)
 - [Stickiness](#stickiness)
+- [Observing routing](#observing-routing)
 - [Traffic splits (weights)](#traffic-splits-weights)
 - [Rollouts](#rollouts)
   - [Strategies](#strategies)
@@ -47,6 +48,34 @@ caches warm across a conversation. Key precedence:
 Set `prompt_cache_key` on requests sharing a prompt prefix (e.g. every turn of one
 conversation) to control stickiness. Editing weights, adding/removing deployments, or a
 rollout shifting its percentage reassigns some keys.
+
+## Observing routing
+
+To verify empirically how traffic actually lands — for a split, rollout, or A/B test — you
+need two things the obvious approach misses:
+
+- **Attribution comes from the response headers, not the body.** The response body's `model`
+  field only echoes the endpoint's qualified name, so two deployments serving the same model
+  produce byte-identical bodies. The routing headers on the inference response distinguish
+  them:
+  - `x-cluster` — the per-deployment cluster ID (one stable value per deployment).
+  - `x-i-router-log-event` — a JSON array whose `worker_url` field is the replica's pod
+    (`http://<pod-ip>:<port>`); distinct pod IPs count distinct replicas within a deployment.
+
+  These header names are operational, not part of the stable inference API contract — confirm
+  them against a live probe before relying on them. `x-cluster` values don't equal the `dep_`
+  management IDs; map them by briefly routing 100% to one deployment (see propagation note
+  below) and recording the `x-cluster` it returns.
+
+- **Vary the sampling key or all your load lands on one deployment.** Because routing is
+  sticky (above), sending N identical requests routes all N to the same deployment — you'll
+  measure 100/0 no matter what the weights say. Set a unique `prompt_cache_key` (or `user`)
+  per request so the sample spreads across the split. A few hundred varied requests gives a
+  stable share estimate.
+
+- **Split changes take tens of seconds to propagate.** After `endpoints.update(traffic_split=...)`
+  (or a scale change), the router keeps serving the old split briefly — a probe within ~10s
+  can still hit the previous target. Allow ~30s before measuring or mapping clusters.
 
 ## Traffic splits (weights)
 

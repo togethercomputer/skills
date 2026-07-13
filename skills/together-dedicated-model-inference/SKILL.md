@@ -100,7 +100,16 @@ Together CLI (`tg beta ...` — install with `uv tool install "together[cli]"`; 
   live in the dashboard (`https://api.together.ai/endpoints`); there's no metrics query API.
 - **Deletion order matters:** stop the deployment (wait for `STOPPED`), remove it from the
   traffic split, delete it, then delete the endpoint. The CLI's `rm` smart-deletes by ID
-  prefix and handles detaching; deleting an endpoint with deployments needs `--force`.
+  prefix and auto-detaches from the split; `--force` deletes an endpoint's deployments too.
+  But **neither `rm` nor `--force` stops a running deployment** — a `READY` deployment must
+  already be scaled to `0/0` and `STOPPED`, or `rm` fails with `deployment must be stopped or
+  failed before deletion (current state: ready)`. Scale down and wait for `STOPPED` first.
+- **To see which deployment/replica served a request, read the inference response headers.**
+  The response *body*'s `model` field only echoes the endpoint's qualified name — identical for
+  every deployment. The routing headers distinguish them: `x-cluster` is the per-deployment
+  cluster ID and `worker_url` (inside the `x-i-router-log-event` header) is the replica pod.
+  This is the only way to verify a split, rollout, or A/B empirically. See
+  [traffic-routing.md](references/traffic-routing.md) (Observing routing).
 - **Rollouts are the safe way to replace a deployment on live traffic** — create the target
   stopped (`0/0`), then `tg beta endpoints rollout <target> --from <source> --canary`.
   Metric gates are canary-only and need live traffic to evaluate.

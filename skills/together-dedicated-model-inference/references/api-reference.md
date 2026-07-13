@@ -343,8 +343,10 @@ client.beta.endpoints.delete("ep_abc123", project_id=project_id)
 
 When the deployment is the endpoint's **only** traffic entry there's nothing to route to, so
 the empty-split limitation above blocks the pure-SDK path — use the CLI's `rm ... --force`
-instead, which auto-detaches from the split and deletes the deployment and endpoint in one
-step (it smart-deletes by ID prefix; see [cli-reference.md](cli-reference.md)).
+instead, which auto-detaches from the split and deletes the deployment and endpoint together
+(it smart-deletes by ID prefix; see [cli-reference.md](cli-reference.md)). Note `--force` does
+**not** stop a running deployment: scale it to `0/0` and wait for `STOPPED` first, or `rm`
+fails with `deployment must be stopped or failed before deletion`.
 
 ## Monitoring
 
@@ -398,6 +400,12 @@ response = client.chat.completions.create(
     max_tokens=30,
 )
 ```
+
+To attribute a response to the deployment/replica that served it (e.g. verifying a split),
+read the **response headers**, not the body: `x-cluster` is the per-deployment cluster ID and
+`worker_url` (in `x-i-router-log-event`) is the replica pod. The body's `model` field only
+echoes the endpoint name. Full method — including varying the sampling key so load spreads
+across the split — is in [traffic-routing.md](traffic-routing.md) (Observing routing).
 
 ## Troubleshooting
 
