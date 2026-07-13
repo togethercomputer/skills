@@ -250,7 +250,6 @@ Most serverless models support batch processing through the chat completions end
 - `moonshotai/Kimi-K2.6`
 - `Qwen/Qwen3.5-397B-A17B`
 - `zai-org/GLM-5`
-- `zai-org/GLM-5.1`
 
 ## Rate Limits
 
