@@ -352,7 +352,7 @@ Nodes showing "Tests Failed" are not added to the cluster until repaired.
 - NVBandwidth: CPU-to-GPU, GPU-to-CPU bandwidth, GPU-CPU latency
 
 **Storage:**
-- Storage Performance: `fio` sequential read/write throughput plus a checksummed write/read-back for data-integrity validation against shared and local volumes attached to the cluster. Results include a **Skipped** state (in addition to Passed/Failed) -- on Kubernetes clusters the shared-storage portion reports **Skipped** with message `Shared volume PVC not created` until a shared-volume PVC exists (see the [Storage](#storage) section).
+- Storage Performance: `fio` sequential read/write throughput plus a checksummed write/read-back for data-integrity validation against the cluster's shared and local storage tiers. Thresholds are per-tier: shared expects ≥ 10 GiB/s read and ≥ 5 GiB/s write (1 MiB blocks across 64 jobs at iodepth 32); local expects ≥ 2 GiB/s read and ≥ 1 GiB/s write (1 MiB blocks across 16 jobs at iodepth 16). The shared-tier check self-provisions a temporary isolated volume, so it no longer requires a pre-existing shared-volume PVC and no longer reports a **Skipped** result.
 
 ### Node Repair
 
