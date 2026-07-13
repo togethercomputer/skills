@@ -28,6 +28,13 @@ tg --version                      # check; upgrade with: uv tool upgrade togethe
 uses the project associated with your API key, overridable with the `TOGETHER_PROJECT_ID` env
 var or `--project` on any command. Every command accepts `--json` for machine-readable output.
 
+**Scripting / non-interactive use (agents, CI, piped stdin).** Mutating commands such as
+`deploy` print a confirmation preview and prompt before acting; with no TTY they can't read the
+prompt and fail. Pass `--non-interactive` to skip the prompt. In that mode project inference
+from the API key is *not* applied — `deploy` errors with `Project argument is required` unless
+you also pass `--project <proj_...>` (or set `TOGETHER_PROJECT_ID`). A reliable scripted deploy
+is therefore `tg beta endpoints deploy ... --project <proj_id> --non-interactive --json`.
+
 ## Command tree
 
 ```text

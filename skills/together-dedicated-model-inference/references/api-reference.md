@@ -332,13 +332,19 @@ Deletion is permanent, and a deployment must be stopped first. Order:
 4. Delete the endpoint once it has no deployments.
 
 ```python
-client.beta.endpoints.update("ep_abc123", project_id=project_id, traffic_split=[])
+# You can't zero the split with an empty list: the SDK/API omits an empty `traffic_split`
+# from the PATCH body and returns "400 no fields to update". Send the split with this
+# deployment's entry removed (keeping any others):
+client.beta.endpoints.update("ep_abc123", project_id=project_id,
+                             traffic_split=[{"deployment_id": "dep_other", "weight": 1}])
 client.beta.endpoints.deployments.delete("dep_abc123", project_id=project_id, endpoint_id="ep_abc123")
 client.beta.endpoints.delete("ep_abc123", project_id=project_id)
 ```
 
-The CLI's `rm` smart-deletes by ID prefix and auto-detaches from traffic splits and
-experiments; see [cli-reference.md](cli-reference.md).
+When the deployment is the endpoint's **only** traffic entry there's nothing to route to, so
+the empty-split limitation above blocks the pure-SDK path — use the CLI's `rm ... --force`
+instead, which auto-detaches from the split and deletes the deployment and endpoint in one
+step (it smart-deletes by ID prefix; see [cli-reference.md](cli-reference.md)).
 
 ## Monitoring
 
@@ -365,7 +371,16 @@ events = client.beta.endpoints.list_events("ep_abc123", project_id=project_id, l
 
 Optional filters: `types` (event-type strings), `since` / `until` (time range), `subject_id`
 (for example `rol_abc123` for one rollout's audit trail), `deployment_ids` (scope to specific
-deployments), `limit` / `after` (max 500, default 50).
+deployments), `limit` / `after` (max 500, default 50). Events come back newest-first — reverse
+them for a chronological timeline.
+
+The feed is the authoritative source for a **cold-start phase breakdown**. Alongside
+`deployment.created` and `deployment.status_updated` (which carries each state transition plus
+`first_ready_at` / `first_replica_ready_at`), `pod.startup_phase_changed` events trace the
+replica boot — typically `PullingImage → Starting → LoadingWeights → StartupComplete` — each
+with a `phase_budget`. Diffing consecutive event timestamps attributes wall-clock time to each
+phase (image pull vs. engine start vs. weight load vs. warmup), which is finer-grained than
+polling `status.state` alone.
 
 ## Send Inference Requests
 
