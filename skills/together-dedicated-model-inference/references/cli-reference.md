@@ -214,13 +214,16 @@ Creates a variant deployment for a model and starts an A/B experiment against a 
 deployment that's already serving traffic. The CLI assigns the remainder to the control.
 
 ```bash
-tg beta endpoints ab ml_CbJNwQC2ZqCU2iFT3mrCh \
+tg beta endpoints ab Qwen/Qwen2.5-7B-Instruct \
   --control dep_control123 \
   --percent 5 \
   --name sampling-tweak-v1
 ```
 
-The variant model is the positional argument (same forms as `deploy`).
+The variant model is the positional argument (same forms as `deploy`). For a **public catalog
+model, pass the name** (as above), not the `ml_` ID echoed by `deploy`/`models public` — that
+ID is owned by a platform project and the positional resolves it in *your* project, failing
+with `Model ml_… not found`. Use the `ml_` ID only for a model that lives in your own project.
 
 | Flag | Description |
 | --- | --- |
@@ -231,7 +234,8 @@ The variant model is the positional argument (same forms as `deploy`).
 | `--enable-lora` | Enable the multi-LoRA kernel on the variant. |
 
 Ramping or editing an existing experiment is SDK/API only (`ab_experiments.update` replaces
-the whole member set). End the test with `rm abx_...`.
+the whole member set, and requires `update_mask="members"` + the current `etag` or it 400s —
+see [traffic-routing.md](traffic-routing.md)). End the test with `rm abx_...`.
 
 ## endpoints shadow (shadow experiments)
 

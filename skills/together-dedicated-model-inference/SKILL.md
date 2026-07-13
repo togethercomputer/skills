@@ -67,8 +67,10 @@ Together CLI (`tg beta ...` — install with `uv tool install "together[cli]"`; 
 1. Pick a model: `tg beta models public` (or upload custom weights first).
 2. Optionally pick a config: `tg beta models configs <model_id>` (the CLI's `deploy`
    auto-picks when there's exactly one).
-3. Deploy: `tg beta endpoints deploy <model_id> --endpoint <name>` — creates the
-   endpoint, attaches a deployment, and routes 100% of traffic in one step.
+3. Deploy: `tg beta endpoints deploy <model> --endpoint <name>` — creates the
+   endpoint, attaches a deployment, and routes 100% of traffic in one step. For a public
+   catalog model, pass its **name** (`Qwen/Qwen2.5-7B-Instruct`); the catalog `ml_` ID is owned
+   by a platform project and won't resolve as a `deploy`/`ab` positional in your project.
 4. Poll until `status.state` is `DEPLOYMENT_STATE_READY` (re-run `tg beta endpoints get <ep>`).
 5. Send requests to `https://api-inference.together.ai/v1` with the qualified name as `model`.
 6. Scale or reconfigure with `tg beta endpoints update <dep_id>`; split traffic, roll out new

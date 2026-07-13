@@ -77,6 +77,31 @@ need two things the obvious approach misses:
   (or a scale change), the router keeps serving the old split briefly — a probe within ~10s
   can still hit the previous target. Allow ~30s before measuring or mapping clusters.
 
+Reading the header from the Python SDK needs `with_raw_response` (the normal `.create` returns
+a parsed body with no headers), and `prompt_cache_key` is not a top-level argument — pass it in
+`extra_body`. A minimal probe that tallies the split:
+
+```python
+from collections import Counter
+from together import Together
+
+client = Together(base_url="https://api-inference.together.ai/v1")
+counts = Counter()
+for i in range(200):  # a few hundred varied requests → stable share estimate
+    raw = client.chat.completions.with_raw_response.create(
+        model="your-project-slug/my-endpoint",   # qualified name, not ep_ ID
+        messages=[{"role": "user", "content": f"ping {i}"}],
+        max_tokens=1,
+        extra_body={"prompt_cache_key": f"probe-{i}"},   # unique key defeats sticky routing
+    )
+    counts[raw.headers.get("x-cluster")] += 1
+print(counts)   # {control_cluster: ~N*control%, variant_cluster: ~N*variant%}
+```
+
+Size N so the smallest arm gets a countable sample — a 5% arm needs a few hundred requests to
+clear single digits. Expect binomial noise: a configured 95/5 typically measures ~92–97% on the
+control at N=200, not exactly 95%.
+
 ## Traffic splits (weights)
 
 Set by updating the endpoint (SDK/API only):
@@ -280,11 +305,17 @@ Rules:
   split weight fails the test at start. A control with weight 0 (or absent) means the test
   receives no traffic.
 - Updating `members` replaces the whole set — resend every member each time.
+- **The CLI `ab` creates the variant deployment, which then cold-starts.** Until it reaches
+  `READY` the experiment routes ~100% to the control (the variant can't serve yet), so a probe
+  fired immediately after create measures 0% variant. Poll the variant to `READY` before
+  measuring.
 
-CLI (creates the variant deployment too):
+CLI (creates the variant deployment too — pass the model **name** for a public model, not the
+`ml_` ID; the catalog `ml_` ID is owned by a platform project and resolves as
+`Model ml_… not found` here):
 
 ```bash
-tg beta endpoints ab ml_CbJNwQC2ZqCU2iFT3mrCh --control dep_control123 --percent 5 --name candidate-v1
+tg beta endpoints ab Qwen/Qwen2.5-7B-Instruct --control dep_control123 --percent 5 --name candidate-v1
 ```
 
 SDK (create the variant deployment first):
@@ -302,9 +333,28 @@ experiment = client.beta.endpoints.ab_experiments.create(
 ```
 
 Ramp / add variants / remove variants: `ab_experiments.update` with the full new member set
-(SDK/API only). Promote a winner with a rollout
+(SDK/API only). **Pass `update_mask="members"` and the current `etag` (from a fresh
+`retrieve`)** — calling `update(members=[...])` alone (the shape the SDK docstring implies is
+enough) fails with a bare `400 Invalid Argument` that names no field; adding the mask + etag
+fixes it (not isolated which of the two the server requires, so send both):
+
+```python
+cur = client.beta.endpoints.ab_experiments.retrieve(
+    "abx_abc123", project_id=project_id, endpoint_id="ep_abc123")
+client.beta.endpoints.ab_experiments.update(
+    "abx_abc123", project_id=project_id, endpoint_id="ep_abc123",
+    update_mask="members", etag=cur.etag,
+    members=[
+        {"deployment_id": "dep_control123", "role": "AB_EXPERIMENT_MEMBER_ROLE_CONTROL", "percent": 80},
+        {"deployment_id": "dep_variant456", "role": "AB_EXPERIMENT_MEMBER_ROLE_VARIANT", "percent": 20},
+    ],
+)
+```
+
+Promote a winner with a rollout
 (`rollout dep_variant456 --from dep_control123 --blue-green`), then delete the test
-(`rm abx_abc123`) — deletion returns all traffic to the regular split immediately.
+(`rm abx_abc123`) — deletion returns all traffic to the regular split immediately (verified:
+after `rm`, a varied probe lands 100% on the control's cluster).
 
 ## Shadow experiments
 
