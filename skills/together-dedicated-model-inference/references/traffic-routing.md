@@ -395,6 +395,11 @@ experiment = client.beta.endpoints.shadow_experiments.create(
 Operating notes:
 
 - Changes (create/update/delete) take effect within ~30–60 seconds.
+- **The create response can transiently show `targets: []` and `state: INACTIVE`** — target
+  attachment lands a moment after the experiment row. Confirm the mirror is wired up with a
+  follow-up `retrieve` (target present, `state: SHADOW_EXPERIMENT_STATE_ACTIVE`), not the create
+  response. (When reading targets, retrieve the experiment and read its `.targets` rather than
+  calling `targets.list(...)`.)
 - **Pause without deleting**: update `source` with `rate: 0`.
 - Updates to `source` are etag-guarded: retrieve first, pass `etag` back, handle `409 ABORTED`
   by re-reading. Use `update_mask` (`"source"`, `"description"`).

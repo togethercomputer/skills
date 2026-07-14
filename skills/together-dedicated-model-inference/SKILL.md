@@ -71,7 +71,10 @@ Together CLI (`tg beta ...` — install with `uv tool install "together[cli]"`; 
    endpoint, attaches a deployment, and routes 100% of traffic in one step. For a public
    catalog model, pass its **name** (`Qwen/Qwen2.5-7B-Instruct`); the catalog `ml_` ID is owned
    by a platform project and won't resolve as a `deploy`/`ab` positional in your project.
-4. Poll until `status.state` is `DEPLOYMENT_STATE_READY` (re-run `tg beta endpoints get <ep>`).
+4. Poll until `status.state` is `DEPLOYMENT_STATE_READY`. For scripted polling use the SDK
+   `client.beta.endpoints.deployments.retrieve(dep_id, project_id=..., endpoint_id=...)`; the
+   CLI `get` takes an *endpoint* id (a `dep_` id is rejected) and its `--json` reports replica
+   counts but not per-deployment `status.state` — that renders only in the human table.
 5. Send requests to `https://api-inference.together.ai/v1` with the qualified name as `model`.
 6. Scale or reconfigure with `tg beta endpoints update <dep_id>`; split traffic, roll out new
    versions, or experiment as needed.
