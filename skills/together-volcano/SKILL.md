@@ -45,9 +45,27 @@ spec:
     nvidia.com/gpu: 8
 ```
 
+## Attach shared storage (optional)
+
+Together provisions a static PersistentVolume named after the cluster's shared volume. Bind a `ReadWriteMany` PVC to it so every worker shares datasets and checkpoints, then mount it in the job (below).
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shared-pvc
+spec:
+  accessModes: ["ReadWriteMany"]
+  storageClassName: shared-wekafs   # Together default shared storage class
+  volumeName: <shared-volume-name>  # the static PV named after your shared volume
+  resources:
+    requests:
+      storage: 100Gi
+```
+
 ## Run a gang-scheduled job
 
-The gang guarantee comes from `minAvailable` on a Volcano `Job` (`vcjob`). Set `schedulerName: volcano` and a `queue`.
+The gang guarantee comes from `minAvailable` on a Volcano `Job` (`vcjob`). Set `schedulerName: volcano` and a `queue`. The `volumes`/`volumeMounts` blocks are optional; drop them if the job needs no shared storage.
 
 ```yaml
 apiVersion: batch.volcano.sh/v1alpha1
@@ -74,6 +92,13 @@ spec:
               resources:
                 limits:
                   nvidia.com/gpu: 2   # 4 x 2 = 8 GPUs
+              volumeMounts:
+                - name: shared
+                  mountPath: /mnt/shared
+          volumes:
+            - name: shared
+              persistentVolumeClaim:
+                claimName: shared-pvc
 ```
 
 ## Verify

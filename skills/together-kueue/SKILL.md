@@ -62,9 +62,27 @@ spec:
   clusterQueue: gpu-cluster-queue
 ```
 
+## Attach shared storage (optional)
+
+Together provisions a static PersistentVolume named after the cluster's shared volume. Bind a `ReadWriteMany` PVC to it so queued jobs share datasets and checkpoints, then mount it in the job (below). Storage is not a quota resource, so it does not affect admission.
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shared-pvc
+spec:
+  accessModes: ["ReadWriteMany"]
+  storageClassName: shared-wekafs   # Together default shared storage class
+  volumeName: <shared-volume-name>  # the static PV named after your shared volume
+  resources:
+    requests:
+      storage: 100Gi
+```
+
 ## Submit a job to a queue
 
-Add the queue-name label and start the job suspended. Kueue flips `suspend` to `false` on admission.
+Add the queue-name label and start the job suspended. Kueue flips `suspend` to `false` on admission. The `volumes`/`volumeMounts` blocks are optional; drop them if the job needs no shared storage.
 
 ```yaml
 apiVersion: batch/v1
@@ -91,6 +109,13 @@ spec:
               memory: "8Gi"
             limits:
               nvidia.com/gpu: 6
+          volumeMounts:
+            - name: shared
+              mountPath: /mnt/shared
+      volumes:
+        - name: shared
+          persistentVolumeClaim:
+            claimName: shared-pvc
 ```
 
 ## Verify
