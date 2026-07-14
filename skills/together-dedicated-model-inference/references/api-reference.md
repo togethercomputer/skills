@@ -196,14 +196,10 @@ client.beta.endpoints.deployments.update(
 
 CLI equivalent: `tg beta endpoints update dep_abc123 --min-replicas 1 --max-replicas 4`.
 
-Optional windows (settable at deploy or update time): `scale_up_window` (metric must stay
+Optional windows (settable at deploy or update time via CLI flags): `scale_up_window` (metric must stay
 above target this long before adding replicas), `scale_down_window` (cooldown between
-scale-downs, **default 5m**), `scale_to_zero_window` (idle time before scaling to zero).
-Scale-up reacts fast; scale-down is deliberately slow so bursty traffic doesn't pay a cold
-start on every trough. **All three are Go duration strings with a unit** (`"30s"`, `"5m"`) on
-both the SDK (`autoscaling={..., "scale_up_window": "30s"}`) and the CLI
-(`--scale-up-window 30s`). A bare integer is rejected by the API as `invalid request format` —
-the CLI help text says "in seconds" but the unit is still required.
+scale-downs), `scale_to_zero_window` (idle time before scaling to zero). Scale-up reacts fast;
+scale-down is deliberately slow so bursty traffic doesn't pay a cold start on every trough.
 
 New replicas **cold start**: placement → image pull → weight load → engine load → warmup.
 Minutes even for small models (image pull on a cold node often dominates — up to several
