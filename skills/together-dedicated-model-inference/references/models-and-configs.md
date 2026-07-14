@@ -160,19 +160,12 @@ DMI bills **per minute, per running replica, by hardware** — model and token v
 affect cost. A replica stops billing as soon as it scales down; a stopped deployment costs
 nothing.
 
-Single-GPU per-hour rates (multi-GPU configs cost proportionally more; check
-[the pricing page](https://docs.together.ai/docs/dedicated-endpoints/pricing) for current rates):
-
-| GPU | Hardware ID | Cost/hour |
-| --- | --- | --- |
-| H100 80GB | `1xnvidia-h100-80gb` | $5.49 |
-| H200 141GB | `1xnvidia-h200-141gb` | $6.65 |
-| B200 180GB | `1xnvidia-b200-180gb` | $8.99 |
-| GB300 280GB | `1xnvidia-gb300-280gb` | $15.00 |
-| B300 280GB | `1xnvidia-b300-280gb` | $15.00 |
-
-As a scale reference: one H100 replica running continuously is about $132/day, or roughly
-$3,950 over a 30-day month.
+Pricing is per hour per single GPU, and multi-GPU configs cost proportionally more (a
+four-GPU config costs four times the single-GPU rate). For current rates per hardware type
+(H100, H200, B200, ...), check the
+[pricing page](https://docs.together.ai/docs/dedicated-endpoints/pricing) or query
+`/v2/public/inference-instance-types` (see [Instance types and
+capacity](#instance-types-and-capacity)) — don't quote rates from memory.
 
 Cost levers:
 
