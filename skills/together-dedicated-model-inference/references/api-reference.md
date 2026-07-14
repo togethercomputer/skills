@@ -196,14 +196,28 @@ client.beta.endpoints.deployments.update(
 
 CLI equivalent: `tg beta endpoints update dep_abc123 --min-replicas 1 --max-replicas 4`.
 
-Optional windows (settable at deploy or update time via CLI flags): `scale_up_window` (metric must stay
+Optional windows (settable at deploy or update time): `scale_up_window` (metric must stay
 above target this long before adding replicas), `scale_down_window` (cooldown between
-scale-downs), `scale_to_zero_window` (idle time before scaling to zero). Scale-up reacts fast;
-scale-down is deliberately slow so bursty traffic doesn't pay a cold start on every trough.
+scale-downs, **default 5m**), `scale_to_zero_window` (idle time before scaling to zero).
+Scale-up reacts fast; scale-down is deliberately slow so bursty traffic doesn't pay a cold
+start on every trough. **All three are Go duration strings with a unit** (`"30s"`, `"5m"`) on
+both the SDK (`autoscaling={..., "scale_up_window": "30s"}`) and the CLI
+(`--scale-up-window 30s`). A bare integer is rejected by the API as `invalid request format` —
+the CLI help text says "in seconds" but the unit is still required.
 
-New replicas **cold start**: placement → weight download → engine load → warmup. Minutes for
-small models, longer for large ones. Keep `min_replicas >= 1` to avoid cold starts on the
-first request; raise it ahead of known traffic spikes.
+New replicas **cold start**: placement → image pull → weight load → engine load → warmup.
+Minutes even for small models (image pull on a cold node often dominates — up to several
+minutes), longer for large ones. Two things to design around:
+
+- **`desired` reacts far faster than `ready` climbs.** The autoscaler moves `desired` within
+  roughly the metric window + `scale_up_window` (tens of seconds), but `readyReplicas` only
+  catches up after the full cold start. When measuring "scale-up speed," separate the
+  *decision* (`desired` / `status.scheduledReplicas` changing) from *fulfillment*
+  (`status.readyReplicas` changing); the `pod.startup_phase_changed` events (see
+  [Events Feed](#events-feed)) attribute the wall-clock to each boot phase.
+- **Reactive scale-up cannot catch a spike shorter than the cold start.** Keep
+  `min_replicas >= 1` to avoid a cold start on the first request, and raise `min_replicas`
+  *ahead of* a known burst — a 90-second wave is over before a new replica is ready.
 
 ## Scaling Metrics
 
@@ -240,6 +254,11 @@ CLI equivalent: `tg beta endpoints update dep_abc123 --min-replicas 1 --max-repl
 
 Caveats:
 
+- **The default `inflight_requests` target (8) scales on concurrency, not latency.** A
+  capable replica can serve well above 8 concurrent requests with no latency degradation, so
+  the default fires scale-ups before the replica is actually latency-saturated. If you want
+  scaling tied to an SLO rather than raw concurrency, raise the target or switch to a latency
+  metric (`e2e_latency` / `ttft`, streaming only for `ttft`).
 - `throughput_per_replica`, `ttft`, and `decoding_speed` are recorded **only for streaming
   responses** — scaling on them without `"stream": true` traffic won't work.
 - Latency metrics default to p95 over the measurement window; set `"percentile"` to `"p50"`,
