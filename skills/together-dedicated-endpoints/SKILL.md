@@ -46,6 +46,8 @@ Typical fits:
   - Read [references/dedicated-models.md](references/dedicated-models.md)
 - **Hardware and sizing choices**
   - Read [references/hardware-options.md](references/hardware-options.md)
+- **LoRA-enabled base model support (target modules, max loaded adapters)**
+  - Read the LoRA-Enabled Base Models section in [references/api-reference.md](references/api-reference.md)
 
 ## Workflow
 
