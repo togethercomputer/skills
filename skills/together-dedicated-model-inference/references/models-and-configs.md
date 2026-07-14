@@ -49,8 +49,8 @@ supported. Don't hardcode model names — list the catalog and use real IDs.
 
 Each supported-model entry carries `deploymentProfiles`: certified model-and-config pairs
 Together publishes. Each profile gives you `model` and `config` **resource names you can pass
-straight into a deployment create**, plus `gpuType`, `gpuCount`, and `parallelism` (free-form:
-`TP8`, `TP4`, `EP`, `PD` — not always a tensor-parallel degree).
+straight into a deployment create**, plus `gpuType`, `gpuCount`, `parallelism` (free-form:
+`TP8`, `TP4`, `EP`, `PD` — not always a tensor-parallel degree), and `quantization`.
 
 ```json
 {
@@ -59,22 +59,64 @@ straight into a deployment create**, plus `gpuType`, `gpuCount`, and `parallelis
   "model": "projects/proj_weights/models/ml_weight/revisions/rv_snap",
   "parallelism": "TP8",
   "gpuType": "H100",
-  "gpuCount": 8
+  "gpuCount": 8,
+  "quantization": "FP8"
 }
 ```
 
 Note the owning projects in these resource names are platform projects — copy the strings
 verbatim rather than substituting your own project ID.
 
+**A model usually has more than one profile** — the same weights published at different
+`quantization` (e.g. `BF16` vs `FP8`), `gpuCount`, or `parallelism`. `deploymentProfiles` is
+the authoritative list of what's deployable and the **only** place `quantization` is exposed;
+`tg beta models configs <arch_id>` frequently returns an empty list for catalog architectures,
+so don't rely on it to enumerate a public model's options — read the profiles instead. Filter
+the profiles to the precision/hardware you want, then take that profile's `model` and `config`
+strings.
+
+### Deploying a specific profile (precision matters)
+
+When a model has exactly one profile, `tg beta endpoints deploy <model-name> --endpoint <name>`
+resolves it automatically. When it has several, a bare-name deploy **fails** rather than
+guessing:
+
+```text
+Multiple model revisions/configs found for Qwen/Qwen3.5-9B: ...
+Error: Choose one and rerun with the additional flags: --model <model-id> --config <config-id>
+```
+
+Disambiguate by passing the chosen profile's **full resolved `model` resource path** as the
+positional (not the bare `Qwen/...` name — that stays ambiguous even with `--config`) together
+with its `--config`:
+
+```bash
+# Deploy the BF16 profile specifically
+tg beta endpoints deploy \
+  "projects/proj_weights/models/ml_weight/revisions/rv_snap" \
+  --endpoint my-endpoint \
+  --config cr_certified
+```
+
+From the SDK, `deployments.create` already takes the profile's `model` and `config` resource
+names directly (see [api-reference.md](api-reference.md)), so there's no ambiguity to resolve —
+just pass the strings from the profile you picked.
+
 ## Configs
 
 A config describes how a model runs: inference engine, hardware selectors, optimization
 profile. Together publishes configs per model; you pick one when creating a deployment. The
-CLI's `deploy` auto-picks when the model has exactly one config.
+CLI's `deploy` auto-picks when the model has exactly one config, and errors asking you to
+disambiguate when there are several (see [Deploying a specific
+profile](#deploying-a-specific-profile-precision-matters)).
 
 ```bash
 tg beta models configs ml_CbJNwQC2ZqCU2iFT3mrCh
 ```
+
+For a **public catalog architecture** this list is often empty — its deployable configs live in
+the model's `deploymentProfiles` instead (above). `tg beta models configs` is most useful for
+models in your own project (uploads, fine-tunes).
 
 ```python
 configs = client.beta.models.configs.list(

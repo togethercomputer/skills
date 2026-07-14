@@ -65,12 +65,18 @@ Together CLI (`tg beta ...` — install with `uv tool install "together[cli]"`; 
 ## Workflow
 
 1. Pick a model: `tg beta models public` (or upload custom weights first).
-2. Optionally pick a config: `tg beta models configs <model_id>` (the CLI's `deploy`
-   auto-picks when there's exactly one).
+2. Pick a config/precision: read the model's `deploymentProfiles` (they carry `quantization`
+   like `BF16`/`FP8`, `gpuCount`, and the exact `model`+`config` resource names). `tg beta
+   models configs <id>` is often empty for catalog architectures — see
+   [models-and-configs.md](references/models-and-configs.md). `deploy` auto-picks only when the
+   model has a single profile.
 3. Deploy: `tg beta endpoints deploy <model> --endpoint <name>` — creates the
    endpoint, attaches a deployment, and routes 100% of traffic in one step. For a public
-   catalog model, pass its **name** (`Qwen/Qwen2.5-7B-Instruct`); the catalog `ml_` ID is owned
-   by a platform project and won't resolve as a `deploy`/`ab` positional in your project.
+   catalog model with one profile, pass its **name** (`Qwen/Qwen2.5-7B-Instruct`); the catalog
+   `ml_`/`arch_` ID is owned by a platform project and won't resolve as a `deploy`/`ab`
+   positional in your project. If the model has **multiple profiles** (e.g. BF16 + FP8), a
+   bare-name deploy errors — pass the chosen profile's full resolved `model` resource path as
+   the positional plus its `--config` (see models-and-configs.md).
 4. Poll until `status.state` is `DEPLOYMENT_STATE_READY`. For scripted polling use the SDK
    `client.beta.endpoints.deployments.retrieve(dep_id, project_id=..., endpoint_id=...)`; the
    CLI `get` takes an *endpoint* id (a `dep_` id is rejected) and its `--json` reports replica
