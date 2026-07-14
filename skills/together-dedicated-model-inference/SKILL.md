@@ -1,6 +1,6 @@
 ---
 name: together-dedicated-model-inference
-description: "Deploy and operate models on dedicated GPUs with Together AI's Dedicated Model Inference (DMI, the v2 dedicated endpoints API): beta endpoints, deployments, hardware configs, autoscaling with auto-shutdown, traffic splitting, canary/blue-green/rolling rollouts, A/B tests, shadow experiments, and custom model or LoRA adapter uploads. Reach for it whenever the user mentions together beta endpoints or tg beta commands, client.beta.endpoints, DMI resources like ep_/dep_/cr_/ml_ IDs, or wants production model serving with traffic management on Together AI. Use together-dedicated-endpoints only for the legacy v1 endpoints API."
+description: "Deploy and operate models on dedicated GPUs with Together AI's Dedicated Model Inference (DMI, the v2 dedicated endpoints API): beta endpoints, deployments, deployment profiles and hardware configs, autoscaling, traffic splitting, canary/blue-green/rolling rollouts, A/B tests, shadow experiments, Prometheus metrics, and custom model or LoRA adapter uploads. Reach for it whenever the user mentions together beta endpoints or tg beta commands, client.beta.endpoints, DMI resources like ep_/dep_/cr_/ml_ IDs, or wants production model serving with traffic management on Together AI. Use together-dedicated-endpoints only for the legacy v1 endpoints API."
 ---
 
 # Together Dedicated Model Inference
@@ -20,8 +20,9 @@ The resource model has six parts: **Project → Model → Config → Endpoint �
   and count, optimization profile). The model determines the available configs.
 - **Replica** — one model instance on its own dedicated hardware.
 
-Inference goes to `https://api-inference.together.ai/v1` with the endpoint's **qualified name**
-(`<project_slug>/<endpoint_name>`) as the `model` parameter. Management goes through the
+Inference goes to `https://api-inference.together.ai/v1` with the **endpoint string** (the
+project-qualified name `<project_slug>/<endpoint_name>` — the docs' current term for what was
+earlier called the qualified name) as the `model` parameter. Management goes through the
 Together CLI (`tg beta ...` — install with `uv tool install "together[cli]"`; `tg` and
 `together` are interchangeable), the `client.beta.*` SDK namespaces, or the `/v2` REST API at
 `https://api.together.ai`.
@@ -32,7 +33,7 @@ Together CLI (`tg beta ...` — install with `uv tool install "together[cli]"`; 
 - Anything involving `tg beta endpoints` / `tg beta models` (a.k.a. `together beta ...`) CLI commands
 - Anything involving `client.beta.endpoints` / `client.beta.models` SDK namespaces
 - Traffic management: splits, rollouts (canary/blue-green/rolling), A/B tests, shadow experiments
-- Autoscaling, scale-to-zero/auto-shutdown, deployment lifecycle, monitoring and events
+- Autoscaling, scale-to-zero, deployment lifecycle, monitoring (dashboards, events, Prometheus scrape)
 - Uploading custom model weights or LoRA adapters for dedicated serving
 
 ## Hand Off To Another Skill
@@ -77,24 +78,30 @@ Together CLI (`tg beta ...` — install with `uv tool install "together[cli]"`; 
    positional in your project. If the model has **multiple profiles** (e.g. BF16 + FP8), a
    bare-name deploy errors — pass the chosen profile's full resolved `model` resource path as
    the positional plus its `--config` (see models-and-configs.md).
-4. Poll until `status.state` is `DEPLOYMENT_STATE_READY`. For scripted polling use the SDK
-   `client.beta.endpoints.deployments.retrieve(dep_id, project_id=..., endpoint_id=...)`; the
-   CLI `get` takes an *endpoint* id (a `dep_` id is rejected) and its `--json` reports replica
-   counts but not per-deployment `status.state` — that renders only in the human table.
+4. Poll until `status.state` is `DEPLOYMENT_STATE_READY`. The CLI `get` now accepts an
+   endpoint **or** deployment ID: `tg beta endpoints get dep_... --json | jq -r '.status.state'`
+   is the scripted polling loop; the SDK equivalent is
+   `client.beta.endpoints.deployments.retrieve(dep_id, project_id=..., endpoint_id=...)`.
+   First-time provisioning commonly takes up to ~20 minutes.
 5. Send requests to `https://api-inference.together.ai/v1` with the qualified name as `model`.
-6. Scale or reconfigure with `tg beta endpoints update <dep_id>`; split traffic, roll out new
-   versions, or experiment as needed.
+6. Scale, reconfigure, or set traffic weights with `tg beta endpoints update <dep_id>`
+   (`--min/--max-replicas`, `--scaling-metrics`, `--traffic-weight`); roll out new versions or
+   experiment as needed.
 7. Clean up: `tg beta endpoints update <dep_id> --min-replicas 0 --max-replicas 0` to stop
-   billing, or `tg beta endpoints rm <id>` to delete.
+   billing, or `tg beta endpoints rm <ep_id> --force` to tear everything down (it scales
+   deployments to zero itself).
 
 ## High-Signal Rules
 
-- **Billing runs while replicas run.** Per minute, per replica, by hardware. Always scale to
-  zero (`min_replicas: 0, max_replicas: 0`) or delete when the user is done, and suggest
-  `--inactive-timeout` (minutes; auto-stop) for dev workloads.
+- **Billing runs while replicas run, and there is no automatic idle shutdown.** Per minute,
+  per replica, by hardware. The old `inactive_timeout` auto-stop was removed — always scale to
+  zero (`min_replicas: 0, max_replicas: 0`) or delete when the user is done; a forgotten
+  deployment bills until someone stops it.
 - **A `READY` deployment serves nothing until it's in the endpoint's traffic split.** The CLI's
-  `deploy` routes automatically; SDK flows must call `endpoints.update(traffic_split=[...])`.
-  A `routing_error`/503 on a READY deployment almost always means a missing/zero weight.
+  `deploy` routes automatically; otherwise set a weight with `tg beta endpoints update <dep_id>
+  --traffic-weight N` (upserts one entry) or replace the split via SDK
+  `endpoints.update(traffic_split=[...])`. A `routing_error`/503 on a READY deployment almost
+  always means a missing/zero weight.
 - **Management IDs vs inference name.** Management calls take IDs (`ep_`, `dep_`, `cr_`, `ml_`,
   `rol_`, `abx_`, `exp_`); inference takes the qualified name `<project_slug>/<endpoint_name>`.
 - **The SDK requires `project_id` on every method** — derive it with `client.whoami().project_id`.
@@ -108,13 +115,13 @@ Together CLI (`tg beta ...` — install with `uv tool install "together[cli]"`; 
 - **Metric names come in two disjoint catalogs.** Autoscaling uses `gpu_utilization`,
   `inflight_requests`, `ttft`, etc.; rollout gates use `serving_latency`, `router_error_rate`,
   etc. The sets are not interchangeable — a name from the wrong catalog is rejected. Charts
-  live in the dashboard (`https://api.together.ai/endpoints`); there's no metrics query API.
-- **Deletion order matters:** stop the deployment (wait for `STOPPED`), remove it from the
-  traffic split, delete it, then delete the endpoint. The CLI's `rm` smart-deletes by ID
-  prefix and auto-detaches from the split; `--force` deletes an endpoint's deployments too.
-  But **neither `rm` nor `--force` stops a running deployment** — a `READY` deployment must
-  already be scaled to `0/0` and `STOPPED`, or `rm` fails with `deployment must be stopped or
-  failed before deletion (current state: ready)`. Scale down and wait for `STOPPED` first.
+  live in the dashboard (`https://api.together.ai/endpoints`); raw series can be scraped from
+  the org-scoped Prometheus-compatible metrics endpoint (beta — see api-reference.md).
+- **Deletion order matters:** stop the deployment (wait for `STOPPED`), delete it, then
+  delete the endpoint. The CLI's `rm` smart-deletes by ID prefix and auto-detaches from the
+  split. Deleting still requires a stopped deployment, but `rm` now scales down for you:
+  `rm dep_...` on a running deployment sets `0/0` and asks you to retry once `STOPPED`, and
+  `rm ep_... --force` scales the endpoint's deployments to zero itself as part of teardown.
 - **To see which deployment/replica served a request, read the inference response headers.**
   The response *body*'s `model` field only echoes the endpoint's qualified name — identical for
   every deployment. The routing headers distinguish them: `x-cluster` is the per-deployment
@@ -122,8 +129,10 @@ Together CLI (`tg beta ...` — install with `uv tool install "together[cli]"`; 
   This is the only way to verify a split, rollout, or A/B empirically. See
   [traffic-routing.md](references/traffic-routing.md) (Observing routing).
 - **Rollouts are the safe way to replace a deployment on live traffic** — create the target
-  stopped (`0/0`), then `tg beta endpoints rollout <target> --from <source> --canary`.
-  Metric gates are canary-only and need live traffic to evaluate.
+  with **at least one replica, wait for `READY`**, then
+  `tg beta endpoints rollout <target> --from <source> --canary`. Do NOT start a rollout with a
+  `0/0` target: traffic can shift before a replica is ready, causing `deployment_stopped`
+  errors. Metric gates are canary-only and need live traffic to evaluate.
 - The `client.beta.*` SDK surface and `together beta` CLI are **beta**: pin a current SDK
   release (`uv pip install --upgrade together`) and expect the surface to evolve.
 

@@ -3,7 +3,7 @@
 Together AI Dedicated Model Inference -- Roll Out a New Deployment
 
 Replace a live deployment with a new one (new model version, new config, or
-new hardware) without downtime: create the target stopped, start a rollout
+new hardware) without downtime: create the target and wait for READY, start a rollout
 (blue-green or metric-gated canary), watch it, and control its lifecycle.
 
 Usage:
@@ -19,6 +19,9 @@ Requires:
     export TOGETHER_API_KEY=your_key
 
 Notes:
+    - The target must have at least one replica and be READY before the rollout
+      starts (a 0/0 target risks deployment_stopped errors mid-shift). `prepare`
+      creates it with one replica and waits; keep it OUT of the traffic split.
     - The source must be in the endpoint's traffic split, or the rollout shifts nothing.
     - Metric gates are canary-only and need live traffic on the endpoint to evaluate.
     - After COMPLETED there's no rollback; revert by rolling out in reverse.
@@ -37,17 +40,32 @@ TERMINAL_STATES = {"ROLLOUT_STATE_COMPLETED", "ROLLOUT_STATE_ABORTED"}
 
 
 def prepare_target(endpoint_id: str, model_id: str, config_id: str, config_project_id: str, name: str):
-    """Create the target deployment stopped (0/0) so the rollout scales it from zero."""
+    """Create the target deployment with one replica and wait for READY.
+
+    The rollout adjusts the target's replica count after it starts, but it must
+    already be READY when the rollout begins — traffic can shift before a 0/0
+    target has a ready replica, causing deployment_stopped errors.
+    """
     deployment = client.beta.endpoints.deployments.create(
         endpoint_id,
         project_id=PROJECT_ID,
         name=name,
         model=f"projects/{PROJECT_ID}/models/{model_id}",
         config=f"projects/{config_project_id}/configs/{config_id}",
-        autoscaling={"min_replicas": 0, "max_replicas": 0},
+        autoscaling={"min_replicas": 1, "max_replicas": 1},
     )
-    print(f"Created stopped target deployment: {deployment.id}")
-    print("Do NOT add it to the traffic split; the rollout moves traffic itself.")
+    print(f"Created target deployment: {deployment.id} — waiting for READY...")
+    while True:
+        d = client.beta.endpoints.deployments.retrieve(
+            deployment.id, project_id=PROJECT_ID, endpoint_id=endpoint_id
+        )
+        print(f"  {d.status.state}")
+        if d.status.state == "DEPLOYMENT_STATE_READY":
+            break
+        if d.status.state == "DEPLOYMENT_STATE_FAILED":
+            raise RuntimeError(f"Target deployment failed: {d.status.message}")
+        time.sleep(15)
+    print("Target READY. Do NOT add it to the traffic split; the rollout moves traffic itself.")
     return deployment
 
 
@@ -148,7 +166,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
 
-    p = sub.add_parser("prepare", help="Create the stopped target deployment")
+    p = sub.add_parser("prepare", help="Create the target deployment and wait for READY")
     p.add_argument("--endpoint", required=True)
     p.add_argument("--model", required=True, help="Model ID (ml_...)")
     p.add_argument("--config", required=True, help="Config revision ID (cr_...)")
@@ -158,7 +176,7 @@ def main() -> int:
     p = sub.add_parser("start", help="Create and start the rollout")
     p.add_argument("--endpoint", required=True)
     p.add_argument("--source", required=True, help="Source deployment ID (currently serving)")
-    p.add_argument("--target", required=True, help="Target deployment ID (stopped)")
+    p.add_argument("--target", required=True, help="Target deployment ID (READY, not in the split)")
     p.add_argument("--replicas", type=int, required=True, help="Final target replica count (>= 1)")
     p.add_argument("--canary", action="store_true", help="Staged ladder instead of blue-green")
     p.add_argument("--steps", default=None, help="Canary traffic ladder, e.g. 25,50,100")

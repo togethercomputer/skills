@@ -17,8 +17,9 @@ Requires:
 
 Upload requirements:
     - Weights must be a fine-tuned variant of a base model Together supports for
-      dedicated inference (uploads can't introduce new architectures), and must
-      fit on a single GPU.
+      dedicated inference (uploads can't introduce new architectures). Meeting
+      the requirements is necessary but not sufficient: unsupported base models,
+      layer types, or adapter ranks are rejected at create/upload time.
     - Hugging Face repo layout compatible with from_pretrained; adapters need
       adapter_config.json + adapter_model.safetensors.
     - S3 sources: one .zip/.tar.gz archive with files at the archive ROOT, and a

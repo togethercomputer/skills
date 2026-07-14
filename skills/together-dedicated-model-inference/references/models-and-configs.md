@@ -8,6 +8,7 @@
 - [Pricing and hardware](#pricing-and-hardware)
 - [Upload a custom model](#upload-a-custom-model)
 - [Upload a LoRA adapter](#upload-a-lora-adapter)
+- [Download and delete models](#download-and-delete-models)
 - [Upload troubleshooting](#upload-troubleshooting)
 
 ## Choose a model
@@ -165,7 +166,10 @@ Single-GPU per-hour rates (multi-GPU configs cost proportionally more; check
 | GPU | Hardware ID | Cost/hour |
 | --- | --- | --- |
 | H100 80GB | `1xnvidia-h100-80gb` | $5.49 |
+| H200 141GB | `1xnvidia-h200-141gb` | $6.65 |
 | B200 180GB | `1xnvidia-b200-180gb` | $8.99 |
+| GB300 280GB | `1xnvidia-gb300-280gb` | $15.00 |
+| B300 280GB | `1xnvidia-b300-280gb` | $15.00 |
 
 As a scale reference: one H100 replica running continuously is about $132/day, or roughly
 $3,950 over a 30-day month.
@@ -173,9 +177,27 @@ $3,950 over a 30-day month.
 Cost levers:
 
 - `min_replicas` sets the cost floor (always running); `max_replicas` sets the ceiling.
-- `inactive_timeout` (auto-shutdown) stops idle deployments; the next request pays a cold start.
+- **Stop when idle** — scale to `0/0` (or delete). There is **no automatic idle shutdown**;
+  a deployment runs and bills until you stop it, and the first request after a restart pays
+  a cold start.
 - **On-demand** (per-minute, no commitment) vs **reserved** (committed term, lower effective
   rate, guaranteed hardware — contact Together sales).
+
+### Instance types and capacity
+
+A config's `accelerator_type` + `accelerator_count` selectors map to a deployable **instance
+type** (e.g. `1xnvidia-h100-80gb`) — the unit of hardware you pay for while replicas run.
+Check per-hour price and per-region capacity before deploying:
+
+```bash
+curl -s -H "Authorization: Bearer $TOGETHER_API_KEY" \
+  https://api.together.ai/v2/public/inference-instance-types
+```
+
+Each instance type lists its `regions`, and each region reports `headroom` — a best-effort
+hint of how many more replicas currently fit. A headroom of N with `RELATION_GTE` means at
+least N units are free (the true number may be higher). Use it to pick a region with capacity
+before you deploy.
 
 DMI vs serverless rule of thumb: DMI wins when a replica stays busy most of the day (fixed
 cost spread over high throughput, plus reserved capacity and predictable latency); serverless
@@ -185,16 +207,21 @@ wins for low or bursty traffic where a dedicated replica would idle.
 
 Serve your own fine-tuned weights. Requirements:
 
-- **Source**: Hugging Face Hub or an S3 presigned URL (or local files via CLI upload).
+- **Source**: your local machine (CLI upload), Hugging Face Hub, or an S3 presigned URL.
 - **Architecture**: a fine-tuned variant of a base model Together supports for dedicated
   inference — uploads cannot introduce new architectures.
-- **Type**: text generation or embedding; **must fit on a single GPU** (multi-GPU uploads not
-  supported).
+- **Type**: text generation.
 - **Format**: standard Hugging Face repo layout compatible with `from_pretrained`
   (`config.json`, `*.safetensors`, `tokenizer.json`, ...).
 - **S3 archives**: a single `.zip` / `.tar.gz` with the files at the **archive root** (no
   nested top-level directory); presigned URL valid for at least 100 minutes.
   From inside the model dir: `tar -czvf ../model.tar.gz .`
+
+Meeting these is necessary but not sufficient: an unsupported base model, layer type, or
+adapter rank is rejected with an error identifying the problem at create or upload time.
+
+Uploaded models are **Private** by default (visible only to your project); Internal makes a
+model visible to your whole organization, Public to anyone.
 
 ### Step 1 — Register the model record
 
@@ -290,6 +317,21 @@ Note the `--type` asymmetry: write commands (`upload`, `remote-uploads create`) 
 Deploy the adapter's `ml_...` ID like a base model, using a config for its base model. To
 hot-load adapters onto a running deployment, the deployment must have been created with
 `--enable-lora` (toggling later requires a redeploy).
+
+## Download and delete models
+
+Download a model's or adapter's files back to your machine, or delete the record:
+
+```bash
+# Download files (--format hf lays them out as a HuggingFace snapshot)
+tg beta models download ml_abc123 ./local-dir [--revision rv_...] [--format hf]
+
+# Delete the model record (does not delete uploaded files)
+tg beta models rm ml_abc123
+```
+
+Note the delete command is `rm` (the earlier `delete` name is gone), and `update` can no
+longer change a record's base model.
 
 ## Upload troubleshooting
 

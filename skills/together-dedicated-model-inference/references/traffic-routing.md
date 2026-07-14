@@ -104,7 +104,18 @@ control at N=200, not exactly 95%.
 
 ## Traffic splits (weights)
 
-Set by updating the endpoint (SDK/API only):
+Set one deployment's weight from the CLI — it resolves the parent endpoint and preserves the
+other deployments' weights, so run it once per deployment:
+
+```bash
+tg beta endpoints update dep_abc123 --traffic-weight 70
+tg beta endpoints update dep_def456 --traffic-weight 30
+
+# Take a deployment out of rotation without scaling it down
+tg beta endpoints update dep_abc123 --traffic-weight 0
+```
+
+Or replace the whole split at once from the SDK/API:
 
 ```python
 client.beta.endpoints.update(
@@ -137,10 +148,14 @@ the split when replacing a deployment on live traffic (new model version, new co
 
 Requirements:
 
-- Source and target under the same endpoint.
+- Source and target under the same endpoint. The source can be a live weighted deployment or
+  an A/B / shadow experiment member (the CLI detaches it).
 - The source must be referenced in the traffic split (a rollout only shifts traffic already
   routed to the source; otherwise it runs but moves nothing).
-- Create the target **stopped** (`0/0` bounds) so the rollout scales it up from zero.
+- **The target must have at least one replica and be `READY` before you start.** Do NOT start
+  a rollout with the target at `0/0`: traffic can shift before the target has a ready replica,
+  causing `deployment_stopped` errors. The rollout adjusts the target's replica count after it
+  starts. (Earlier guidance said to create the target stopped — that's obsolete.)
 - One active rollout per endpoint (`409` on create otherwise).
 
 ### Strategies

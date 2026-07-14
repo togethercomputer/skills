@@ -20,8 +20,8 @@ Requires:
     uv pip install --upgrade together   # a release with the beta DMI surface (client.beta.*)
     export TOGETHER_API_KEY=your_key
 
-Billing note: replicas bill per minute while running. `stop` (scale to 0/0)
-halts billing without deleting anything.
+Billing note: replicas bill per minute while running and there is NO automatic
+idle shutdown. `stop` (scale to 0/0) halts billing without deleting anything.
 """
 
 import argparse
@@ -68,7 +68,6 @@ def deploy(
     endpoint_name: str,
     min_replicas: int = 1,
     max_replicas: int = 1,
-    inactive_timeout: int | None = None,
 ):
     """Create an endpoint, attach a deployment, and route 100% of traffic to it.
 
@@ -84,7 +83,6 @@ def deploy(
         model=f"projects/{PROJECT_ID}/models/{model_id}",
         config=f"projects/{config_project_id}/configs/{config_id}",
         autoscaling={"min_replicas": min_replicas, "max_replicas": max_replicas},
-        inactive_timeout=inactive_timeout,
     )
     print(f"Created deployment: {deployment.id}")
 
@@ -206,7 +204,6 @@ def main() -> int:
     p.add_argument("--endpoint", required=True, help="New endpoint name")
     p.add_argument("--min", type=int, default=1, dest="min_replicas")
     p.add_argument("--max", type=int, default=1, dest="max_replicas")
-    p.add_argument("--inactive-timeout", type=int, default=None, help="Idle minutes before auto-stop")
 
     p = sub.add_parser("status", help="Show deployment status")
     p.add_argument("--endpoint", required=True)
@@ -238,7 +235,7 @@ def main() -> int:
     elif args.command == "deploy":
         deploy(
             args.model, args.config, args.config_project, args.endpoint,
-            args.min_replicas, args.max_replicas, args.inactive_timeout,
+            args.min_replicas, args.max_replicas,
         )
     elif args.command == "status":
         show_status(args.endpoint, args.deployment)

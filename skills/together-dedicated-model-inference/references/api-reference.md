@@ -10,7 +10,7 @@
 - [Deployment States](#deployment-states)
 - [Autoscaling](#autoscaling)
 - [Scaling Metrics](#scaling-metrics)
-- [Stop / Restart / Auto-Shutdown](#stop--restart--auto-shutdown)
+- [Stop / Restart](#stop--restart)
 - [Route Traffic](#route-traffic)
 - [List, Paginate, Filter](#list-paginate-filter)
 - [Delete Resources](#delete-resources)
@@ -128,7 +128,6 @@ curl -X POST "https://api.together.ai/v2/projects/$PROJECT_ID/endpoints/ep_abc12
 | `config` | Yes | Config-revision resource name. Hardware and engine are fixed for the deployment's life. |
 | `autoscaling` | Yes | Replica bounds + optional scaling metrics. See [Autoscaling](#autoscaling). |
 | `enable_lora` | No | Enable LoRA adapter loading. Toggling later requires a redeploy. |
-| `inactive_timeout` | No | Minutes of inactivity before auto-stop; `0` disables. |
 
 The speculator (draft model for speculative decoding) comes from the config and is pinned at
 creation — it cannot be set on the deployment.
@@ -138,9 +137,11 @@ creation — it cannot be set on the deployment.
 
 ## Poll Deployment Status
 
-The CLI's `get` prints each deployment's state and ready/desired replica counts alongside the
-endpoint, so re-running `tg beta endpoints get ep_abc123` works for quick polling. The full
-status fields below are SDK/API.
+The CLI's `get` accepts an endpoint **or** deployment ID. `tg beta endpoints get ep_abc123`
+prints the endpoint with each deployment's state and replica counts; `tg beta endpoints get
+dep_abc123` resolves the parent endpoint and prints that deployment's detail —
+`tg beta endpoints get dep_abc123 --json | jq -r '.status.state'` gives a machine-readable
+state for polling loops. The same fields via the SDK:
 
 ```python
 d = client.beta.endpoints.deployments.retrieve(
@@ -262,7 +263,10 @@ Caveats:
 - These names are the **autoscaling catalog**, distinct from the rollout-gate catalog
   (`serving_latency`, `router_error_rate`, ...) — the two are not interchangeable.
 
-## Stop / Restart / Auto-Shutdown
+## Stop / Restart
+
+There is **no automatic idle shutdown** — a deployment runs and bills until you stop it
+(the earlier `inactive_timeout` auto-stop was removed from the API).
 
 ```python
 # Stop (drains, then STOPPED; billing stops)
@@ -276,24 +280,26 @@ client.beta.endpoints.deployments.update(
     "dep_abc123", project_id=project_id, endpoint_id="ep_abc123",
     autoscaling={"min_replicas": 1, "max_replicas": 2},
 )
-
-# Auto-shutdown after 30 idle minutes
-client.beta.endpoints.deployments.update(
-    "dep_abc123", project_id=project_id, endpoint_id="ep_abc123",
-    inactive_timeout=30,
-)
 ```
 
 CLI equivalents: `tg beta endpoints update dep_abc123 --min-replicas 0 --max-replicas 0`
-(stop), `--min-replicas 1 --max-replicas 2` (restart), `--inactive-timeout 30` (auto-shutdown).
+(stop), `--min-replicas 1 --max-replicas 2` (restart).
 
 A stopped deployment keeps its configuration and traffic-split weight (the weight reapplies
 when it scales back up), but never restarts on its own.
 
 ## Route Traffic
 
-Traffic is routed by updating the endpoint's `traffic_split` (SDK/API only; the CLI's `deploy`
-sets it automatically for the first deployment):
+Traffic is routed by the endpoint's `traffic_split`. The CLI's `deploy` sets it automatically
+for the first deployment. To change one deployment's weight, use the CLI's upsert (it resolves
+the parent endpoint and preserves the other deployments' weights):
+
+```bash
+tg beta endpoints update dep_abc123 --traffic-weight 30
+tg beta endpoints update dep_abc123 --traffic-weight 0   # out of rotation, no scale-down
+```
+
+To replace the whole split at once, update the endpoint from the SDK/API:
 
 ```python
 client.beta.endpoints.update(
@@ -359,9 +365,11 @@ client.beta.endpoints.delete("ep_abc123", project_id=project_id)
 When the deployment is the endpoint's **only** traffic entry there's nothing to route to, so
 the empty-split limitation above blocks the pure-SDK path — use the CLI's `rm ... --force`
 instead, which auto-detaches from the split and deletes the deployment and endpoint together
-(it smart-deletes by ID prefix; see [cli-reference.md](cli-reference.md)). Note `--force` does
-**not** stop a running deployment: scale it to `0/0` and wait for `STOPPED` first, or `rm`
-fails with `deployment must be stopped or failed before deletion`.
+(it smart-deletes by ID prefix; see [cli-reference.md](cli-reference.md)). The CLI now handles
+running deployments: `rm ep_... --force` scales the endpoint's deployments to `0/0` itself as
+part of teardown, and a bare `rm dep_...` on a running deployment scales it to `0/0` and asks
+you to retry once it reaches `STOPPED` (the delete itself still requires a stopped
+deployment).
 
 ## Monitoring
 
@@ -371,11 +379,33 @@ and deployment — the same series that drive autoscaling and rollout gates. Two
 - **Analytics dashboard** — `https://api.together.ai/endpoints` shows per-endpoint charts.
   Use it to monitor at a glance and to compare deployments during a rollout or A/B test.
 - **Events feed** — the audit trail of lifecycle changes (below).
+- **Prometheus-compatible metrics endpoint** (beta) — org-scoped scrape target for your own
+  Prometheus/Grafana/Datadog stack (below).
 
-There is no user-facing metrics query API. Metric *names* appear only in the two write-side
-catalogs — autoscaling metrics (`gpu_utilization`, `inflight_requests`, ...) and rollout gate
-metrics (`serving_latency`, `router_error_rate`, ...) — and the two sets are not
-interchangeable.
+Note the autoscaling metric names (`gpu_utilization`, `inflight_requests`, ...) and rollout
+gate names (`serving_latency`, `router_error_rate`, ...) are two disjoint write-side catalogs
+— not interchangeable with each other or with the raw Prometheus series below.
+
+### Prometheus-compatible metrics endpoint (beta)
+
+Org-scoped, bearer-authenticated scrape target (beta — host/path may change, and access may
+need enabling for your org):
+
+```bash
+curl -H "Authorization: Bearer $TOGETHER_API_KEY" \
+  "https://o11y-de2-metrics.cloud.together.ai/organizations/$ORG_ID/metrics"
+```
+
+Works with any Prometheus-compatible scraper (set `metrics_path:
+/organizations/<ORG_ID>/metrics`, target `o11y-de2-metrics.cloud.together.ai`, bearer
+credentials). Series are grouped by request-path stage — edge (`edge_inference_requests_total`,
+`edge_inference_request_duration_ms`, `edge_inference_ttft_ms`, `edge_inference_inflight_requests`),
+router (`router_inference_request_duration_seconds`, `router_inference_ttft_seconds`,
+`router_pre_worker_duration_seconds`, `router_token_count`, ...), and worker
+(`worker_ttft_seconds`, `worker_generation_duration_seconds`, `worker_tpot_seconds`,
+`worker_token_total`, ...). Labels include `endpoint_id`/`endpoint_name`,
+`deployment_id`/`deployment_name`, `replica_id`, `model`, `status_code`, `is_streaming`, and
+`token_type`.
 
 ## Events Feed
 

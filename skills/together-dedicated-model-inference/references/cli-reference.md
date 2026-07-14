@@ -42,7 +42,7 @@ tg beta endpoints
   deploy     Deploy a model: create endpoint + deployment + route traffic in one step
   ls         List endpoints in the project
   get        Get endpoint details (also the default command: tg beta endpoints ep_abc123)
-  update     Update a deployment: replica bounds, scaling metrics, auto-shutdown
+  update     Update a deployment: replica bounds, scaling metrics, traffic weight
   rm         Smart-delete any endpoint/deployment/experiment by ID prefix
   rollout    Start or control a rollout (canary / blue-green / rolling)
   ab         Start an A/B test (creates the variant deployment)
@@ -57,7 +57,8 @@ tg beta models
   upload          Upload local weights to a model record
   ls-files        List files in a model or adapter
   ls-revisions    List revisions for a model
-  update / delete
+  download        Download model/adapter files to a local directory
+  update / rm     Update or delete a model record (rm was previously `delete`)
   remote-uploads  create | retrieve | list  (import from Hugging Face or presigned URL)
 ```
 
@@ -82,41 +83,46 @@ name/ID (adds a deployment to it).
 | `--scale-up-window` | — | Seconds the metric must stay above target before adding replicas. |
 | `--scale-down-window` | — | Cooldown seconds between scale-downs. |
 | `--scale-to-zero-window` | — | Idle time before scaling to zero replicas. |
-| `--inactive-timeout` | — | Minutes of inactivity before auto-stop; `0` disables. |
 | `--model-revision` | latest | Model revision ID (`rv_...`) to pin. |
 | `--placement` | — | Placement profile to use. |
 | `--placement.regions` | — | Comma-separated inline placement regions (alternative to a profile). |
 | `--placement.constraint` | — | `required` or `preferred` — how strictly to enforce inline placement. |
-| `--placement.hipaa` | off | Require HIPAA-eligible placement. |
 | `--enable-lora` | off | Run the multi-LoRA kernel so adapters hot-load. Toggling later needs a redeploy. |
+
+There is no `--inactive-timeout` / auto-shutdown — deployments run and bill until you stop
+them.
 
 ```bash
 # Deploy a public model, single replica
 tg beta endpoints deploy ml_CbJNwQC2ZqCU2iFT3mrCh --endpoint my-endpoint
 
-# Explicit config, autoscaling 1-10, auto-stop after 30 idle minutes
+# Explicit config, autoscaling 1-10
 tg beta endpoints deploy ml_CbJNwQC2ZqCU2iFT3mrCh \
   --endpoint my-endpoint \
   --config cr_CbzGdmn14t3HYrXXitmKa \
-  --min-replicas 1 --max-replicas 10 \
-  --inactive-timeout 30
+  --min-replicas 1 --max-replicas 10
 ```
 
-Output includes the endpoint ID (`ep_...`), deployment ID (`dep_...`), and the **qualified
-name** (`your-project-slug/my-endpoint`) — the value for the inference `model` parameter.
+Output includes the endpoint ID (`ep_...`), deployment ID (`dep_...`), and the **endpoint
+string** (`your-project-slug/my-endpoint`, shown as "Inference Name") — the value for the
+inference `model` parameter. First-time provisioning commonly takes up to ~20 minutes while
+weights download and hardware is allocated.
 
 ## endpoints ls / get
 
 ```bash
 tg beta endpoints ls [--limit N] [--after CURSOR] [--org] [--public]
-tg beta endpoints get ep_abc123
+tg beta endpoints get ep_abc123    # endpoint detail: split + each deployment's state/replicas
+tg beta endpoints get dep_abc123   # deployment detail (parent endpoint resolved automatically)
+
+# Machine-readable deployment state for polling loops
+tg beta endpoints get dep_abc123 --json | jq -r '.status.state'
 ```
 
-`get` shows endpoint detail including the traffic split and, for each deployment, its state
-and ready/desired replica counts — re-running it is a quick way to poll a deployment as it
-comes up. Passing an endpoint ID with no subcommand (`tg beta endpoints ep_abc123`) runs `get`.
-For the full status fields (scheduled replicas, status message) or deployment lists with
-`filter`/`order_by`, use the SDK/API — see [api-reference.md](api-reference.md).
+`get` accepts an endpoint **or** deployment ID. Re-running it is a quick way to poll a
+deployment as it comes up. Passing an ID with no subcommand (`tg beta endpoints ep_abc123`)
+runs `get`. For deployment lists with `filter`/`order_by`, use the SDK/API — see
+[api-reference.md](api-reference.md).
 
 ## endpoints update
 
@@ -131,12 +137,15 @@ tg beta endpoints update dep_abc123 --min-replicas 2 --max-replicas 4
 tg beta endpoints update dep_abc123 --min-replicas 0 --max-replicas 0
 tg beta endpoints update dep_abc123 --min-replicas 1 --max-replicas 2
 
-# Auto-shutdown after 30 idle minutes
-tg beta endpoints update dep_abc123 --inactive-timeout 30
-
 # Scale on a specific metric
 tg beta endpoints update dep_abc123 --min-replicas 1 --max-replicas 4 \
   --scaling-metrics '[{"name":"gpu_utilization","type":"METRIC_TARGET_TYPE_UTILIZATION","target":70}]'
+
+# Set this deployment's traffic weight (preserves the other deployments' weights)
+tg beta endpoints update dep_abc123 --traffic-weight 30
+
+# Take it out of rotation without scaling it down
+tg beta endpoints update dep_abc123 --traffic-weight 0
 ```
 
 | Flag | Description |
@@ -145,15 +154,17 @@ tg beta endpoints update dep_abc123 --min-replicas 1 --max-replicas 4 \
 | `--min-replicas` / `--max-replicas` | Updated replica bounds. |
 | `--scale-up-window` / `--scale-down-window` / `--scale-to-zero-window` | Autoscaling stabilization windows. |
 | `--scaling-metrics` | Autoscaling metrics as a JSON array (see api-reference.md, Scaling Metrics). |
-| `--inactive-timeout` | Minutes of inactivity before auto-stop; `0` disables. |
+| `--traffic-weight` | Capacity weight in the endpoint's traffic split. Upserts just this deployment's entry; `0` stops routing to it. |
 | `--etag` | ETag for optimistic concurrency. |
 
 Notes:
 
-- `update` targets deployments, not endpoints — there is still no CLI command to edit an
-  endpoint's traffic split.
+- `--traffic-weight` edits one deployment's split entry. Replacing the whole split at once is
+  still an SDK/API operation (`endpoints.update(traffic_split=[...])`).
 - LoRA loading can't be changed after a deployment is created — redeploy with
   `deploy --enable-lora` to turn it on or off.
+- There is no `--inactive-timeout` — auto-shutdown was removed; stop idle deployments with
+  `--min-replicas 0 --max-replicas 0`.
 
 ## endpoints rm (smart delete)
 
@@ -161,23 +172,26 @@ Resolves the resource by ID prefix and deletes it: endpoint (`ep_`), deployment 
 experiment (`abx_`), shadow experiment (`exp_`).
 
 ```bash
-tg beta endpoints rm dep_abc123          # delete a deployment (must be stopped)
+tg beta endpoints rm dep_abc123          # delete a deployment (must be STOPPED)
 tg beta endpoints rm ep_abc123           # delete an endpoint with no deployments
-tg beta endpoints rm ep_abc123 --force   # tear down deployments too (must be STOPPED first)
+tg beta endpoints rm ep_abc123 --force   # scale deployments to 0/0 and tear everything down
 tg beta endpoints rm abx_abc123          # end an A/B test (traffic returns to control)
 tg beta endpoints rm exp_abc123          # stop a shadow experiment
 ```
 
-Deleting a deployment auto-detaches it from the traffic split and any experiments. A running
-deployment must be stopped first (scale to `0/0`, wait for `STOPPED`). `rm` does not accept
-rollout IDs (`rol_`) — delete rollouts from the SDK/API.
+Deleting a deployment auto-detaches it from the traffic split and any experiments. Running
+deployments: `rm dep_...` on a running deployment scales it to `0/0` for you and asks you to
+retry once it reaches `STOPPED` (the delete itself still requires a stopped deployment);
+`rm ep_... --force` scales the endpoint's deployments down itself as part of teardown. `rm`
+does not accept rollout IDs (`rol_`) — delete rollouts from the SDK/API.
 
 ## endpoints rollout
 
 One command both starts and controls rollouts. (This command was previously named `promote`;
 older examples showing `tg beta endpoints promote` map one-to-one onto `rollout`.) To start:
-pass the **target** deployment ID
-(create it stopped, `0/0` bounds) and a strategy flag.
+pass the **target** deployment ID and a strategy flag. The target must have at least one
+replica and be `READY` first — starting with a `0/0` target risks `deployment_stopped` errors
+(see [traffic-routing.md](traffic-routing.md), Rollouts).
 
 ```bash
 # Canary (default ladder 10,50,100 over 10m intervals)
@@ -295,6 +309,12 @@ tg beta models remote-uploads list
 tg beta models list
 tg beta models ls-files ml_abc123
 tg beta models ls-revisions ml_abc123
+
+# Download files back to your machine (--format hf = HuggingFace snapshot layout)
+tg beta models download ml_abc123 ./local-dir [--revision rv_...] [--format hf]
+
+# Delete a model record (metadata only; renamed from `delete`)
+tg beta models rm ml_abc123
 ```
 
 `--type` values are asymmetric: **write** commands (`upload`, `remote-uploads create`) take
@@ -308,9 +328,10 @@ Full upload flows (requirements, S3 archive format, polling, deploying the resul
 
 These are SDK/API-only operations; don't hunt for CLI flags:
 
-- Edit an endpoint's traffic split (`endpoints update` targets deployments only).
-- List deployments or use `filter` / `order_by` (though `get` shows each deployment's state
-  and replica counts for quick polling).
+- Replace an endpoint's traffic split in one call (`update --traffic-weight` upserts one
+  deployment at a time; the full-split write is `endpoints.update(traffic_split=[...])`).
+- List deployments or use `filter` / `order_by` (though `get` reads a single deployment and
+  shows every deployment's state on the endpoint view).
 - Create a metric-gated canary rollout, or delete a rollout.
 - Ramp/edit an existing A/B experiment, or update a shadow experiment's sampling.
 - Read the events feed.
