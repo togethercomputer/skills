@@ -25,7 +25,7 @@
   `/v2/projects/{project_id}/endpoints/{endpoint_id}/deployments`). Auth is
   `Authorization: Bearer $TOGETHER_API_KEY`.
 - **Inference API**: `https://api-inference.together.ai/v1` — same request shapes as serverless.
-- **SDK namespaces**: `client.beta.endpoints` (with `.deployments`, `.rollouts`,
+- **SDK namespaces**: `client.beta.endpoints` (with `.deployments`,
   `.ab_experiments`, `.shadow_experiments`) and `client.beta.models` (with `.configs`,
   `.remote_uploads`). TypeScript uses the camelCase equivalents (`client.beta.endpoints`,
   `abExperiments`, `shadowExperiments`, `remoteUploads`).
@@ -50,7 +50,6 @@ project_id = client.whoami().project_id
 | Config | `cr_...` | A config revision. Configs are immutable; each revision has a new ID. |
 | Endpoint | `ep_...` | Inference uses the qualified name `<project_slug>/<endpoint_name>`. |
 | Deployment | `dep_...` | Qualified name `<project_slug>/<endpoint_name>/<deployment_name>`. |
-| Rollout | `rol_...` | See [traffic-routing.md](traffic-routing.md). |
 | A/B experiment | `abx_...` | See [traffic-routing.md](traffic-routing.md). |
 | Shadow experiment / target | `exp_...` / `shet_...` | See [traffic-routing.md](traffic-routing.md). |
 | Upload job | `job_...` | See [models-and-configs.md](models-and-configs.md). |
@@ -260,8 +259,8 @@ Caveats:
   responses** — scaling on them without `"stream": true` traffic won't work.
 - Latency metrics default to p95 over the measurement window; set `"percentile"` to `"p50"`,
   `"p90"`, `"p95"`, or `"p99"` to change it.
-- These names are the **autoscaling catalog**, distinct from the rollout-gate catalog
-  (`serving_latency`, `router_error_rate`, ...) — the two are not interchangeable.
+- These names are the **autoscaling catalog** — raw Prometheus series names are not valid
+  here.
 
 ## Stop / Restart
 
@@ -309,8 +308,8 @@ client.beta.endpoints.update(
 )
 ```
 
-Weights are relative capacity: share = weight × ready replicas. Full semantics, plus rollouts,
-A/B tests, and shadow experiments, are in [traffic-routing.md](traffic-routing.md).
+Weights are relative capacity: share = weight × ready replicas. Full semantics, plus gradual
+cutovers, A/B tests, and shadow experiments, are in [traffic-routing.md](traffic-routing.md).
 
 ## List, Paginate, Filter
 
@@ -374,17 +373,16 @@ deployment).
 ## Monitoring
 
 DMI records latency, throughput, replica-count, and utilization metrics for every endpoint
-and deployment — the same series that drive autoscaling and rollout gates. Two surfaces:
+and deployment — the same series that drive autoscaling. Three surfaces:
 
 - **Analytics dashboard** — `https://api.together.ai/endpoints` shows per-endpoint charts.
-  Use it to monitor at a glance and to compare deployments during a rollout or A/B test.
+  Use it to monitor at a glance and to compare deployments during a cutover or A/B test.
 - **Events feed** — the audit trail of lifecycle changes (below).
 - **Prometheus-compatible metrics endpoint** (beta) — org-scoped scrape target for your own
   Prometheus/Grafana/Datadog stack (below).
 
-Note the autoscaling metric names (`gpu_utilization`, `inflight_requests`, ...) and rollout
-gate names (`serving_latency`, `router_error_rate`, ...) are two disjoint write-side catalogs
-— not interchangeable with each other or with the raw Prometheus series below.
+Note the autoscaling metric names (`gpu_utilization`, `inflight_requests`, ...) are their
+own catalog — not interchangeable with the raw Prometheus series below.
 
 ### Prometheus-compatible metrics endpoint (beta)
 
@@ -410,14 +408,14 @@ router (`router_inference_request_duration_seconds`, `router_inference_ttft_seco
 ## Events Feed
 
 Each endpoint has an audit feed (newest first) merging endpoint- and deployment-scoped events:
-scale-ups, traffic shifts, readiness changes, rollout pauses.
+scale-ups, traffic shifts, readiness changes.
 
 ```python
 events = client.beta.endpoints.list_events("ep_abc123", project_id=project_id, limit=50)
 ```
 
 Optional filters: `types` (event-type strings), `since` / `until` (time range), `subject_id`
-(for example `rol_abc123` for one rollout's audit trail), `deployment_ids` (scope to specific
+(scope to one subject's audit trail), `deployment_ids` (scope to specific
 deployments), `limit` / `after` (max 500, default 50). Events come back newest-first — reverse
 them for a chronological timeline.
 

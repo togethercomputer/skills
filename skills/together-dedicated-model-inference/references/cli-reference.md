@@ -11,7 +11,6 @@ and wires up the underlying resources.
 - [endpoints ls / get](#endpoints-ls--get)
 - [endpoints update](#endpoints-update)
 - [endpoints rm (smart delete)](#endpoints-rm-smart-delete)
-- [endpoints rollout](#endpoints-rollout)
 - [endpoints ab (A/B tests)](#endpoints-ab-ab-tests)
 - [endpoints shadow (shadow experiments)](#endpoints-shadow-shadow-experiments)
 - [models commands](#models-commands)
@@ -44,7 +43,6 @@ tg beta endpoints
   get        Get endpoint details (also the default command: tg beta endpoints ep_abc123)
   update     Update a deployment: replica bounds, scaling metrics, traffic weight
   rm         Smart-delete any endpoint/deployment/experiment by ID prefix
-  rollout    Start or control a rollout (canary / blue-green / rolling)
   ab         Start an A/B test (creates the variant deployment)
   shadow     Start a shadow experiment (creates the shadow deployment)
 
@@ -183,44 +181,7 @@ Deleting a deployment auto-detaches it from the traffic split and any experiment
 deployments: `rm dep_...` on a running deployment scales it to `0/0` for you and asks you to
 retry once it reaches `STOPPED` (the delete itself still requires a stopped deployment);
 `rm ep_... --force` scales the endpoint's deployments down itself as part of teardown. `rm`
-does not accept rollout IDs (`rol_`) — delete rollouts from the SDK/API.
-
-## endpoints rollout
-
-One command both starts and controls rollouts. (This command was previously named `promote`;
-older examples showing `tg beta endpoints promote` map one-to-one onto `rollout`.) To start:
-pass the **target** deployment ID and a strategy flag. The target must have at least one
-replica and be `READY` first — starting with a `0/0` target risks `deployment_stopped` errors
-(see [traffic-routing.md](traffic-routing.md), Rollouts).
-
-```bash
-# Canary (default ladder 10,50,100 over 10m intervals)
-tg beta endpoints rollout dep_target456 --from dep_source123 --canary
-
-# Custom canary ladder
-tg beta endpoints rollout dep_target456 --from dep_source123 \
-  --canary --steps 25,50,75,100 --interval 10m
-
-# Blue-green (single cutover; the default strategy) / rolling (capacity-preserving swap)
-tg beta endpoints rollout dep_target456 --from dep_source123 --blue-green
-tg beta endpoints rollout dep_target456 --from dep_source123 --rolling
-
-# Keep the source scaled up after completion instead of draining it
-tg beta endpoints rollout dep_target456 --from dep_source123 --canary --source-cleanup keep
-```
-
-`--from` is inferred from the traffic split when omitted. To control a running rollout, pass
-the **rollout** ID (`rol_...`) and a control flag:
-
-```bash
-tg beta endpoints rollout rol_abc123 --pause --reason "holding for review"
-tg beta endpoints rollout rol_abc123 --continue    # resume
-tg beta endpoints rollout rol_abc123 --complete    # fast-forward, all traffic to target
-tg beta endpoints rollout rol_abc123 --abort --reason "tail latency regression"
-```
-
-Metric-gated canaries are SDK/API only (`rollouts.create` with a `metrics` block) — see
-[traffic-routing.md](traffic-routing.md).
+smart-deletes endpoints, deployments, and experiments only.
 
 ## endpoints ab (A/B tests)
 
@@ -332,7 +293,6 @@ These are SDK/API-only operations; don't hunt for CLI flags:
   deployment at a time; the full-split write is `endpoints.update(traffic_split=[...])`).
 - List deployments or use `filter` / `order_by` (though `get` reads a single deployment and
   shows every deployment's state on the endpoint view).
-- Create a metric-gated canary rollout, or delete a rollout.
 - Ramp/edit an existing A/B experiment, or update a shadow experiment's sampling.
 - Read the events feed.
 - Inference itself — point the SDK or curl at `https://api-inference.together.ai/v1`.

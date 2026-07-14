@@ -148,7 +148,8 @@ Key properties:
 - **Configs are immutable.** New revisions get new `cr_...` IDs; a deployment pins the
   revision you selected, so hardware and engine never change underneath it.
 - **Hardware is fixed for a deployment's life.** To change hardware, create a new deployment
-  with a different config and shift traffic over (ideally with a rollout).
+  with a different config and shift traffic over with weights and replica counts (see
+  [traffic-routing.md](traffic-routing.md)).
 - **Speculative decoding** is declared by the config (`draftModel` in the response when
   enabled); the deployment's speculator is derived and pinned at create — you can't set it
   yourself. Speculative decoding raises average throughput but can add occasional tail-latency
