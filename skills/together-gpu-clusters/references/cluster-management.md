@@ -55,15 +55,42 @@ kubectl -n kubernetes-dashboard get secret \
 
 ### SSH Access
 
-SSH keys must be added at `api.together.ai/settings/ssh-key` before cluster creation.
+Two SSH methods are supported. On Slurm clusters with OIDC enabled, pick one from the **SSH access method** selector in the cluster UI sidebar; the choice applies to the head node and all compute nodes. If OIDC is not configured on the cluster, only key-based SSH is available.
+
+| Method | How it works | Requirements |
+|--------|--------------|--------------|
+| **OIDC (Together CLI)** | Browser sign-in that mints a short-lived certificate, executed via `tg beta clusters ssh`. | Together CLI installed (`uv tool install "together[cli]"`, 2.20+, Python 3.10+). Choose a login name when prompted in the cluster UI. No SSH key required. |
+| **Key-based** | Standard `ssh -J` proxy jump through the cluster's bastion. | SSH public key uploaded at `api.together.ai/settings/ssh-key` before cluster creation. |
+
+The cluster UI's **Copy SSH command** (worker/compute) and **Copy head node SSH command** (Slurm login) buttons emit a command shaped for the selected method.
+
+**Key-based commands:**
 
 ```shell
-# Direct SSH to worker nodes
-ssh <node-hostname>.cloud.together.ai
+# Worker node (Kubernetes) or Slurm compute node
+ssh -J <LOGIN>@ssh.<CLUSTER_ID>.<REGION>.cloud.together.ai <LOGIN>@<NODE_HOSTNAME>
 
 # Slurm login node
-ssh <username>@slurm-login
+ssh -J <LOGIN>@ssh.<CLUSTER_ID>.<REGION>.cloud.together.ai <LOGIN>@slurm-login
 ```
+
+**OIDC commands (Together CLI):**
+
+```shell
+# Worker node (Kubernetes) or Slurm compute node
+tg beta clusters ssh https://dex.<REGION>.cloud.together.ai/<CLUSTER_ID> \
+  --login <LOGIN> --host <NODE_HOSTNAME>
+
+# Slurm login node (host defaults to the head node)
+tg beta clusters ssh https://dex.<REGION>.cloud.together.ai/<CLUSTER_ID> --login <LOGIN>
+```
+
+If the CLI was previously installed with `pip`, migrate to the `uv`-managed install before using OIDC SSH: `pip uninstall together` and reinstall with `uv tool install "together[cli]"`.
+
+**Slurm hostnames:**
+
+- Compute nodes: `<NODE_NAME>.slurm-compute.slurm` (e.g., `gpu-dp-hmqnh-nwlnj.slurm-compute.slurm`)
+- Login node: always `slurm-login`
 
 ### Slurm Commands
 
