@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together Volcano Scheduler"
+  short_description: "Gang-schedule GPU jobs on Together clusters"
+  default_prompt: "Use $together-volcano to install Volcano and run gang-scheduled GPU jobs on a Together AI Kubernetes cluster."

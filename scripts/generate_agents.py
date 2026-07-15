@@ -36,6 +36,8 @@ SKILL_ORDER = [
     "together-dedicated-endpoints",
     "together-dedicated-containers",
     "together-gpu-clusters",
+    "together-volcano",
+    "together-kueue",
 ]
 
 README_TABLE_BEGIN = "<!-- BEGIN_SKILLS_TABLE -->"

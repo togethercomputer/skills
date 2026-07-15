@@ -1,0 +1,26 @@
+[
+  {
+    "query": "Install Volcano on my Together AI Kubernetes cluster and run a gang-scheduled multi-node training job.",
+    "should_trigger": true
+  },
+  {
+    "query": "My distributed training on a Together cluster keeps starting some workers while others stay pending. I need all pods scheduled together or none.",
+    "should_trigger": true
+  },
+  {
+    "query": "Create a Volcano queue and a vcjob that requests 8 GPUs with minAvailable on Together AI.",
+    "should_trigger": true
+  },
+  {
+    "query": "I want to share my Together cluster's GPUs across teams by quota and have jobs wait in a queue until capacity is free.",
+    "should_trigger": false
+  },
+  {
+    "query": "Deploy a supported chat model to a managed dedicated endpoint on Together AI.",
+    "should_trigger": false
+  },
+  {
+    "query": "Generate an image with FLUX on Together AI.",
+    "should_trigger": false
+  }
+]

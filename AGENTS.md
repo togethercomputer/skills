@@ -1,6 +1,6 @@
 # AGENTS.md
 
-This repository contains 12 agent skills for the Together AI platform. Each skill is a self-contained directory following the [Agent Skills specification](https://agentskills.io/specification).
+This repository contains 14 agent skills for the Together AI platform. Each skill is a self-contained directory following the [Agent Skills specification](https://agentskills.io/specification).
 
 ## Skill registry
 
@@ -17,6 +17,8 @@ This repository contains 12 agent skills for the Together AI platform. Each skil
 - **together-dedicated-endpoints**: Single-tenant GPU endpoints on Together AI with autoscaling and no rate limits. Deploy fine-tuned or uploaded models, size hardware, and manage endpoint lifecycle. Reach for it whenever the user needs predictable always-on hosting rather than serverless inference, custom containers, or raw clusters.
 - **together-dedicated-containers**: Custom Dockerized inference workers on Together AI's managed GPU infrastructure. Build with Sprocket SDK, configure with Jig CLI, submit async queue jobs, and poll results. Reach for it whenever the user needs container-level control rather than a standard model endpoint or raw cluster.
 - **together-gpu-clusters**: On-demand and reserved GPU clusters (H100, H200, B200) on Together AI with Kubernetes or Slurm orchestration, shared storage, credential management, and cluster scaling for ML and HPC jobs. Reach for it when the user needs multi-node compute or infrastructure control rather than a managed model endpoint.
+- **together-volcano**: Install and use the Volcano batch scheduler on a Together AI Kubernetes GPU cluster for gang scheduling. Covers installing Volcano, creating queues, submitting all-or-nothing gang-scheduled jobs (vcjobs), and verifying placement. Reach for it when a job on a Together cluster needs its pods scheduled all-at-once or not at all, such as distributed multi-node training, rather than per-pod best-effort scheduling. Pins Volcano v1.15.0.
+- **together-kueue**: Install and use the Kueue job-queueing controller on a Together AI Kubernetes GPU cluster to gate jobs on quota. Covers installing Kueue, defining ResourceFlavor, ClusterQueue, and LocalQueue quota, submitting jobs to a queue, and watching quota admit or suspend them. Reach for it when a Together cluster's GPU pool must be shared across teams or workloads by quota, admitting jobs only when capacity is free, rather than letting every job start immediately. Pins Kueue v0.18.3 (API kueue.x-k8s.io/v1beta2).
 
 </skills>
 
