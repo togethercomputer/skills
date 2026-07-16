@@ -44,6 +44,9 @@ through Together AI's evaluation system.
 - **Dataset columns, Jinja2 templates, or pre-generated responses**
   - Read the dataset and template sections in [references/api-reference.md](references/api-reference.md)
   - Use `--eval-column`, `--model-a-column`, or `--model-b-column` in the scripts
+- **Evaluating vision-capable models with image inputs**
+  - Read the Image Inputs section in [references/api-reference.md](references/api-reference.md)
+  - Add an `image_data_urls` column (base64 data URLs) to the dataset; the model and judge must be vision-capable
 - **External providers as judge or target**
   - Read the model-source and provider sections in [references/api-reference.md](references/api-reference.md)
   - Use the scripts with `--judge-model-source external`, `--eval-model-source external`, or compare-side source flags
