@@ -1,9 +1,21 @@
 #!/usr/bin/env -S npx tsx
 /**
- * Together AI Dedicated Endpoints -- Create, Monitor, Use, Stop
+ * Together AI Dedicated Endpoints (v1 legacy) -- Create, Monitor, Use, Stop.
  *
- * Full lifecycle: list hardware, create endpoint, wait for ready,
- * run inference, then stop/delete.
+ * Full lifecycle for a **v1** dedicated endpoint: list hardware, create endpoint,
+ * wait for ready, run inference, then stop/delete. Uses the top-level
+ * `together.endpoints.*` SDK surface, which continues to work only against v1
+ * endpoints.
+ *
+ * For **v2 (dedicated model inference)** workflows, use the Together CLI:
+ *
+ *   tg beta endpoints deploy <model> --endpoint <name>
+ *   tg beta endpoints update <deployment_id> --min-replicas 0 --max-replicas 0
+ *   tg beta endpoints rm <endpoint_id> --force
+ *
+ * See scripts/deploy_v2.sh for an end-to-end v2 walkthrough, or
+ * references/api-reference.md for the full v2 surface. New endpoints should
+ * target v2; v1 remains supported through the end of 2026.
  *
  * Usage:
  *   npx tsx manage_endpoint.ts

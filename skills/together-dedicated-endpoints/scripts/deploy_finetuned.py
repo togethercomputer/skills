@@ -1,13 +1,22 @@
 #!/usr/bin/env python3
 """
-Together AI -- Deploy a Fine-tuned Model on a Dedicated Endpoint (v2 SDK)
+Together AI -- Deploy a Fine-tuned Model on a v1 Dedicated Endpoint (legacy).
 
-Deploy a fine-tuned model as a dedicated endpoint, wait for it to become
-ready, and optionally run inference or tear down the endpoint.
+Deploy a fine-tuned model as a **v1** dedicated endpoint, wait for it to
+become ready, and optionally run inference or tear down the endpoint. Uses
+the top-level `client.endpoints.*` SDK surface, which works only against v1
+endpoints.
 
 Fine-tuned models may require larger hardware than the base parameter count
 suggests (e.g. 4x H100 for an 8B model). The script validates the chosen
 hardware against eligible configs before creating the endpoint.
+
+For **v2 (dedicated model inference)** fine-tuned deployment, use:
+
+    tg beta endpoints deploy <model_id> --endpoint <name> --config <cr_...>
+
+See references/models-and-configs.md for the full v2 upload + deploy flow,
+and scripts/deploy_v2.sh for an end-to-end v2 walkthrough.
 
 Usage:
     python deploy_finetuned.py list-jobs

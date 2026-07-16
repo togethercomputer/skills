@@ -1,9 +1,22 @@
 #!/usr/bin/env python3
 """
-Together AI -- Upload and Deploy a Custom Model (v2 SDK)
+Together AI -- Upload and Deploy a Custom Model on v1 (legacy).
 
-Upload a custom model from Hugging Face or S3, wait for the upload job
-to complete, and optionally deploy it on a dedicated endpoint.
+Upload a custom model from Hugging Face or S3 through the **v1** model-upload
+endpoint (`POST /v1/models`), wait for the upload job to complete, and
+optionally deploy it on a v1 dedicated endpoint. Uses `client.models.upload`
+and `client.endpoints.create`, which only work against v1.
+
+For **v2 (dedicated model inference)** custom uploads use the CLI:
+
+    tg beta models create <name> --base-model <ml_...> [--type adapter]
+    tg beta models remote-uploads create <ml_...> --from <hf_or_s3_url>
+    tg beta models remote-uploads retrieve <job_id>
+    tg beta endpoints deploy <ml_...> --endpoint <name> --config <cr_...>
+
+Note: v2 uploads must be fine-tuned variants of a supported base architecture
+(v1 accepted arbitrary architectures). See references/models-and-configs.md
+for the v2 walkthrough.
 
 Usage:
     python upload_custom_model.py --model-name my-custom-model --hf-repo your-org/your-model --hardware 2x_nvidia_h100_80gb_sxm
