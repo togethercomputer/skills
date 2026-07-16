@@ -9,6 +9,7 @@
 - [Result Schemas](#result-schemas)
 - [Evaluation Types](#evaluation-types)
 - [Dataset Format](#dataset-format)
+- [Image Inputs](#image-inputs)
 - [Jinja2 Templates](#jinja2-templates)
 - [External Judges and Targets](#external-judges-and-targets)
 - [Retrieve Evaluation](#retrieve-evaluation)
@@ -464,6 +465,26 @@ For compare jobs with pre-generated outputs, include both candidate columns:
 
 If `model_to_evaluate`, `model_a`, or `model_b` is a model config instead of a column name,
 Together generates the candidate responses at evaluation time.
+
+## Image Inputs
+
+To evaluate vision-capable models, add an `image_data_urls` column to your dataset rows. The
+images are attached to both the model and judge requests alongside the rendered text prompt.
+
+```jsonl
+{"question": "What does this chart show?", "image_data_urls": ["data:image/png;base64,iVBORw0KGgoAAAANSUhEUg..."]}
+```
+
+- `image_data_urls` accepts a single base64-encoded image data URL or a list of them.
+- Only base64 data URLs (`data:image/...;base64,...`) are supported. Remote `http(s)` image
+  URLs are not accepted.
+- Images are automatically translated to each provider's native format: OpenAI-style
+  `image_url` parts for Together serverless, Together dedicated endpoints, and other
+  OpenAI-compatible endpoints; inline image data for Google Gemini; and image blocks for
+  Anthropic. The same dataset works across providers.
+- The model being evaluated (and the judge, if it should also see the image) must be
+  vision-capable. See the vision-capable models section of the evaluations supported-models
+  page in the Together docs.
 
 ## Jinja2 Templates
 
