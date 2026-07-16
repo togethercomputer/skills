@@ -16,7 +16,6 @@
 | Model | API String | Type | Context | Tool Calling |
 |-------|-----------|------|---------|--------------|
 | DeepSeek-V4-Pro | `deepseek-ai/DeepSeek-V4-Pro` | Hybrid (on by default) | 512K | Yes |
-| GLM-5.1 | `zai-org/GLM-5.1` | Hybrid (on by default) | 200K | Yes |
 | GLM-5 | `zai-org/GLM-5` | Hybrid (on by default) | 200K | Yes |
 | GPT-OSS 120B | `openai/gpt-oss-120b` | Adjustable effort | 128K | No |
 | GPT-OSS 20B | `openai/gpt-oss-20b` | Adjustable effort | 128K | No |
@@ -107,7 +106,6 @@ Hybrid models support `reasoning={"enabled": True/False}` to toggle reasoning on
 - `Qwen/Qwen3.6-Plus` (on by default)
 - `moonshotai/Kimi-K2.6` (on by default)
 - `nvidia/nemotron-3-ultra-550b-a55b` (on by default)
-- `zai-org/GLM-5.1` (on by default)
 - `zai-org/GLM-5` (on by default)
 
 ### Python -- Enable Reasoning
@@ -240,7 +238,7 @@ response = client.chat.completions.create(
 
 ### Separate reasoning field (most models)
 
-Models like Kimi K2.6, GLM-5.1, DeepSeek-V4-Pro, GPT-OSS, and Qwen3.5 return reasoning in a dedicated
+Models like Kimi K2.6, GLM-5, DeepSeek-V4-Pro, GPT-OSS, and Qwen3.5 return reasoning in a dedicated
 `reasoning` field on the response message or streaming delta.
 
 The field is symmetric: the model returns its chain of thought in `reasoning` (or `delta.reasoning`
@@ -317,7 +315,7 @@ prompt tokens) always live somewhere on `response.usage`, but their **location v
 read both shapes defensively.
 
 - **Reasoning models** (for example `deepseek-ai/DeepSeek-V4-Pro`, `Qwen/Qwen3.6-Plus`,
-  `zai-org/GLM-5.1`) nest them OpenAI-style:
+  `zai-org/GLM-5`) nest them OpenAI-style:
   - `usage.completion_tokens_details.reasoning_tokens`
   - `usage.prompt_tokens_details.cached_tokens`
 - **Some non-reasoning models** (for example `meta-llama/Llama-3.3-70B-Instruct-Turbo`) return
@@ -451,7 +449,7 @@ if (completion?.choices?.[0]?.message?.content) {
 - Supports both reasoning and non-reasoning modes
 - Excels at multi-turn tool calling with reasoning interleaved
 
-### GLM-5.1 / GLM-5
+### GLM-5
 - Thinking is enabled by default
 - Supports Preserved Thinking: set `"clear_thinking": false` in `chat_template_kwargs`
 - Preserved Thinking retains reasoning across turns for better agentic workflows

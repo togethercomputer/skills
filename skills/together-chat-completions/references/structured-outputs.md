@@ -509,7 +509,6 @@ console.log(`Title: ${result.title}`);
 - `openai/gpt-oss-120b`
 - `openai/gpt-oss-20b`
 - `moonshotai/Kimi-K2.6`
-- `zai-org/GLM-5.1`
 - `zai-org/GLM-5`
 - `MiniMaxAI/MiniMax-M2.7`
 - `Qwen/Qwen3.6-Plus`
