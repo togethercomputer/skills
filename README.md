@@ -34,6 +34,8 @@ Each skill contains:
 | **together-dedicated-endpoints** | Single-tenant GPU endpoints on Together AI with autoscaling and no rate limits. | `deploy_finetuned.py`, `manage_endpoint.py`, `upload_custom_model.py` |
 | **together-dedicated-containers** | Custom Dockerized inference workers on Together AI's managed GPU infrastructure. | `queue_client.py`, `sprocket_hello_world.py` |
 | **together-gpu-clusters** | On-demand and reserved GPU clusters (H100, H200, B200) on Together AI with Kubernetes or Slurm orchestration, shared ... | `manage_cluster.py`, `manage_storage.py` |
+| **together-volcano** | Install and use the Volcano batch scheduler on a Together AI Kubernetes GPU cluster for gang scheduling. | — |
+| **together-kueue** | Install and use the Kueue job-queueing controller on a Together AI Kubernetes GPU cluster to gate jobs on quota. | — |
 <!-- END_SKILLS_TABLE -->
 
 ## Installation

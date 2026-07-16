@@ -17,6 +17,7 @@
 | Google | Imagen 4.0 Fast | `google/imagen-4.0-fast` | - |
 | Google | Imagen 4.0 Ultra | `google/imagen-4.0-ultra` | - |
 | Google | Flash Image 2.5 | `google/flash-image-2.5` | - |
+| Google | Gemini 3.1 Flash-Lite Image (Nano Banana 2 Lite) | `google/flash-image-3.1-lite` | - |
 | Google | Gemini 3 Pro Image | `google/gemini-3-pro-image` | - |
 | Black Forest Labs | FLUX.2 [pro] | `black-forest-labs/FLUX.2-pro` | - |
 | Black Forest Labs | FLUX.2 [dev] | `black-forest-labs/FLUX.2-dev` | - |

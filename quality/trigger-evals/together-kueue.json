@@ -1,0 +1,26 @@
+[
+  {
+    "query": "Install Kueue on my Together AI cluster and gate GPU jobs on quota so they queue until capacity frees up.",
+    "should_trigger": true
+  },
+  {
+    "query": "Share a fixed GPU pool across teams on a Together cluster; admit jobs only when quota is available and suspend the rest.",
+    "should_trigger": true
+  },
+  {
+    "query": "Set up a Kueue ClusterQueue, ResourceFlavor, and LocalQueue for GPU quota on Together AI and submit a queued job.",
+    "should_trigger": true
+  },
+  {
+    "query": "I need all pods of my Together cluster training job scheduled all-at-once or not at all with gang scheduling.",
+    "should_trigger": false
+  },
+  {
+    "query": "Run high-volume offline inference at lower cost with the Together AI Batch API.",
+    "should_trigger": false
+  },
+  {
+    "query": "Fine-tune a model on Together AI with LoRA.",
+    "should_trigger": false
+  }
+]

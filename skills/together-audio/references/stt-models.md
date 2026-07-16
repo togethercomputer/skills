@@ -54,6 +54,7 @@ Both `/v1/audio/transcriptions` and `/v1/audio/translations` enforce the same ca
 Tips:
 - For payloads larger than 500 MB, host the file at a public HTTPS URL and pass that URL as the `file` field — the 500 MB edge cap only applies to direct uploads.
 - For audio longer than 4 hours, split into ≤ 4 h chunks before submitting.
+- For binary uploads, place the `model` form field **before** the `file` field in the multipart body so the server can route the request without buffering the full audio payload.
 - Real-time/streaming transports are unaffected by these batch upload limits.
 
 ## Audio Transcriptions
@@ -218,7 +219,7 @@ Speaker segment example:
 | `400 file_too_large` | A URL-fetched audio download exceeded the 1 GB server-side cap. | Compress the source, or split into smaller files. |
 | `400 unsupported_format` | The audio container or codec could not be decoded. | Re-encode to a supported format. Run `ffprobe` on the file to confirm it is valid audio. |
 | `400 invalid_params` | Request parameters failed validation. | Check the API reference for the endpoint. |
-| `413 Payload Too Large` | A direct upload exceeded the 500 MB edge limit. | Submit the file via an HTTPS URL on the `file` field instead, or split the file. The 413 response is plain HTML, not JSON. |
+| `413 Payload Too Large` | A direct upload exceeded the 500 MB edge limit. | Submit the file via an HTTPS URL on the `file` field instead, or split the file. |
 | `429` | Rate limit exceeded. | See serverless rate limits. |
 | `500 processing_failed` | Internal decode failure after the file was accepted. | Verify the file is valid audio with `ffprobe`. If it is, contact Together support with the response `id`. |
 
