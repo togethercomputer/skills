@@ -352,7 +352,7 @@ Nodes showing "Tests Failed" are not added to the cluster until repaired.
 - NVBandwidth: CPU-to-GPU, GPU-to-CPU bandwidth, GPU-CPU latency
 
 **Storage:**
-- Storage Performance: `fio` sequential read/write throughput plus a checksummed write/read-back for data-integrity validation against the cluster's shared and local storage tiers.
+- Storage Performance (Preview): `fio` sequential read/write throughput plus a checksummed write/read-back for data-integrity validation against the cluster's shared and local storage tiers. Contact [support](mailto:support@together.ai) for access.
 
 ### Passive Health Checks
 
