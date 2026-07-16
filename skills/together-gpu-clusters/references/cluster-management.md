@@ -426,6 +426,9 @@ Passive checks run continuously on every node and observe real workloads, GPU me
 
 Detection coverage is expanding, and automated recommendations are enabled per cluster; not every signal triggers an automated recommendation today — some raise an internal alert that Together's team reviews first.
 
+**Training Performance (preview):**
+- TorchTitan Training: short [TorchTitan](https://github.com/pytorch/torchtitan) benchmark on one or more nodes, measuring steady-state median model FLOPs utilization (MFU) after skipping warmup. Catches grossly degraded nodes that still pass point-in-time diagnostics. **B200 only** (Blackwell, `sm_100`) -- the built-in CUDA and PyTorch stack (PyTorch with FlashAttention 4) does not run on other GPU types. Runtime is about 15 minutes (roughly 9 minutes init, 6 minutes run). Runs on demand and is not part of automatic acceptance testing; thresholds may change while in preview. Default pass threshold: steady-state median MFU >= 30% for Llama 3 8B on a single B200 node (reference ~36.5%). Larger models and multi-node runs use per-run reference values (for example, Llama 3 70B reaches ~38% MFU on 4 nodes).
+
 ### Node Repair
 
 Auto repair uses three repair actions, ordered lightest to heaviest, plus a warning-only tier. If a lighter action does not clear the issue, it escalates. Every recommendation is reviewed and accepted by the user before a repair runs; training jobs must checkpoint first.
