@@ -354,12 +354,85 @@ Nodes showing "Tests Failed" are not added to the cluster until repaired.
 **Storage:**
 - Storage Performance: `fio` sequential read/write throughput plus a checksummed write/read-back for data-integrity validation against the cluster's shared and local storage tiers.
 
+### Passive Health Checks
+
+Passive checks run continuously on every node and observe real workloads, GPU metrics, and system logs. They have zero impact on running jobs and require no manual action. When a node exhibits one of the conditions below, the system raises a named signal; signals that meet repair criteria generate an auto-repair recommendation.
+
+**GPU and accelerator:**
+
+| Signal | Condition |
+|---|---|
+| `DmesgGpuFallenOffBus` | GPU unreachable on the PCIe bus (hardware or connector failure) |
+| `GpuSmClockThermalThrottle` | Sustained high temperature forces SM clocks down |
+| `DmesgXidError` | NVIDIA driver or hardware Xid fault in the kernel log |
+| `GpuEccDoubleBitError` | Uncorrectable (double-bit) GPU memory error |
+| `GpuRowRemapFailure` | GPU memory row-remap failed; GPU likely needs RMA |
+| `GpuPcieReplayRateHigh` | Degraded PCIe link integrity |
+
+**InfiniBand networking:**
+
+| Signal | Condition |
+|---|---|
+| `IBRailsDownOrDegraded` | Fewer than 8 active 400G IB rails (rail down or negotiated below 400G) |
+| `IBLinkFlapping` | Repeated InfiniBand link-down events on a compute rail |
+
+**Node OS, kernel, and resources:**
+
+| Signal | Condition |
+|---|---|
+| `NpdCperHardwareErrorFatal` | Fatal CPER-reported platform hardware error |
+| `NpdReadonlyFilesystem` | Root or data filesystem remounted read-only |
+| `NpdXfsShutdown` | XFS filesystem shut down after an error |
+| `NpdKernelDeadlock` | Kernel task stuck |
+| `NpdFrequentKubeletRestart` | kubelet restarting repeatedly |
+| `NpdFrequentContainerdRestart` | containerd restarting repeatedly |
+| `NpdFrequentUnregisterNetDevice` | Repeated network device unregister events |
+| `KubeNodeMemoryPressure` | Node under sustained memory pressure |
+| `KubeNodeDiskPressure` | Node under sustained disk pressure |
+| `KubeNodePIDPressure` | Node exhausting available process IDs |
+
+**Scheduler:**
+
+| Signal | Condition |
+|---|---|
+| `SlurmNodeUnavailable` | Slurm marks the node DOWN or DRAIN |
+
+Detection coverage is expanding, and automated recommendations are enabled per cluster; not every signal triggers an automated recommendation today — some raise an internal alert that Together's team reviews first.
+
 ### Node Repair
 
-- **Quick Reprovision**: VM recreated on a random physical node (for software issues)
-- **Migrate to New Host**: New VM on different physical hardware (for hardware failures)
+Auto repair uses three repair actions, ordered lightest to heaviest, plus a warning-only tier. If a lighter action does not clear the issue, it escalates. Every recommendation is reviewed and accepted by the user before a repair runs; training jobs must checkpoint first.
 
-Repair lifecycle: Cordon -> Drain -> Reprovision/Migrate -> Rejoin
+- **Reboot**: Restart the node in place. Fastest recovery; used for recoverable software or transient GPU faults.
+- **Quick Reprovision**: VM recreated on a random physical node (for software issues that persist across reboot).
+- **Migrate to New Host**: New VM on different physical hardware (for hardware failures).
+- **Warning**: Surface an alert for review with no automated repair action.
+
+Repair lifecycle: Cordon -> Drain -> Reboot/Reprovision/Migrate -> Rejoin
+
+**Signal to recommended action:**
+
+| Signal | Action |
+|---|---|
+| `DmesgGpuFallenOffBus` | Migrate to new host |
+| `GpuSmClockThermalThrottle` | Migrate to new host |
+| `GpuPcieReplayRateHigh` | Migrate to new host |
+| `IBRailsDownOrDegraded` | Migrate to new host |
+| `IBLinkFlapping` | Migrate to new host |
+| `NpdCperHardwareErrorFatal` | Quick reprovision |
+| `NpdReadonlyFilesystem` | Quick reprovision |
+| `NpdXfsShutdown` | Quick reprovision |
+| `DmesgXidError` | Reboot (Xid 79 migrates to new host) |
+| `GpuEccDoubleBitError` | Reboot |
+| `GpuRowRemapFailure` | Reboot |
+| `NpdKernelDeadlock` | Reboot |
+| `NpdFrequentKubeletRestart` | Reboot |
+| `NpdFrequentContainerdRestart` | Reboot |
+| `NpdFrequentUnregisterNetDevice` | Reboot |
+| `KubeNodeMemoryPressure` | Reboot |
+| `KubeNodePIDPressure` | Reboot |
+| `KubeNodeDiskPressure` | Warning |
+| `SlurmNodeUnavailable` | Warning |
 
 ### Monitoring Commands
 
