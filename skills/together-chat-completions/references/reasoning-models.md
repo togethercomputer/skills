@@ -23,7 +23,6 @@
 | Kimi K2.6 | `moonshotai/Kimi-K2.6` | Hybrid (on by default) | 262K | Yes |
 | MiniMax M2.7 | `MiniMaxAI/MiniMax-M2.7` | Reasoning only | 202K | Yes |
 | Nemotron 3 Ultra 550B A55B | `nvidia/nemotron-3-ultra-550b-a55b` | Hybrid (on by default) | 512K | Yes |
-| Qwen3.5 397B | `Qwen/Qwen3.5-397B-A17B` | Hybrid (on by default) | 262K | Yes |
 | Qwen3.5 9B | `Qwen/Qwen3.5-9B` | Hybrid (on by default) | 262K | Yes |
 | Qwen3.6 Plus | `Qwen/Qwen3.6-Plus` | Hybrid (on by default) | 1M | Yes |
 
@@ -104,7 +103,6 @@ Hybrid models support `reasoning={"enabled": True/False}` to toggle reasoning on
 
 **Models supporting this parameter:**
 - `deepseek-ai/DeepSeek-V4-Pro` (on by default)
-- `Qwen/Qwen3.5-397B-A17B` (on by default)
 - `Qwen/Qwen3.5-9B` (on by default)
 - `Qwen/Qwen3.6-Plus` (on by default)
 - `moonshotai/Kimi-K2.6` (on by default)
@@ -196,7 +194,7 @@ print(response.choices[0].message.content)
 
 ```python
 response = client.chat.completions.create(
-    model="Qwen/Qwen3.5-397B-A17B",
+    model="Qwen/Qwen3.5-9B",
     messages=[{"role": "user", "content": "Prove that sqrt(2) is irrational."}],
     chat_template_kwargs={"thinking": True},
     stream=True,
