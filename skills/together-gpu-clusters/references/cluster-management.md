@@ -354,6 +354,9 @@ Nodes showing "Tests Failed" are not added to the cluster until repaired.
 **Storage:**
 - Storage Performance: `fio` sequential read/write throughput plus a checksummed write/read-back for data-integrity validation against the cluster's shared and local storage tiers.
 
+**Training Performance (preview):**
+- TorchTitan Training: short [TorchTitan](https://github.com/pytorch/torchtitan) benchmark on one or more nodes, measuring steady-state median model FLOPs utilization (MFU) after skipping warmup. Catches grossly degraded nodes that still pass point-in-time diagnostics. **B200 only** (Blackwell, `sm_100`) -- the built-in CUDA and PyTorch stack (PyTorch with FlashAttention 4) does not run on other GPU types. Runtime is about 15 minutes (roughly 9 minutes init, 6 minutes run). Runs on demand and is not part of automatic acceptance testing; thresholds may change while in preview. Default pass threshold: steady-state median MFU >= 30% for Llama 3 8B on a single B200 node (reference ~36.5%). Larger models and multi-node runs use per-run reference values (for example, Llama 3 70B reaches ~38% MFU on 4 nodes).
+
 ### Node Repair
 
 - **Quick Reprovision**: VM recreated on a random physical node (for software issues)
