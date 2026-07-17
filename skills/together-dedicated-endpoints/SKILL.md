@@ -57,7 +57,8 @@ Typical fits:
 
 ## High-Signal Rules
 
-- Python scripts require the Together v2 SDK (`together>=2.0.0`). If the user is on an older version, they must upgrade first: `uv pip install --upgrade "together>=2.0.0"`.
+- **v1 create and restart are disabled.** Creating a new v1 endpoint (`client.endpoints.create(...)`, `POST /v1/endpoints`, `tg endpoints create`) and restarting a stopped or paused v1 endpoint both return `endpoints_v1_create_access_disabled` (HTTP 403). Any new endpoint, and any v1 endpoint that has stopped, must be deployed on v2 using `tg beta endpoints deploy <model_id> --endpoint <name> --config <config_id>` (requires `together>=2.24.0`) or the v2 SDK/API. Existing running v1 endpoints keep serving until further notice. See [Migrate from v1](https://docs.together.ai/docs/dedicated-endpoints/migrate-from-v1) for the full migration flow and error-to-fix mapping.
+- Python scripts require the Together v2 SDK (`together>=2.0.0`). If the user is on an older version, they must upgrade first: `uv pip install --upgrade "together>=2.0.0"`. Endpoint creation on v2 additionally requires `together>=2.24.0`.
 - Model eligibility and hardware availability are gating constraints; check them early.
 - Endpoint management uses endpoint IDs, while inference usually uses the endpoint name as `model`.
 - Autoscaling, auto-shutdown, prompt caching, and speculative decoding materially affect operations and cost.
@@ -79,3 +80,4 @@ Typical fits:
 - [Dedicated Endpoints](https://docs.together.ai/docs/dedicated-inference)
 - [Endpoints API](https://docs.together.ai/reference/createendpoint)
 - [Upload and Deploy Custom Models](https://docs.together.ai/docs/custom-models)
+- [Migrate from v1](https://docs.together.ai/docs/dedicated-endpoints/migrate-from-v1)

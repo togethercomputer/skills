@@ -1,4 +1,7 @@
 # Dedicated Endpoints API Reference
+
+> **Warning: v1 create and restart are disabled.** Creating a new endpoint through the v1 API (`POST /v1/endpoints`, `client.endpoints.create(...)`, `tg endpoints create`) and restarting a stopped or paused v1 endpoint now return `endpoints_v1_create_access_disabled` (HTTP 403). Deploy any new endpoint on v2 with `tg beta endpoints deploy <model_id> --endpoint <name> --config <config_id>` (requires `together>=2.24.0`) or the equivalent v2 SDK/API. Existing running v1 endpoints keep serving until further notice, and the v1 inference, list, retrieve, stop, delete, hardware, and models operations documented below still work for them. See [Migrate from v1](https://docs.together.ai/docs/dedicated-endpoints/migrate-from-v1) for the full migration.
+
 ## Contents
 
 - [Endpoints](#endpoints)
@@ -489,6 +492,8 @@ Restricting zones narrows available capacity and can make hardware placement har
 
 | Issue | Solution |
 |-------|----------|
+| `endpoints_v1_create_access_disabled` (HTTP 403) on create | v1 create is disabled. Deploy the model on v2 with `tg beta endpoints deploy <model_id> --endpoint <name> --config <config_id>` (requires `together>=2.24.0`) or the v2 SDK/API. See [Migrate from v1](https://docs.together.ai/docs/dedicated-endpoints/migrate-from-v1) |
+| A stopped or paused v1 endpoint won't restart | v1 restart is disabled. Redeploy the same model as a new v2 endpoint; fine-tuned models don't need retraining |
 | Hardware unavailable | Try a different compatible model or retry when capacity changes |
 | Hardware not eligible (404: "not available for this model") | The model only supports specific hardware configs. Run `list_hardware(model=...)` to see eligible options. Fine-tuned models often require larger hardware than their parameter count suggests |
 | Endpoint queued (not starting) | Reduce `min_replicas` to match currently available capacity |
