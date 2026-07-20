@@ -240,13 +240,24 @@ Enable autoscaling during cluster creation in the UI. The Kubernetes Cluster Aut
 
 ### Targeted Scale-down
 
-```shell
-# Kubernetes -- cordon specific nodes
-kubectl cordon <node_name>
+Mark specific nodes for deletion before triggering scale-down. Annotated and cordoned nodes are prioritized for deletion above all others. Scale down one node at a time and repeat for each additional node so the operator can drain each cleanly.
 
-# Slurm -- drain specific nodes
-sudo scontrol update NodeName=<node_name> State=drain Reason="scaling down"
-```
+1. **Mark the node for deletion.** Annotation is preferred on Kubernetes because it leaves the node schedulable for existing workloads until scale-down runs. Cordon if you also want to stop new pods from being scheduled immediately. Use `scontrol` on Slurm.
+
+    ```shell
+    # Kubernetes (preferred) -- annotate the node
+    kubectl annotate node <node_name> node.together.ai/delete-node-on-scale-down=true
+
+    # Kubernetes -- cordon the node (also blocks new pods immediately)
+    kubectl cordon <node_name>
+
+    # Slurm -- drain the node
+    sudo scontrol update NodeName=<node_name> State=drain Reason="<reason_for_draining>"
+    ```
+
+2. **Wait for the node to start draining.** In the Together Cloud UI, wait until the node shows **Node is cordon/draining** before triggering scale-down. This confirms the operator has picked up the annotation or cordon and is safely evicting workloads.
+
+3. **Trigger scale-down** by one node via the UI, CLI, or API. The marked node is removed first.
 
 ### Combining Capacity
 
