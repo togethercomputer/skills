@@ -279,6 +279,8 @@ curl https://api.together.ai/v1/deployment-request/my-deployment/health \
 
 Secrets are encrypted environment variables injected at runtime.
 
+A name cannot appear in both `[tool.jig.deploy.environment_variables]` and a secret. `together beta jig deploy` fails and lists each colliding name if the same name is defined in both places. Remove the duplicate from `pyproject.toml` or run `together beta jig secrets unset --name <name>`.
+
 ### jig secrets set
 
 ```shell
@@ -441,6 +443,8 @@ model = load_model(device=device)
 ### `[tool.jig.deploy.environment_variables]`
 
 Runtime environment variables injected into your container. For sensitive values, use secrets instead.
+
+Each name must be unique across `[tool.jig.deploy.environment_variables]` and secrets. `together beta jig deploy` rejects duplicate names.
 
 ```toml
 [tool.jig.deploy.environment_variables]
