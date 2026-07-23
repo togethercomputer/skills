@@ -133,15 +133,15 @@ def show_status(endpoint_id: str, deployment_id: str):
     return d
 
 
-def infer(qualified_name: str, prompt: str = "What is 2+2?"):
+def infer(endpoint_string: str, prompt: str = "What is 2+2?"):
     """Send a chat completion to the endpoint via the shared inference API.
 
-    `qualified_name` is `<project_slug>/<endpoint_name>` (from endpoint.name),
+    `endpoint_string` is `<project_slug>/<endpoint_name>` (from endpoint.name),
     not the ep_ ID.
     """
     inference_client = Together(base_url=INFERENCE_BASE_URL)
     response = inference_client.chat.completions.create(
-        model=qualified_name,
+        model=endpoint_string,
         messages=[{"role": "user", "content": prompt}],
         max_tokens=64,
     )

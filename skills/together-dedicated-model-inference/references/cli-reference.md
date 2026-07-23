@@ -82,9 +82,10 @@ name/ID (adds a deployment to it).
 | `--scale-down-window` | — | Cooldown seconds between scale-downs. |
 | `--scale-to-zero-window` | — | Idle time before scaling to zero replicas. |
 | `--model-revision` | latest | Model revision ID (`rv_...`) to pin. |
-| `--placement` | — | Placement profile to use. |
-| `--placement.regions` | — | Comma-separated inline placement regions (alternative to a profile). |
-| `--placement.constraint` | — | `required` or `preferred` — how strictly to enforce inline placement. |
+| `--scaling-metric` / `--scaling-target` / `--scaling-percentile` | — | Autoscale on one metric (pair with a `--min`/`--max` range): metric name + target, optional percentile (`p50`/`p90`/`p95`/`p99`, latency metrics only). The CLI takes a single metric as flat flags — the JSON `scaling_metrics` array is SDK/API-only. |
+| `--placement` | — | Placement profile ID to use. |
+| `--regions` | — | Comma-separated inline placement regions (mutually exclusive with `--placement`). |
+| `--constraint` | — | `required` or `preferred` — how strictly to enforce inline placement regions. |
 | `--enable-lora` | off | Run the multi-LoRA kernel so adapters hot-load. Toggling later needs a redeploy. |
 
 There is no `--inactive-timeout` / auto-shutdown — deployments run and bill until you stop
@@ -102,8 +103,8 @@ tg beta endpoints deploy ml_CbJNwQC2ZqCU2iFT3mrCh \
 ```
 
 Output includes the endpoint ID (`ep_...`), deployment ID (`dep_...`), and the **endpoint
-string** (`your-project-slug/my-endpoint`, shown as "Inference Name") — the value for the
-inference `model` parameter. First-time provisioning commonly takes up to ~20 minutes while
+string** (`your-project-slug/my-endpoint`, labeled "Endpoint string" in `get` output) — the
+value for the inference `model` parameter. First-time provisioning commonly takes up to ~20 minutes while
 weights download and hardware is allocated.
 
 ## endpoints ls / get
@@ -135,9 +136,9 @@ tg beta endpoints update dep_abc123 --min-replicas 2 --max-replicas 4
 tg beta endpoints update dep_abc123 --min-replicas 0 --max-replicas 0
 tg beta endpoints update dep_abc123 --min-replicas 1 --max-replicas 2
 
-# Scale on a specific metric
+# Scale on a specific metric (one metric, flat flags — not the SDK/API JSON array)
 tg beta endpoints update dep_abc123 --min-replicas 1 --max-replicas 4 \
-  --scaling-metrics '[{"name":"gpu_utilization","type":"METRIC_TARGET_TYPE_UTILIZATION","target":70}]'
+  --scaling-metric gpu_utilization --scaling-target 70
 
 # Set this deployment's traffic weight (preserves the other deployments' weights)
 tg beta endpoints update dep_abc123 --traffic-weight 30
@@ -151,7 +152,7 @@ tg beta endpoints update dep_abc123 --traffic-weight 0
 | `--name` | Rename the deployment. |
 | `--min-replicas` / `--max-replicas` | Updated replica bounds. |
 | `--scale-up-window` / `--scale-down-window` / `--scale-to-zero-window` | Autoscaling stabilization windows. |
-| `--scaling-metrics` | Autoscaling metrics as a JSON array (see api-reference.md, Scaling Metrics). |
+| `--scaling-metric` / `--scaling-target` / `--scaling-percentile` | Autoscale on one metric: metric name + target, plus an optional percentile (`p50`/`p90`/`p95`/`p99`, latency metrics only). The CLI takes a single metric this way; the JSON `scaling_metrics` array is SDK/API-only (see api-reference.md, Scaling Metrics). |
 | `--traffic-weight` | Capacity weight in the endpoint's traffic split. Upserts just this deployment's entry; `0` stops routing to it. |
 | `--etag` | ETag for optimistic concurrency. |
 

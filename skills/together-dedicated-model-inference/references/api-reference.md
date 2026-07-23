@@ -48,8 +48,8 @@ project_id = client.whoami().project_id
 | Model | `ml_...` | Public base models and uploaded models both use this format. |
 | Model revision | `rv_...` | Optional pin; omitting it pins the latest revision at create time. |
 | Config | `cr_...` | A config revision. Configs are immutable; each revision has a new ID. |
-| Endpoint | `ep_...` | Inference uses the qualified name `<project_slug>/<endpoint_name>`. |
-| Deployment | `dep_...` | Qualified name `<project_slug>/<endpoint_name>/<deployment_name>`. |
+| Endpoint | `ep_...` | Inference uses the endpoint string `<project_slug>/<endpoint_name>`. |
+| Deployment | `dep_...` | Fully qualified as `<project_slug>/<endpoint_name>/<deployment_name>`. |
 | A/B experiment | `abx_...` | See [traffic-routing.md](traffic-routing.md). |
 | Shadow experiment / target | `exp_...` / `shet_...` | See [traffic-routing.md](traffic-routing.md). |
 | Upload job | `job_...` | See [models-and-configs.md](models-and-configs.md). |
@@ -68,7 +68,7 @@ copy them rather than reassembling from IDs.
 
 An endpoint is a logical grouping of deployments and the stable name your application calls.
 The platform prepends your project slug: an endpoint named `my-endpoint` in project slug
-`acme` gets the qualified name `acme/my-endpoint`. Names are immutable.
+`acme` gets the endpoint string `acme/my-endpoint`. Names are immutable.
 
 ```python
 endpoint = client.beta.endpoints.create(
@@ -245,8 +245,14 @@ client.beta.endpoints.deployments.update(
 )
 ```
 
-CLI equivalent: `tg beta endpoints update dep_abc123 --min-replicas 1 --max-replicas 4
---scaling-metrics '[{"name":"gpu_utilization","type":"METRIC_TARGET_TYPE_UTILIZATION","target":70}]'`.
+CLI equivalent — the CLI takes one metric as flat flags (`--scaling-metric` /
+`--scaling-target`, plus optional `--scaling-percentile` for latency metrics), not the JSON
+array the SDK/API uses:
+
+```bash
+tg beta endpoints update dep_abc123 --min-replicas 1 --max-replicas 4 \
+  --scaling-metric gpu_utilization --scaling-target 70
+```
 
 Caveats:
 
@@ -401,7 +407,10 @@ credentials). Series are grouped by request-path stage — edge (`edge_inference
 router (`router_inference_request_duration_seconds`, `router_inference_ttft_seconds`,
 `router_pre_worker_duration_seconds`, `router_token_count`, ...), and worker
 (`worker_ttft_seconds`, `worker_generation_duration_seconds`, `worker_tpot_seconds`,
-`worker_token_total`, ...). Labels include `endpoint_id`/`endpoint_name`,
+`worker_token_total`, plus two engine-cache gauges — `worker_engine_kv_cache_utilization`
+(fraction of the engine's KV-cache capacity in use, 0–1) and `worker_engine_cache_hit_rate`
+(engine KV-cache hit rate, 0–1; higher means more prefix reuse across requests), ...). Labels
+include `endpoint_id`/`endpoint_name`,
 `deployment_id`/`deployment_name`, `replica_id`, `model`, `status_code`, `is_streaming`, and
 `token_type`.
 
@@ -438,7 +447,7 @@ from together import Together
 client = Together(base_url="https://api-inference.together.ai/v1")
 
 response = client.chat.completions.create(
-    model="your-project-slug/my-endpoint",   # qualified name, not ep_ ID
+    model="your-project-slug/my-endpoint",   # endpoint string, not ep_ ID
     messages=[{"role": "user", "content": "What is 2+2?"}],
     max_tokens=30,
 )

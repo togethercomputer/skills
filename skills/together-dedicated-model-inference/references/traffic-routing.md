@@ -46,7 +46,7 @@ To verify empirically how traffic actually lands — for a split or an A/B test 
 need two things the obvious approach misses:
 
 - **Attribution comes from the response headers, not the body.** The response body's `model`
-  field only echoes the endpoint's qualified name, so two deployments serving the same model
+  field only echoes the endpoint string, so two deployments serving the same model
   produce byte-identical bodies. The routing headers on the inference response distinguish
   them:
   - `x-cluster` — the per-deployment cluster ID (one stable value per deployment).
@@ -80,7 +80,7 @@ client = Together(base_url="https://api-inference.together.ai/v1")
 counts = Counter()
 for i in range(200):  # a few hundred varied requests → stable share estimate
     raw = client.chat.completions.with_raw_response.create(
-        model="your-project-slug/my-endpoint",   # qualified name, not ep_ ID
+        model="your-project-slug/my-endpoint",   # endpoint string, not ep_ ID
         messages=[{"role": "user", "content": f"ping {i}"}],
         max_tokens=1,
         extra_body={"prompt_cache_key": f"probe-{i}"},   # unique key defeats sticky routing

@@ -20,9 +20,8 @@ The resource model has six parts: **Project → Model → Config → Endpoint �
   and count, optimization profile). The model determines the available configs.
 - **Replica** — one model instance on its own dedicated hardware.
 
-Inference goes to `https://api-inference.together.ai/v1` with the **endpoint string** (the
-project-qualified name `<project_slug>/<endpoint_name>` — the docs' current term for what was
-earlier called the qualified name) as the `model` parameter. Management goes through the
+Inference goes to `https://api-inference.together.ai/v1` with the **endpoint string**
+(`<project_slug>/<endpoint_name>`) as the `model` parameter. Management goes through the
 Together CLI (`tg beta ...` — install with `uv tool install "together[cli]"`; `tg` and
 `together` are interchangeable), the `client.beta.*` SDK namespaces, or the `/v2` REST API at
 `https://api.together.ai`.
@@ -40,7 +39,11 @@ Together CLI (`tg beta ...` — install with `uv tool install "together[cli]"`; 
 
 - Use `together-dedicated-endpoints` for the **legacy v1 API** (`client.endpoints.create` with
   `model=` + `hardware=`, hardware IDs like `1x_nvidia_h100_80gb_sxm`, `together endpoints`
-  CLI without `beta`). v1 stays supported through end of 2026; new work should target v2.
+  CLI without `beta`). **v1 create and restart are now disabled**: `POST /v1/endpoints`,
+  `client.endpoints.create(...)`, and `tg endpoints create` return
+  `endpoints_v1_create_access_disabled` (HTTP 403), and a stopped/paused v1 endpoint can't be
+  restarted. Already-running v1 endpoints keep serving until further notice; anything new —
+  and any redeploy of a stopped v1 endpoint — goes through v2 (this skill).
 - Use `together-chat-completions` for serverless inference and request-shaping questions
   (the request shape is identical once the endpoint is up).
 - Use `together-fine-tuning` for training the model you'll deploy here.
@@ -82,9 +85,9 @@ Together CLI (`tg beta ...` — install with `uv tool install "together[cli]"`; 
    is the scripted polling loop; the SDK equivalent is
    `client.beta.endpoints.deployments.retrieve(dep_id, project_id=..., endpoint_id=...)`.
    First-time provisioning commonly takes up to ~20 minutes.
-5. Send requests to `https://api-inference.together.ai/v1` with the qualified name as `model`.
+5. Send requests to `https://api-inference.together.ai/v1` with the endpoint string as `model`.
 6. Scale, reconfigure, or set traffic weights with `tg beta endpoints update <dep_id>`
-   (`--min/--max-replicas`, `--scaling-metrics`, `--traffic-weight`); split traffic or
+   (`--min/--max-replicas`, `--scaling-metric`/`--scaling-target`, `--traffic-weight`); split traffic or
    experiment as needed.
 7. Clean up: `tg beta endpoints update <dep_id> --min-replicas 0 --max-replicas 0` to stop
    billing, or `tg beta endpoints rm <ep_id> --force` to tear everything down (it scales
@@ -101,8 +104,8 @@ Together CLI (`tg beta ...` — install with `uv tool install "together[cli]"`; 
   --traffic-weight N` (upserts one entry) or replace the split via SDK
   `endpoints.update(traffic_split=[...])`. A `routing_error`/503 on a READY deployment almost
   always means a missing/zero weight.
-- **Management IDs vs inference name.** Management calls take IDs (`ep_`, `dep_`, `cr_`, `ml_`,
-  `abx_`, `exp_`); inference takes the qualified name `<project_slug>/<endpoint_name>`.
+- **Management IDs vs endpoint string.** Management calls take IDs (`ep_`, `dep_`, `cr_`, `ml_`,
+  `abx_`, `exp_`); inference takes the endpoint string `<project_slug>/<endpoint_name>`.
 - **The SDK requires `project_id` on every method** — derive it with `client.whoami().project_id`.
   The SDK also takes models/configs as resource names (`projects/{p}/models/{ml}`,
   `projects/{p}/configs/{cr}`), while the CLI takes bare IDs. Use the config's own `projectId`
@@ -121,7 +124,7 @@ Together CLI (`tg beta ...` — install with `uv tool install "together[cli]"`; 
   `rm dep_...` on a running deployment sets `0/0` and asks you to retry once `STOPPED`, and
   `rm ep_... --force` scales the endpoint's deployments to zero itself as part of teardown.
 - **To see which deployment/replica served a request, read the inference response headers.**
-  The response *body*'s `model` field only echoes the endpoint's qualified name — identical for
+  The response *body*'s `model` field only echoes the endpoint string — identical for
   every deployment. The routing headers distinguish them: `x-cluster` is the per-deployment
   cluster ID and `worker_url` (inside the `x-i-router-log-event` header) is the replica pod.
   This is the only way to verify a split or A/B empirically. See
