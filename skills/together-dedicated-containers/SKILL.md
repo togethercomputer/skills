@@ -25,7 +25,7 @@ Core building blocks:
 
 ## Hand Off To Another Skill
 
-- Use `together-dedicated-endpoints` for standard model hosting without custom containers
+- Use `together-dedicated-model-inference` for standard model hosting without custom containers
 - Use `together-gpu-clusters` for full cluster ownership and orchestration control
 - Use `together-chat-completions`, `together-images`, or `together-video` when a serverless product already covers the task
 

@@ -31,7 +31,7 @@ Each skill contains:
 | **together-batch-inference** | High-volume, asynchronous offline inference at up to 50% lower cost via Together AI's Batch API. | `batch_workflow.py` |
 | **together-evaluations** | LLM-as-a-judge evaluation framework on Together AI. | `run_evaluation.py` |
 | **together-sandboxes** | Remote Python execution in managed sandboxes on Together AI with stateful sessions, file uploads, data analysis, char... | `execute_with_session.py` |
-| **together-dedicated-endpoints** | Single-tenant GPU endpoints on Together AI with autoscaling and no rate limits. | `deploy_finetuned.py`, `manage_endpoint.py`, `upload_custom_model.py` |
+| **together-dedicated-model-inference** | Deploy and operate models on dedicated GPUs with Together AI's Dedicated Model Inference (DMI, the v2 dedicated endpo... | `deploy_model.py`, `upload_custom_model.py` |
 | **together-dedicated-containers** | Custom Dockerized inference workers on Together AI's managed GPU infrastructure. | `queue_client.py`, `sprocket_hello_world.py` |
 | **together-gpu-clusters** | On-demand and reserved GPU clusters (H100, H200, B200) on Together AI with Kubernetes or Slurm orchestration, shared ... | `manage_cluster.py`, `manage_storage.py` |
 | **together-volcano** | Install and use the Volcano batch scheduler on a Together AI Kubernetes GPU cluster for gang scheduling. | — |

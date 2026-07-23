@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together Dedicated Model Inference"
+  short_description: "Together AI dedicated model inference (v2 endpoints)"
+  default_prompt: "Use $together-dedicated-model-inference to deploy a model on dedicated Together AI GPUs (beta endpoints/deployments), manage autoscaling, split traffic, run A/B tests or shadow experiments, or upload a custom model or LoRA adapter."

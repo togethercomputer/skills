@@ -32,7 +32,7 @@ through Together AI's evaluation system.
 - Use `together-chat-completions` for one-off inference or manual judge prompts
 - Use `together-batch-inference` for bulk offline generation rather than evaluation
 - Use `together-fine-tuning` when the user wants to improve the model instead of just measure it
-- Use `together-dedicated-endpoints` only if the evaluation target itself is a dedicated endpoint
+- Use `together-dedicated-model-inference` only if the evaluation target itself is a dedicated endpoint
 
 ## Quick Routing
 

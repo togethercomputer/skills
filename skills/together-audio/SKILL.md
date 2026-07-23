@@ -26,7 +26,7 @@ Use Together AI audio APIs for:
 
 - Use `together-chat-completions` for text-only generation
 - Use `together-video` or `together-images` for visual generation workflows
-- Use `together-dedicated-endpoints` only when the audio model itself must be hosted on dedicated infrastructure
+- Use `together-dedicated-model-inference` only when the audio model itself must be hosted on dedicated infrastructure
 
 ## Quick Routing
 

@@ -28,7 +28,7 @@ Typical fits:
 
 ## Hand Off To Another Skill
 
-- Use `together-dedicated-endpoints` for managed single-model hosting
+- Use `together-dedicated-model-inference` for managed single-model hosting
 - Use `together-dedicated-containers` for containerized inference without owning the full cluster
 - Use `together-sandboxes` for short-lived remote Python execution
 - Use `together-fine-tuning` for managed training jobs instead of raw cluster operations
