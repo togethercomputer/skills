@@ -1,6 +1,6 @@
 ---
 name: together-dedicated-model-inference
-description: "Deploy and operate models on dedicated GPUs with Together AI's Dedicated Model Inference (DMI, the v2 dedicated endpoints API): beta endpoints, deployments, deployment profiles and hardware configs, autoscaling, traffic splitting, A/B tests, shadow experiments, Prometheus metrics, and custom model or LoRA adapter uploads. Reach for it whenever the user mentions together beta endpoints or tg beta commands, client.beta.endpoints, DMI resources like ep_/dep_/cr_/ml_ IDs, or wants production model serving with traffic management on Together AI. Use together-dedicated-endpoints only for the legacy v1 endpoints API."
+description: "Deploy and operate models on dedicated GPUs with Together AI's Dedicated Model Inference (DMI, the v2 dedicated endpoints API): beta endpoints, deployments, deployment profiles and hardware configs, autoscaling, traffic splitting, A/B tests, shadow experiments, Prometheus metrics, and custom model or LoRA adapter uploads. Reach for it whenever the user mentions together beta endpoints or tg beta commands, client.beta.endpoints, DMI resources like ep_/dep_/cr_/ml_ IDs, or wants production model serving with traffic management on Together AI. This is the current dedicated-hosting API and also covers migrating off the retired legacy v1 endpoints API (non-beta client.endpoints / together endpoints), whose create and restart now return HTTP 403."
 ---
 
 # Together Dedicated Model Inference
@@ -26,6 +26,14 @@ Together CLI (`tg beta ...` — install with `uv tool install "together[cli]"`; 
 `together` are interchangeable), the `client.beta.*` SDK namespaces, or the `/v2` REST API at
 `https://api.together.ai`.
 
+> **The legacy v1 dedicated endpoints API is retired.** The old flow (`client.endpoints.create`
+> with `model=` + `hardware=`, hardware IDs like `1x_nvidia_h100_80gb_sxm`, the `together
+> endpoints` CLI *without* `beta`) no longer accepts new endpoints: `POST /v1/endpoints`,
+> `client.endpoints.create(...)`, and `tg endpoints create` return
+> `endpoints_v1_create_access_disabled` (HTTP 403), and a stopped/paused v1 endpoint can't be
+> restarted. Already-running v1 endpoints keep serving until further notice; everything new —
+> and any redeploy of a stopped v1 endpoint — uses the v2 flow this skill describes.
+
 ## When This Skill Wins
 
 - Deploying a model (public, fine-tuned, or uploaded) on dedicated GPUs via the v2 API
@@ -37,13 +45,6 @@ Together CLI (`tg beta ...` — install with `uv tool install "together[cli]"`; 
 
 ## Hand Off To Another Skill
 
-- Use `together-dedicated-endpoints` for the **legacy v1 API** (`client.endpoints.create` with
-  `model=` + `hardware=`, hardware IDs like `1x_nvidia_h100_80gb_sxm`, `together endpoints`
-  CLI without `beta`). **v1 create and restart are now disabled**: `POST /v1/endpoints`,
-  `client.endpoints.create(...)`, and `tg endpoints create` return
-  `endpoints_v1_create_access_disabled` (HTTP 403), and a stopped/paused v1 endpoint can't be
-  restarted. Already-running v1 endpoints keep serving until further notice; anything new —
-  and any redeploy of a stopped v1 endpoint — goes through v2 (this skill).
 - Use `together-chat-completions` for serverless inference and request-shaping questions
   (the request shape is identical once the endpoint is up).
 - Use `together-fine-tuning` for training the model you'll deploy here.

@@ -27,7 +27,7 @@ This skill is for retrieval plumbing, not for the final language-model response 
 
 - Use `together-chat-completions` for the final answer-generation step
 - Use `together-batch-inference` for very large offline embedding backfills
-- Use `together-dedicated-endpoints` when reranking requires a dedicated deployment
+- Use `together-dedicated-model-inference` when reranking requires a dedicated deployment
 
 ## Quick Routing
 

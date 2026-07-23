@@ -31,7 +31,7 @@ Supported workflows in this repo:
 
 - Use `together-chat-completions` for plain inference without training
 - Use `together-evaluations` to measure a model before or after tuning
-- Use `together-dedicated-endpoints` to host the resulting tuned model
+- Use `together-dedicated-model-inference` to host the resulting tuned model
 - Use `together-gpu-clusters` only when the user needs raw infrastructure rather than managed tuning
 
 ## Quick Routing
