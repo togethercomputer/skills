@@ -59,7 +59,7 @@ Two SSH methods are supported. On Slurm clusters with OIDC enabled, pick one fro
 
 | Method | How it works | Requirements |
 |--------|--------------|--------------|
-| **OIDC (Together CLI)** | Browser sign-in that mints a short-lived certificate, executed via `tg beta clusters ssh`. | Together CLI installed (`uv tool install "together[cli]"`, 2.20+, Python 3.10+). Choose a login name when prompted in the cluster UI. No SSH key required. |
+| **OIDC (Together CLI)** | Browser sign-in that mints a short-lived certificate, executed via `tg beta clusters ssh`. | Together CLI installed (`uv tool install "together[cli]"`, 2.23+, Python 3.10+). Choose a login name when prompted in the cluster UI. No SSH key required. |
 | **Key-based** | Standard `ssh -J` proxy jump through the cluster's bastion. | SSH public key uploaded at `api.together.ai/settings/ssh-key` before cluster creation. |
 
 The cluster UI's **Copy SSH command** (worker/compute) and **Copy head node SSH command** (Slurm login) buttons emit a command shaped for the selected method.
