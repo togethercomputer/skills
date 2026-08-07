@@ -47,12 +47,12 @@ Both `/v1/audio/transcriptions` and `/v1/audio/translations` enforce the same ca
 
 | Limit | Value | Notes |
 |-------|-------|-------|
-| Max file size (direct upload) | 500 MB | Requests above this are rejected at the edge with `HTTP 413 Payload Too Large`. |
+| Max file size (direct upload) | 80 MB | Requests above this are rejected with `HTTP 413` and error type `request_too_large`. |
 | Max file size (URL fetch) | 1 GB | When you submit an HTTPS URL on the `file` field instead of binary, the server downloads up to 1 GB. Larger downloads fail with `400 file_too_large`. |
 | Max audio duration | 4 hours per request | Longer audio is rejected with `400 audio_too_long`. Split into ≤ 4 h segments and submit separately. |
 
 Tips:
-- For payloads larger than 500 MB, host the file at a public HTTPS URL and pass that URL as the `file` field — the 500 MB edge cap only applies to direct uploads.
+- For payloads larger than 80 MB, host the file at a public HTTPS URL and pass that URL as the `file` field — the 80 MB cap only applies to direct uploads.
 - For audio longer than 4 hours, split into ≤ 4 h chunks before submitting.
 - For binary uploads, place the `model` form field **before** the `file` field in the multipart body so the server can route the request without buffering the full audio payload.
 - Real-time/streaming transports are unaffected by these batch upload limits.
@@ -219,7 +219,7 @@ Speaker segment example:
 | `400 file_too_large` | A URL-fetched audio download exceeded the 1 GB server-side cap. | Compress the source, or split into smaller files. |
 | `400 unsupported_format` | The audio container or codec could not be decoded. | Re-encode to a supported format. Run `ffprobe` on the file to confirm it is valid audio. |
 | `400 invalid_params` | Request parameters failed validation. | Check the API reference for the endpoint. |
-| `413 Payload Too Large` | A direct upload exceeded the 500 MB edge limit. | Submit the file via an HTTPS URL on the `file` field instead, or split the file. |
+| `413 request_too_large` | A direct upload exceeded the 80 MB limit. | Submit the file via an HTTPS URL on the `file` field instead, or split the file. |
 | `429` | Rate limit exceeded. | See serverless rate limits. |
 | `500 processing_failed` | Internal decode failure after the file was accepted. | Verify the file is valid audio with `ffprobe`. If it is, contact Together support with the response `id`. |
 
