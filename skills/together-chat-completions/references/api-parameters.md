@@ -357,8 +357,10 @@ typed reasoning fields, or other platform-specific workflows already covered by 
 
 ## Rate Limits & Build Tiers
 
-Serverless rate limits are model-specific and can change based on capacity. Treat response headers
-as the source of truth for the current limit on the model you are calling.
+Serverless rate limits are model-specific and can change based on capacity. Successful requests
+come back without rate-limit headers; when a request is throttled (`429`) the response includes
+`x-ratelimit-reset` with the number of seconds to wait before retrying. Use that value to drive
+backoff.
 
 Current account-level LLM baselines from the official Together AI billing docs:
 
@@ -370,13 +372,14 @@ Current account-level LLM baselines from the official Together AI billing docs:
 | Build Tier 4 | $250 | 4,500 RPM |
 | Build Tier 5 | $1,000 | 6,000 RPM |
 
-Rate-limit headers returned on serverless responses:
+Rate-limit headers only appear on `429 Too Many Requests` responses; successful responses do not
+include them. Header reference:
 
 | Header | Description |
 |--------|-------------|
 | `x-ratelimit-limit` | Maximum request rate currently allowed |
 | `x-ratelimit-remaining` | Remaining request capacity in the current window |
-| `x-ratelimit-reset` | Time until the request window resets |
+| `x-ratelimit-reset` | Seconds to wait before retrying |
 | `x-tokenlimit-limit` | Maximum token rate currently allowed |
 | `x-tokenlimit-remaining` | Remaining token capacity in the current window |
 | `x-ratelimit-limit-dynamic` | Dynamic request-rate allowance when enabled |
@@ -386,7 +389,7 @@ Rate-limit headers returned on serverless responses:
 
 Best practices:
 
-- plan against the latest headers instead of a hard-coded RPM table
+- watch for `429` responses and back off using the `x-ratelimit-reset` value instead of a hard-coded RPM table
 - keep traffic steady instead of bursty
 - use batch inference for high-volume offline jobs
 - for strict capacity or SLA requirements, use provisioned throughput (reserved capacity on supported stock models with a defined throughput and reliability SLA, contact sales) or dedicated endpoints (single-tenant GPUs, self-serve)
