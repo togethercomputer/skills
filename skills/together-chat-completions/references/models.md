@@ -16,6 +16,7 @@
 
 | Organization | Model | API String | Context | Quant |
 |-------------|-------|-----------|---------|-------|
+| Thinking Machines | Inkling | `thinkingmachines/Inkling` | 524,288 | NVFP4 |
 | MiniMax | MiniMax M2.7 | `MiniMaxAI/MiniMax-M2.7` | 202,752 | FP4 |
 | Qwen | Qwen3.7 Max | `Qwen/Qwen3.7-Max` | - | - |
 | Qwen | Qwen3.6 Plus | `Qwen/Qwen3.6-Plus` | 1,000,000 | - |
