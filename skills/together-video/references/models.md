@@ -26,6 +26,7 @@
 | Vidu | Vidu Q1 | `vidu/vidu-q1` | 5s | 1920x1080, 1080x1080, 1080x1920 | 24 | First, Last |
 | Wan-AI | Wan 2.2 T2V | `Wan-AI/Wan2.2-T2V-A14B` | - | - | - | Text-to-Video |
 | Wan-AI | Wan 2.2 I2V | `Wan-AI/Wan2.2-I2V-A14B` | - | - | - | Image-to-Video |
+| Black Forest Labs | FLUX 3 | `black-forest-labs/FLUX-3` | 5-20s | 720p, 1080p (`hd`, `fhd`) | 24 | First, Last, storyboard (up to 10) |
 
 ## Seedance Dimensions
 
@@ -45,11 +46,12 @@
 
 | Feature | Models |
 |---------|--------|
-| Audio generation | Veo 3.0 + Audio, Veo 3.0 Fast + Audio |
+| Audio generation | Veo 3.0 + Audio, Veo 3.0 Fast + Audio, FLUX 3 |
 | Reference images | Vidu 2.0 |
-| First + Last keyframe | Veo 2.0, Kling 2.1 Pro, Seedance, PixVerse, Vidu |
+| First + Last keyframe | Veo 2.0, Kling 2.1 Pro, Seedance, PixVerse, Vidu, FLUX 3 |
 | 10 second duration | Hailuo 02 |
-| 1080p output | Veo 3.0, Seedance Pro, PixVerse, Kling 2.1, Vidu Q1, Sora 2 Pro |
+| Up to 20 second duration | FLUX 3 |
+| 1080p output | Veo 3.0, Seedance Pro, PixVerse, Kling 2.1, Vidu Q1, Sora 2 Pro, FLUX 3 |
 | No prompt required | Kling 2.1 Standard/Pro, Kling 1.6 Pro |
 
 ## Prompt Limits

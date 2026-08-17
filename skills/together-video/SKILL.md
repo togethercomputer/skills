@@ -19,7 +19,7 @@ Use Together AI video APIs for:
 
 - Generate short videos from prompts
 - Animate an existing image
-- Choose among Veo, Sora, Kling, Seedance, PixVerse, Vidu, or other supported models
+- Choose among Veo, Sora, Kling, Seedance, PixVerse, Vidu, FLUX 3, or other supported models
 - Add polling and download logic to a product or script
 
 ## Hand Off To Another Skill
