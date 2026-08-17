@@ -12,6 +12,10 @@
     "should_trigger": true
   },
   {
+    "query": "List current Together AI GPU cluster regions, find the cheapest on-demand option, and show the command without creating it.",
+    "should_trigger": true
+  },
+  {
     "query": "Deploy a supported chat model to a managed dedicated endpoint with no custom runtime.",
     "should_trigger": false
   },
