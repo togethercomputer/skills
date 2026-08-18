@@ -35,6 +35,10 @@ Typical fits:
 
 ## Quick Routing
 
+- **Current regions, instance types, pricing, or a non-creating command plan**
+  - Read [references/pricing-and-discovery.md](references/pricing-and-discovery.md)
+  - Query the live regions endpoint, then compare only the matching numeric rates
+    on the official pricing table
 - **Cluster creation, scaling, credentials, deletion**
   - Start with [scripts/manage_cluster.py](scripts/manage_cluster.py) or [scripts/manage_cluster.ts](scripts/manage_cluster.ts)
   - Read [references/api-reference.md](references/api-reference.md)
@@ -63,6 +67,15 @@ Typical fits:
 - Treat storage lifecycle separately from cluster lifecycle; volumes can outlive clusters.
 - When creating a cluster with new shared storage, prefer inline `shared_volume` over creating a volume separately and attaching via `volume_id`. Separately created volumes may land in a different datacenter partition than the cluster, causing a "does not exist in the datacenter" error even when the volume shows as available.
 - GPU stock-outs (409 "Out of stock") are common. Always call `list_regions()` first and be prepared to try multiple regions.
+- The regions response reports supported configurations, not prices or
+  guaranteed stock. Never infer the cheapest GPU from response order or
+  hardware generation; open the [GPU Cluster pricing table](https://www.together.ai/pricing#gpu-clusters)
+  and compare its numeric on-demand rates.
+- GPU clusters have an 8-GPU minimum. For an hourly estimate, multiply the displayed per-GPU-hour rate by at least 8.
+- `ON_DEMAND` has no one-hour duration flag. For a one-hour plan, omit
+  `--duration-days`, create the cluster only when authorized, then delete it
+  after the intended runtime. If the user requests a command without
+  provisioning, print it but do not run it.
 - The API requires `cuda_version` and `nvidia_driver_version` as separate fields in addition to the combined `driver_version` string. Pass them via `extra_body` in the Python SDK.
 - Credentials retrieval is part of provisioning. Do not stop at cluster creation if the user needs to run workloads immediately.
 - Slurm and Kubernetes operational patterns differ materially; read the cluster-management reference before improvising.
@@ -75,6 +88,8 @@ Typical fits:
 - **Operational guide**: [references/cluster-management.md](references/cluster-management.md)
 - **Operational troubleshooting**: [references/cluster-management.md](references/cluster-management.md)
 - **CLI guide**: [references/cli.md](references/cli.md)
+- **Live inventory, pricing, and non-creating plans**:
+  [references/pricing-and-discovery.md](references/pricing-and-discovery.md)
 - **Python cluster management**: [scripts/manage_cluster.py](scripts/manage_cluster.py)
 - **TypeScript cluster management**: [scripts/manage_cluster.ts](scripts/manage_cluster.ts)
 - **Python storage management**: [scripts/manage_storage.py](scripts/manage_storage.py)
@@ -84,5 +99,6 @@ Typical fits:
 - [GPU Clusters Overview](https://docs.together.ai/docs/gpu-clusters-overview)
 - [GPU Clusters Quickstart](https://docs.together.ai/docs/gpu-clusters-quickstart)
 - [Clusters API](https://docs.together.ai/reference/clusters-create)
+- [GPU Cluster Pricing](https://www.together.ai/pricing#gpu-clusters)
 - [Slurm Startup Scripts](https://docs.together.ai/docs/slurm-startup-scripts)
 - [Instant GPU Clusters](https://www.together.ai/instant-gpu-clusters)
