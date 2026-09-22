@@ -122,12 +122,28 @@ def validate_skill(skill_dir: Path) -> list[str]:
     if scripts_dir.exists() and not any(scripts_dir.iterdir()):
         errors.append(f"{skill_dir}: Empty scripts/ directory")
 
-    # Check markdown links in body point to existing files
-    link_re = re.compile(r"\[.*?\]\(((?:references|scripts)/[^)]+)\)")
-    for match in link_re.finditer(body):
-        ref_path = skill_dir / match.group(1)
-        if not ref_path.exists():
-            errors.append(f"{skill_dir}: Referenced file not found: {match.group(1)}")
+    # Check markdown links point to existing files.
+    # Paths in this repo's skills are written relative to the SKILL ROOT, including the ones
+    # inside domains/*.md, so every link resolves against skill_dir regardless of which file
+    # it appears in. Domain guides carry the bulk of the links, so they are checked too --
+    # without this, the level-3 guides could rot silently.
+    link_re = re.compile(r"\[.*?\]\(((?:references|scripts|domains)/[^)#]+)")
+
+    sources = [(skill_dir / "SKILL.md", body)]
+    domains_dir = skill_dir / "domains"
+    if domains_dir.exists():
+        if not any(domains_dir.iterdir()):
+            errors.append(f"{skill_dir}: Empty domains/ directory")
+        for guide in sorted(domains_dir.glob("*.md")):
+            sources.append((guide, guide.read_text(encoding="utf-8")))
+
+    for source, text in sources:
+        for match in link_re.finditer(text):
+            if not (skill_dir / match.group(1)).exists():
+                rel = source.relative_to(skill_dir)
+                errors.append(
+                    f"{skill_dir}: {rel}: Referenced file not found: {match.group(1)}"
+                )
 
     return errors
 

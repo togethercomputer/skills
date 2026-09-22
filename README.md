@@ -1,6 +1,8 @@
 # Together AI Skills for Coding Agents
 
-A collection of 12 agent skills that provide comprehensive knowledge of the [Together AI](https://together.ai) platform — inference, training, embeddings, audio, video, images, function calling, and infrastructure.
+A single agent skill providing comprehensive knowledge of the [Together AI](https://together.ai) platform — inference, training, embeddings, audio, video, images, function calling, and infrastructure.
+
+It uses **progressive disclosure**: one always-loaded description, a compact router, then one of 14 domain guides, then deep references and runnable scripts. Only the parts relevant to your task ever enter the agent's context.
 
 Each skill teaches AI coding agents how to use a specific Together AI product, including API patterns, SDK usage (Python and TypeScript), CLI commands, direct API usage, model selection, and best practices. Skills include runnable Python scripts (using the **Together Python v2 SDK**), TypeScript examples, and CLI/API workflow guidance.
 
@@ -20,22 +22,22 @@ Each skill contains:
 ## Skills Overview
 
 <!-- BEGIN_SKILLS_TABLE -->
-| Skill | Description | Scripts |
-|-------|-------------|---------|
-| **together-chat-completions** | Real-time and streaming text generation via Together AI's OpenAI-compatible chat/completions API, including multi-tur... | `async_parallel.py`, `chat_basic.py`, `debug_headers.py`, `reasoning_models.py`, `structured_outputs.py`, `tool_call_loop.py` |
-| **together-images** | Text-to-image generation and image editing via Together AI, including FLUX and Kontext models, LoRA-based styling, re... | `generate_image.py`, `kontext_editing.py`, `lora_generation.py` |
-| **together-video** | Text-to-video and image-to-video generation via Together AI, including keyframe control, model and dimension selectio... | `generate_video.py`, `image_to_video.py` |
-| **together-audio** | Text-to-speech and speech-to-text via Together AI, including REST, streaming, and realtime WebSocket TTS, plus transc... | `stt_realtime.py`, `stt_transcribe.py`, `tts_generate.py`, `tts_websocket.py` |
-| **together-embeddings** | Dense vector embeddings, semantic search, RAG pipelines, and reranking via Together AI. | `embed_and_rerank.py`, `rag_pipeline.py`, `semantic_search.py` |
-| **together-fine-tuning** | LoRA, full fine-tuning, DPO preference tuning, VLM training, function-calling tuning, reasoning tuning, and BYOM uplo... | `dpo_workflow.py`, `finetune_workflow.py`, `function_calling_finetune.py`, `reasoning_finetune.py`, `vlm_finetune.py` |
-| **together-batch-inference** | High-volume, asynchronous offline inference at up to 50% lower cost via Together AI's Batch API. | `batch_workflow.py` |
-| **together-evaluations** | LLM-as-a-judge evaluation framework on Together AI. | `run_evaluation.py` |
-| **together-sandboxes** | Remote Python execution in managed sandboxes on Together AI with stateful sessions, file uploads, data analysis, char... | `execute_with_session.py` |
-| **together-dedicated-model-inference** | Deploy and operate models on dedicated GPUs with Together AI's Dedicated Model Inference (DMI, the v2 dedicated endpo... | `deploy_model.py`, `upload_custom_model.py` |
-| **together-dedicated-containers** | Custom Dockerized inference workers on Together AI's managed GPU infrastructure. | `queue_client.py`, `sprocket_hello_world.py` |
-| **together-gpu-clusters** | On-demand and reserved GPU clusters (H100, H200, B200) on Together AI with Kubernetes or Slurm orchestration, shared ... | `manage_cluster.py`, `manage_storage.py` |
-| **together-volcano** | Install and use the Volcano batch scheduler on a Together AI Kubernetes GPU cluster for gang scheduling. | — |
-| **together-kueue** | Install and use the Kueue job-queueing controller on a Together AI Kubernetes GPU cluster to gate jobs on quota. | — |
+| Domain guide | What it covers | Scripts |
+|--------------|----------------|---------|
+| **audio.md** | Use Together AI audio APIs for speech synthesis and speech recognition -- REST, streaming, and realtime WebSocket TTS... | `stt_realtime.py`, `stt_transcribe.py`, `stt_transcribe.ts`, `tts_generate.py`, `tts_generate.ts`, `tts_websocket.py` |
+| **batch-inference.md** | Use Together AI's Batch API for large offline workloads where latency is not the primary concern. | `batch_workflow.py`, `batch_workflow.ts` |
+| **chat-completions.md** | Use Together AI's serverless chat/completions API for interactive inference: basic and streaming text generation, mul... | `async_parallel.py`, `chat_basic.py`, `chat_basic.ts`, `debug_headers.py`, `debug_headers.ts`, `reasoning_models.py`, `reasoning_models.ts`, `structured_outputs.py`, `structured_outputs.ts`, `tool_call_loop.py`, `tool_call_loop.ts` |
+| **dedicated-containers.md** | Use Dedicated Container Inference when the user needs a custom runtime, not just managed model hosting. | `queue_client.py`, `queue_client.ts`, `sprocket_hello_world.py` |
+| **dedicated-model-inference.md** | Dedicated model inference (DMI) serves a model on reserved single-tenant GPUs. | `deploy_model.py`, `upload_custom_model.py` |
+| **embeddings.md** | Use Together AI embeddings for dense vector representations, semantic search, RAG retrieval, and reranking -- the plu... | `embed_and_rerank.py`, `embed_and_rerank.ts`, `rag_pipeline.py`, `semantic_search.py` |
+| **evaluations.md** | Use Together AI evaluations when the user wants a managed LLM-as-a-judge workflow rather than an ad hoc prompt loop. | `run_evaluation.py`, `run_evaluation.ts` |
+| **fine-tuning.md** | Use Together AI fine-tuning when the user needs to adapt a model to their own data or behavior. | `dpo_workflow.py`, `finetune_workflow.py`, `function_calling_finetune.py`, `reasoning_finetune.py`, `vlm_finetune.py` |
+| **gpu-clusters.md** | Use Together AI GPU clusters when the user needs infrastructure control instead of a managed inference product. | `manage_cluster.py`, `manage_cluster.ts`, `manage_storage.py` |
+| **images.md** | Use Together AI image APIs for text-to-image generation and image editing, including FLUX and Kontext models, LoRA st... | `generate_image.py`, `generate_image.ts`, `kontext_editing.py`, `lora_generation.py` |
+| **kueue.md** | Kueue is a Kubernetes-native job queueing controller. | — |
+| **sandboxes.md** | Use Together Sandboxes when the user wants to execute Python remotely in a managed sandbox. | `execute_with_session.py`, `execute_with_session.ts` |
+| **video.md** | Use Together AI video APIs for text-to-video and image-to-video generation, including keyframe control, model and dim... | `generate_video.py`, `generate_video.ts`, `image_to_video.py` |
+| **volcano.md** | Volcano is a Kubernetes-native batch scheduler. | — |
 <!-- END_SKILLS_TABLE -->
 
 ## Installation
@@ -111,7 +113,7 @@ The agent will use the `together-chat-completions` skill to generate correct v2 
 > Create an agent that can check weather and stock prices using Together AI function calling
 ```
 
-The agent will reference `together-chat-completions` for the complete tool call loop pattern, including parallel tool calls and tool_choice options.
+The agent routes to the `chat-completions` domain guide for the complete tool call loop pattern, including parallel tool calls and tool_choice options.
 
 **Image generation** — Ask for image workflows:
 
@@ -119,7 +121,7 @@ The agent will reference `together-chat-completions` for the complete tool call 
 > Generate a FLUX image with Together AI and save it locally as PNG
 ```
 
-The agent will use `together-images` to write code with the correct model ID, base64 decoding, and file saving.
+The agent routes to the `images` domain guide to write code with the correct model ID, base64 decoding, and file saving.
 
 **Fine-tuning** — Ask to fine-tune a model:
 
@@ -127,7 +129,7 @@ The agent will use `together-images` to write code with the correct model ID, ba
 > Fine-tune Llama 3.1 8B on my dataset using Together AI with LoRA
 ```
 
-The agent will reference `together-fine-tuning` for data format requirements, training parameters, monitoring, and deployment.
+The agent routes to the `fine-tuning` domain guide for data format requirements, training parameters, monitoring, and deployment.
 
 ### Using the scripts
 
@@ -138,12 +140,12 @@ uv pip install "together>=2.0.0"
 export TOGETHER_API_KEY=your_key
 
 # Run any script directly
-python skills/together-images/scripts/generate_image.py
-python skills/together-audio/scripts/tts_generate.py
-python skills/together-batch-inference/scripts/batch_workflow.py
+python skills/together-ai/scripts/images/generate_image.py
+python skills/together-ai/scripts/audio/tts_generate.py
+python skills/together-ai/scripts/batch-inference/batch_workflow.py
 ```
 
-Scripts use the **Together Python v2 SDK** (`together>=2.0.0`) with keyword-only arguments, updated method names, and current response shapes.
+Scripts are grouped by product area under `skills/together-ai/scripts/AREA/`. Python scripts use the **Together Python v2 SDK** (`together>=2.0.0`) with keyword-only arguments, updated method names, and current response shapes; several areas also ship TypeScript equivalents.
 
 ## SDK Compatibility
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together AI"
+  short_description: "Together AI platform: inference, media, training, and GPU infrastructure"
+  default_prompt: "Use $together-ai to build, debug, deploy, train, evaluate, or operate anything on the Together AI platform — chat completions, images, video, audio, embeddings, fine-tuning, batch inference, evaluations, sandboxes, dedicated endpoints, containers, and GPU clusters."

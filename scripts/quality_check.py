@@ -57,7 +57,7 @@ def validate_skill_body(skill_dir: Path) -> list[str]:
 
 def validate_references(skill_dir: Path) -> list[str]:
     warnings: list[str] = []
-    for ref_path in sorted((skill_dir / "references").glob("*.md")):
+    for ref_path in sorted((skill_dir / "references").rglob("*.md")):
         line_count = ref_path.read_text(encoding="utf-8").count("\n") + 1
         head = "\n".join(ref_path.read_text(encoding="utf-8").splitlines()[:30])
         if line_count > LONG_REFERENCE_LIMIT and not TOC_RE.search(head):
@@ -69,10 +69,10 @@ def validate_references(skill_dir: Path) -> list[str]:
 
 def validate_scripts(skill_dir: Path) -> list[str]:
     warnings: list[str] = []
-    for script_path in sorted((skill_dir / "scripts").glob("*.py")):
+    for script_path in sorted((skill_dir / "scripts").rglob("*.py")):
         text = script_path.read_text(encoding="utf-8")
         if "tempfile.mktemp" in text:
-            warnings.append(f"{skill_dir.name}: {script_path.name} uses tempfile.mktemp")
+            warnings.append(f"{skill_dir.name}: {script_path.relative_to(skill_dir)} uses tempfile.mktemp")
     return warnings
 
 

@@ -1,0 +1,94 @@
+[
+  {
+    "query": "I'm on together 1.3.1 and client.create_batch() is throwing AttributeError. I've got a 40k-row JSONL of support tickets I need classified overnight, cheapest possible. What's the current way to do this?",
+    "should_trigger": true
+  },
+  {
+    "query": "build me a streaming chatbot on together with tool calling — it needs to hit our internal orders API and always return JSON matching a fixed schema",
+    "should_trigger": true
+  },
+  {
+    "query": "generate a FLUX.2 hero shot of a ceramic pour-over coffee dripper on a walnut counter, then swap the background to an overcast window using Kontext, save both as PNGs",
+    "should_trigger": true
+  },
+  {
+    "query": "take the product still we just made and animate it into a 5 second clip with a slow push-in. together ai",
+    "should_trigger": true
+  },
+  {
+    "query": "need to transcribe ~200 hours of recorded sales calls with speaker diarization and word timestamps. some files are 3GB. using together",
+    "should_trigger": true
+  },
+  {
+    "query": "setting up RAG over our confluence export (about 12k pages). want to use together for the embeddings and reranking, then generate grounded answers. how do I chunk this?",
+    "should_trigger": true
+  },
+  {
+    "query": "I have 8k preference pairs from our annotation team and want to DPO-tune a Llama model on together, then serve it. walk me through it",
+    "should_trigger": true
+  },
+  {
+    "query": "tg beta endpoints deploy finished and the deployment says DEPLOYMENT_STATE_READY but every request comes back routing_error 503. what am I missing",
+    "should_trigger": true
+  },
+  {
+    "query": "we're getting a 403 endpoints_v1_create_access_disabled when our terraform runs together endpoints create. this worked last month",
+    "should_trigger": true
+  },
+  {
+    "query": "I want to A/B two fine-tuned checkpoints behind one endpoint at a 90/10 split and actually verify which deployment served each request",
+    "should_trigger": true
+  },
+  {
+    "query": "spin up a 2-node H200 cluster for a distributed training run, with shared storage both nodes can see. we keep getting 'does not exist in the datacenter' on the volume",
+    "should_trigger": true
+  },
+  {
+    "query": "our 4-node torchrun job on the together k8s cluster keeps starting 3 pods and deadlocking waiting for the 4th. need all-or-nothing placement",
+    "should_trigger": true
+  },
+  {
+    "query": "three teams share our together GPU cluster and one of them keeps eating the whole pool. I want jobs to queue until their team's quota frees up instead of just running",
+    "should_trigger": true
+  },
+  {
+    "query": "I want an LLM judge to score 500 of our support replies for helpfulness on a 1-5 scale and compare our tuned model against the base. together evals",
+    "should_trigger": true
+  },
+  {
+    "query": "have the model write pandas code and actually execute it against a CSV I upload, keeping variables alive between runs so I can iterate. matplotlib charts need to come back too",
+    "should_trigger": true
+  },
+  {
+    "query": "port our summarization pipeline from gpt-4o to claude sonnet on bedrock — mainly need help with the tool-use block format differences",
+    "should_trigger": false
+  },
+  {
+    "query": "my langchain retriever is returning garbage. I'm using chroma locally with sentence-transformers all-MiniLM and the top-k results are unrelated to the query",
+    "should_trigger": false
+  },
+  {
+    "query": "write a python script that watches a directory for new mp4 files and runs whisper.cpp on them locally, output srt next to each file",
+    "should_trigger": false
+  },
+  {
+    "query": "our EKS cluster autoscaler isn't scaling up the g5.12xlarge node group even though pods are pending. karpenter provisioner is set to on-demand only",
+    "should_trigger": false
+  },
+  {
+    "query": "explain the difference between LoRA rank and alpha, and how they interact with learning rate. just conceptually, not for any particular platform",
+    "should_trigger": false
+  },
+  {
+    "query": "I need to generate a bunch of marketing images. what's the current pricing on midjourney vs ideogram for commercial use?",
+    "should_trigger": false
+  },
+  {
+    "query": "set up a vllm server on my own A100 box with tensor parallelism across 2 gpus, openai-compatible api on port 8000",
+    "should_trigger": false
+  },
+  {
+    "query": "review this PR that refactors our retry decorator — mostly want to know if the exponential backoff jitter is implemented correctly",
+    "should_trigger": false
+  }
+]

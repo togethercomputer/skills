@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import re
 import sys
+import pathlib
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -24,20 +25,7 @@ MARKETPLACE_PATH = REPO_ROOT / ".claude-plugin" / "marketplace.json"
 
 # Skill ordering for consistent output
 SKILL_ORDER = [
-    "together-chat-completions",
-    "together-images",
-    "together-video",
-    "together-audio",
-    "together-embeddings",
-    "together-fine-tuning",
-    "together-batch-inference",
-    "together-evaluations",
-    "together-sandboxes",
-    "together-dedicated-model-inference",
-    "together-dedicated-containers",
-    "together-gpu-clusters",
-    "together-volcano",
-    "together-kueue",
+    "together-ai",
 ]
 
 README_TABLE_BEGIN = "<!-- BEGIN_SKILLS_TABLE -->"
@@ -78,7 +66,8 @@ def collect_skills() -> list[dict[str, str]]:
             script_names = []
             if scripts_dir.exists():
                 script_names = sorted(
-                    f.name for f in scripts_dir.iterdir() if f.suffix == ".py"
+                    str(f.relative_to(scripts_dir))
+                    for f in scripts_dir.rglob("*.py")
                 )
             skills.append(
                 {
@@ -92,6 +81,35 @@ def collect_skills() -> list[dict[str, str]]:
     order_map = {name: i for i, name in enumerate(SKILL_ORDER)}
     skills.sort(key=lambda s: order_map.get(s["name"], 999))
     return skills
+
+
+def collect_domains() -> list[dict[str, str]]:
+    """Collect the level-3 domain guides that the skill router dispatches to."""
+    domains: list[dict[str, str]] = []
+    domains_dir = SKILLS_DIR / "together-ai" / "domains"
+    if not domains_dir.exists():
+        return domains
+    for guide in sorted(domains_dir.glob("*.md")):
+        text = guide.read_text(encoding="utf-8")
+        title, summary, para = guide.stem, "", []
+        for line in text.splitlines():
+            line = line.strip()
+            if line.startswith("# "):
+                title = line[2:].replace("Together AI: ", "").strip()
+            elif title == guide.stem or line.startswith("#"):
+                continue
+            elif line:
+                # accumulate the wrapped lead paragraph, not just its first line
+                para.append(line)
+            elif para:
+                break
+        if para:
+            summary = " ".join(para).rstrip(":")
+            # keep the table cell to the first sentence
+            first = summary.split(". ")[0]
+            summary = first if first.endswith(".") else first + "."
+        domains.append({"file": guide.name, "title": title, "summary": summary})
+    return domains
 
 
 def render_agents_md(skills: list[dict[str, str]]) -> str:
@@ -116,22 +134,46 @@ def render_agents_md(skills: list[dict[str, str]]) -> str:
             lines.append(line)
         output = output[: match.start()] + "".join(lines).rstrip("\n") + "\n" + output[match.end() :]
 
+    domains = collect_domains()
+    output = output.replace("{{domain_count}}", str(len(domains)))
+    domains_block_re = re.compile(r"\{\{#domains\}\}\n(.*?)\{\{/domains\}\}", re.DOTALL)
+    match = domains_block_re.search(output)
+    if match:
+        line_template = match.group(1)
+        lines = []
+        for domain in domains:
+            line = line_template
+            line = line.replace("{{file}}", domain["file"])
+            line = line.replace("{{title}}", domain["title"])
+            line = line.replace("{{summary}}", domain["summary"])
+            lines.append(line)
+        output = output[: match.start()] + "".join(lines).rstrip("\n") + "\n" + output[match.end() :]
+
     return output
 
 
 def render_readme_table(skills: list[dict[str, str]]) -> str:
-    """Render the skills table for README.md."""
+    """Render the domain table for README.md.
+
+    The repo is one skill, so a one-row skills table carries no information -- the useful
+    breakdown for a reader is the domain guides the router dispatches to, and which runnable
+    scripts back each one.
+    """
+    skill_dir = SKILLS_DIR / "together-ai"
     lines = [
-        "| Skill | Description | Scripts |",
-        "|-------|-------------|---------|",
+        "| Domain guide | What it covers | Scripts |",
+        "|--------------|----------------|---------|",
     ]
-    for skill in skills:
-        # Truncate description for table (first sentence)
-        desc = skill["description"]
-        first_sentence = desc.split(". ")[0] + "."
-        if len(first_sentence) > 120:
-            first_sentence = first_sentence[:117] + "..."
-        lines.append(f"| **{skill['name']}** | {first_sentence} | {skill['scripts']} |")
+    for domain in collect_domains():
+        area = pathlib.Path(domain["file"]).stem
+        summary = domain["summary"]
+        if len(summary) > 120:
+            summary = summary[:117] + "..."
+        area_scripts = sorted(
+            f.name for f in (skill_dir / "scripts" / area).glob("*") if f.is_file()
+        ) if (skill_dir / "scripts" / area).exists() else []
+        scripts = ", ".join(f"`{s}`" for s in area_scripts) if area_scripts else "—"
+        lines.append(f"| **{domain['file']}** | {summary} | {scripts} |")
     return "\n".join(lines)
 
 
