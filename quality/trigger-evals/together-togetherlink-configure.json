@@ -1,0 +1,42 @@
+[
+  {
+    "query": "Install TogetherLink on my Mac so I can run Claude Code on Together AI models.",
+    "should_trigger": true
+  },
+  {
+    "query": "togetherlink says No API key configured. How do I save my Together key?",
+    "should_trigger": true
+  },
+  {
+    "query": "Add my Anthropic API key to TogetherLink so the auto router can use Claude Opus.",
+    "should_trigger": true
+  },
+  {
+    "query": "Turn off the TogetherLink Claude Desktop integration and go back to official Claude.",
+    "should_trigger": true
+  },
+  {
+    "query": "Delete the TogetherLink ChatGPT Desktop profile from a script without prompts.",
+    "should_trigger": true
+  },
+  {
+    "query": "Update TogetherLink to the latest release and stop using it for Codex.",
+    "should_trigger": true
+  },
+  {
+    "query": "Pin GLM 5.3 for tclaude instead of the auto router.",
+    "should_trigger": false
+  },
+  {
+    "query": "My headless togetherlink run hangs in CI and never exits.",
+    "should_trigger": false
+  },
+  {
+    "query": "Show togetherlink usage for the last week.",
+    "should_trigger": false
+  },
+  {
+    "query": "Install the Together Python SDK and call chat completions.",
+    "should_trigger": false
+  }
+]

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together TogetherLink"
+  short_description: "Run coding agents on Together AI models with TogetherLink"
+  default_prompt: "Use $together-togetherlink to launch Claude Code or Codex on Together AI models with TogetherLink, pick a model, or run it headless."

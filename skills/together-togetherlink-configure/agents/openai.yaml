@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together TogetherLink Configure"
+  short_description: "Install and configure TogetherLink"
+  default_prompt: "Use $together-togetherlink-configure to install TogetherLink, set up API keys, manage the desktop integrations, update it, or restore my normal setup."
