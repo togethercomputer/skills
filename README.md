@@ -1,6 +1,6 @@
 # Together AI Skills for Coding Agents
 
-A collection of 12 agent skills that provide comprehensive knowledge of the [Together AI](https://together.ai) platform — inference, training, embeddings, audio, video, images, function calling, and infrastructure.
+A collection of 16 agent skills that provide comprehensive knowledge of the [Together AI](https://together.ai) platform — inference, training, embeddings, audio, video, images, function calling, and infrastructure.
 
 Each skill teaches AI coding agents how to use a specific Together AI product, including API patterns, SDK usage (Python and TypeScript), CLI commands, direct API usage, model selection, and best practices. Skills include runnable Python scripts (using the **Together Python v2 SDK**), TypeScript examples, and CLI/API workflow guidance.
 
@@ -60,7 +60,14 @@ cp -r skills/together-* your-project/.claude/skills/
 cp -r skills/together-* ~/.claude/skills/
 ```
 
-Marketplace plugin coming soon.
+Or install as a plugin:
+
+```text
+/plugin marketplace add togethercomputer/skills
+/plugin install togetherlink@togetherai-skills
+```
+
+Use `togetherlink@togetherai-skills` for just the TogetherLink skills, or `togetherai-skills@togetherai-skills` for all skills.
 
 ### Cursor
 

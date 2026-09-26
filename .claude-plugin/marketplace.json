@@ -3,11 +3,20 @@
   "owner": {
     "name": "Together AI"
   },
+  "description": "Together AI agent skills for Claude Code: the full Together AI platform catalog, plus a TogetherLink-only plugin",
   "plugins": [
     {
       "name": "togetherai-skills",
       "description": "Agent Skills for Together AI platform — inference, training, embeddings, audio, video, images, function calling, and infrastructure",
       "source": "./"
+    },
+    {
+      "name": "togetherlink",
+      "description": "Run Claude Code, Codex, Claude Desktop, and ChatGPT Desktop on Together AI models with TogetherLink",
+      "author": { "name": "Together AI" },
+      "source": "./skills",
+      "strict": false,
+      "skills": ["./together-togetherlink", "./together-togetherlink-configure"]
     }
   ]
 }
