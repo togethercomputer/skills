@@ -36,6 +36,8 @@ Each skill contains:
 | **together-gpu-clusters** | On-demand and reserved GPU clusters (H100, H200, B200) on Together AI with Kubernetes or Slurm orchestration, shared ... | `manage_cluster.py`, `manage_storage.py` |
 | **together-volcano** | Install and use the Volcano batch scheduler on a Together AI Kubernetes GPU cluster for gang scheduling. | — |
 | **together-kueue** | Install and use the Kueue job-queueing controller on a Together AI Kubernetes GPU cluster to gate jobs on quota. | — |
+| **together-togetherlink** | Run Claude Code, Codex CLI, Claude Desktop and Cowork, or ChatGPT Desktop on Together AI models through the TogetherL... | — |
+| **together-togetherlink-configure** | Install, configure, update, and undo TogetherLink, Together AI's CLI for running Claude Code, Codex, Claude Desktop, ... | — |
 <!-- END_SKILLS_TABLE -->
 
 ## Installation

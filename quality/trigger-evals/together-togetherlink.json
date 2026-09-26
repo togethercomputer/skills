@@ -1,0 +1,42 @@
+[
+  {
+    "query": "Launch Claude Code through TogetherLink but pin the whole session to GLM 5.3 instead of the auto router.",
+    "should_trigger": true
+  },
+  {
+    "query": "In tclaude, which Together model actually runs when I pick Sonnet or Haiku in /model?",
+    "should_trigger": true
+  },
+  {
+    "query": "My CI step runs togetherlink claude -p with JSON output and it never returns. What am I missing?",
+    "should_trigger": true
+  },
+  {
+    "query": "How much have my TogetherLink sessions cost this week? The Claude Code JSON cost looks way too high.",
+    "should_trigger": true
+  },
+  {
+    "query": "Use Codex CLI on Kimi K3 via TogetherLink and generate a logo image from inside the session.",
+    "should_trigger": true
+  },
+  {
+    "query": "Install TogetherLink on my Mac and save my Together API key so tclaude works.",
+    "should_trigger": false
+  },
+  {
+    "query": "Call Together chat completions from Python with streaming and tool calling.",
+    "should_trigger": false
+  },
+  {
+    "query": "Generate a FLUX image with the Together SDK and apply a LoRA style.",
+    "should_trigger": false
+  },
+  {
+    "query": "Run Claude Code on Amazon Bedrock with my AWS credentials.",
+    "should_trigger": false
+  },
+  {
+    "query": "Turn off the TogetherLink Claude Desktop integration and go back to official Claude.",
+    "should_trigger": false
+  }
+]
