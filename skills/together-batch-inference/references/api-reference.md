@@ -39,6 +39,8 @@ Each line is a JSON object with two required fields:
 - `custom_id` (string, required): Unique identifier for tracking (max 64 chars)
 - `body` (object, required): Request matching the `/v1/chat/completions` schema
 
+All lines in a file must use the same `body.model`. A batch job is single-model, and a file that mixes models fails validation. Submit one file and one job per model.
+
 ## Output File Format (JSONL)
 
 Each line in the output file is a JSON object keyed by `custom_id`:

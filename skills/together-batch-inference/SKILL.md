@@ -53,6 +53,7 @@ Typical fits:
 - Use `input_file_id`, not legacy file parameters.
 - Keep `custom_id` stable and meaningful so result reconciliation is easy.
 - Batch is for independent requests. If the workload depends on shared conversation state, it is probably the wrong tool.
+- A batch job is single-model. Every line's `body.model` must name the same model, and a file that mixes models is rejected during validation. To run several models, build one input file and one batch job per model.
 - Always inspect the error file in addition to the success output.
 - `client.batches.create()` returns a wrapper; access the batch object via `response.job` (e.g., `response.job.id`). `client.batches.retrieve()` returns the batch object directly.
 - For classification or labeling workloads, set `max_tokens` low (e.g., 4), use `temperature: 0`, and constrain the system prompt to return only the label. This minimizes output tokens and cost.
