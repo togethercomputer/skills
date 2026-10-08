@@ -20,10 +20,14 @@ client = Together()
 
 
 def reasoning_field_streaming() -> None:
-    """Most reasoning models return a separate `reasoning` field."""
-    print("=== Reasoning Field (Kimi K2.6 streaming) ===")
+    """Most reasoning models return a separate trace field.
+
+    Kimi K3 sends it as `reasoning_content`; most other models use `reasoning`.
+    Reading both keys makes one handler work across models.
+    """
+    print("=== Reasoning Field (Kimi K3 streaming) ===")
     stream = client.chat.completions.create(
-        model="moonshotai/Kimi-K2.6",
+        model="moonshotai/Kimi-K3",
         messages=[
             {"role": "user", "content": "Which number is bigger, 9.11 or 9.9?"},
         ],
@@ -34,9 +38,12 @@ def reasoning_field_streaming() -> None:
     content_text = ""
     for chunk in stream:
         if chunk.choices:
+            if not chunk.choices:  # final usage-only chunk
+                continue
             delta = chunk.choices[0].delta
-            if hasattr(delta, "reasoning") and delta.reasoning:
-                reasoning_text += delta.reasoning
+            trace = getattr(delta, "reasoning", None) or getattr(delta, "reasoning_content", None)
+            if trace:
+                reasoning_text += trace
             if hasattr(delta, "content") and delta.content:
                 content_text += delta.content
 
@@ -49,10 +56,12 @@ def reasoning_field_non_streaming() -> None:
     """Non-streaming access to reasoning field."""
     print("=== Reasoning Field (non-streaming) ===")
     response = client.chat.completions.create(
-        model="moonshotai/Kimi-K2.6",
+        model="moonshotai/Kimi-K3",
         messages=[{"role": "user", "content": "What is 15% of 240?"}],
     )
-    print(f"Reasoning: {response.choices[0].message.reasoning[:200]}...")
+    message = response.choices[0].message
+    trace = getattr(message, "reasoning", None) or getattr(message, "reasoning_content", None) or ""
+    print(f"Reasoning: {trace[:200]}...")
     print(f"Answer: {response.choices[0].message.content}")
     print()
 
@@ -61,7 +70,7 @@ def deepseek_r1_think_tags() -> None:
     """DeepSeek R1 outputs reasoning in <think> tags within content."""
     print("=== DeepSeek R1 (<think> tags) ===")
     stream = client.chat.completions.create(
-        model="deepseek-ai/DeepSeek-V4-Pro",
+        model="deepseek-ai/DeepSeek-V4-Pro-0813",
         messages=[
             {"role": "user", "content": "Which number is bigger 9.9 or 9.11?"},
         ],
@@ -88,7 +97,7 @@ def reasoning_effort_example() -> None:
     print("=== Reasoning Effort (GPT-OSS) ===")
     for effort in ["low", "medium", "high"]:
         stream = client.chat.completions.create(
-            model="openai/gpt-oss-20b",
+            model="openai/gpt-oss-120b",
             messages=[{"role": "user", "content": "Is 17 a prime number?"}],
             temperature=1.0,
             top_p=1.0,
@@ -106,12 +115,12 @@ def reasoning_effort_example() -> None:
 
 def toggle_reasoning() -> None:
     """Enable/disable reasoning on hybrid models."""
-    print("=== Toggle Reasoning (Kimi K2.6) ===")
+    print("=== Toggle Reasoning (Kimi K3) ===")
 
     # Reasoning enabled (thinking mode)
     print("  [reasoning=True]")
     stream = client.chat.completions.create(
-        model="moonshotai/Kimi-K2.6",
+        model="moonshotai/Kimi-K3",
         messages=[{"role": "user", "content": "What is the capital of France?"}],
         reasoning={"enabled": True},
         temperature=1.0,
@@ -122,9 +131,12 @@ def toggle_reasoning() -> None:
     content_text = ""
     for chunk in stream:
         if chunk.choices:
+            if not chunk.choices:  # final usage-only chunk
+                continue
             delta = chunk.choices[0].delta
-            if hasattr(delta, "reasoning") and delta.reasoning:
-                reasoning_text += delta.reasoning
+            trace = getattr(delta, "reasoning", None) or getattr(delta, "reasoning_content", None)
+            if trace:
+                reasoning_text += trace
             if hasattr(delta, "content") and delta.content:
                 content_text += delta.content
 
@@ -134,7 +146,7 @@ def toggle_reasoning() -> None:
     # Reasoning disabled (instant mode)
     print("  [reasoning=False]")
     response = client.chat.completions.create(
-        model="moonshotai/Kimi-K2.6",
+        model="moonshotai/Kimi-K3",
         messages=[{"role": "user", "content": "What is the capital of France?"}],
         reasoning={"enabled": False},
         temperature=0.6,

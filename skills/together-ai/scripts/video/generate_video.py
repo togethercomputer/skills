@@ -89,14 +89,14 @@ def text_to_video_advanced(
 def video_with_reference(
     prompt: str,
     reference_images: list[str],
-    model: str = "vidu/vidu-2.0",
+    model: str = "minimax/hailuo-02",
 ) -> str:
-    """Generate a video guided by reference images (Vidu 2.0)."""
+    """Generate a video guided by reference images (MiniMax Hailuo 02)."""
     job = client.videos.create(
         prompt=prompt,
         model=model,
-        width=1280,
-        height=720,
+        width=1366,
+        height=768,
         reference_images=reference_images,
     )
     print(f"Submitted job: {job.id}")

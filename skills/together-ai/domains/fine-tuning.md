@@ -1,64 +1,37 @@
 # Together AI: Fine-Tuning
 
-Use Together AI fine-tuning when the user needs to adapt a model to their own data or behavior.
-
-Supported workflows in this repo:
-
-- LoRA fine-tuning
-- full fine-tuning
-- DPO preference tuning
-- VLM fine-tuning
-- function-calling fine-tuning
-- reasoning fine-tuning
-- BYOM upload paths
-
-## Use this guide for
-
-- Train a model on custom instruction or conversational data
-- Improve function-calling reliability with supervised examples
-- Train on preferences rather than only demonstrations
-- Fine-tune multimodal or reasoning-oriented models
-- Deploy a fine-tuned output model later through dedicated endpoints
-
-## Do not use this guide for
-
-- plain inference without training -> `domains/chat-completions.md`
-- measure a model before or after tuning -> `domains/evaluations.md`
-- host the resulting tuned model -> `domains/dedicated-model-inference.md`
-- only when the user needs raw infrastructure rather than managed tuning -> `domains/gpu-clusters.md`
+Adapt a model on your data: LoRA (default), full fine-tuning, DPO preference tuning, VLM,
+function-calling, and reasoning tuning, plus bring-your-own-model uploads. Billed by training
+tokens. Serving the result is `domains/dedicated-model-inference.md`; measuring it is
+`domains/evaluations.md`.
 
 ## Workflow
 
-1. Choose the tuning method that matches the desired behavior change.
-2. Validate dataset format before spending tokens on training.
-3. Upload training data and keep the returned file ID.
-4. Create the job with explicit method-specific parameters.
-5. Monitor job state, events, checkpoints, and per-step training metrics before handing off to deployment.
-
-## Open next
-
-- **Standard LoRA or full fine-tuning**
-  - Start with [scripts/fine-tuning/finetune_workflow.py](scripts/fine-tuning/finetune_workflow.py)
-  - Read [references/fine-tuning/data-formats.md](references/fine-tuning/data-formats.md)
-- **DPO preference tuning**
-  - Start with [scripts/fine-tuning/dpo_workflow.py](scripts/fine-tuning/dpo_workflow.py)
-- **Function-calling tuning**
-  - Start with [scripts/fine-tuning/function_calling_finetune.py](scripts/fine-tuning/function_calling_finetune.py)
-- **Reasoning tuning**
-  - Start with [scripts/fine-tuning/reasoning_finetune.py](scripts/fine-tuning/reasoning_finetune.py)
-- **VLM tuning**
-  - Start with [scripts/fine-tuning/vlm_finetune.py](scripts/fine-tuning/vlm_finetune.py)
-- **Model support and deployment options**
-  - Read [references/fine-tuning/supported-models.md](references/fine-tuning/supported-models.md)
-  - Read [references/fine-tuning/deployment.md](references/fine-tuning/deployment.md)
+1. Pick the method that matches the behavior change; prefer LoRA unless there is a reason to pay
+   for full fine-tuning.
+2. Check the base model supports that method: `tg beta models public --product fine-tuning`.
+3. Validate the dataset format before uploading, so bad files fail before you spend tokens.
+4. Upload the file and keep its ID, then create the job with method-specific parameters.
+5. Poll job state and events until it is terminal; read checkpoints and per-step metrics.
+6. Deploying the tuned model is a separate step; a finished job is not a served model.
 
 ## Rules
 
-- Prefer LoRA unless the user has a specific reason to pay for full fine-tuning.
-- Keep data-format validation close to the upload step so bad files fail early.
-- Treat deployment as a separate phase; fine-tuning success does not automatically mean serving success.
-- Use the method-specific script instead of overloading one generic workflow for all modes.
-- Parameterize dataset paths, model IDs, and suffixes in automation instead of embedding one demo dataset forever.
+- Use the method-specific script; each method has its own data format and parameters.
+- Parameterize dataset paths, model IDs, and suffixes instead of hardcoding a demo dataset.
+
+## Open next
+
+| File | Lines | Contains | Open when |
+|---|---|---|---|
+| [scripts/fine-tuning/finetune_workflow.py](scripts/fine-tuning/finetune_workflow.py) | 229 | LoRA or full: validate, upload, create, monitor | standard SFT |
+| [scripts/fine-tuning/dpo_workflow.py](scripts/fine-tuning/dpo_workflow.py) | 267 | preference-pair data and DPO parameters | DPO |
+| [scripts/fine-tuning/function_calling_finetune.py](scripts/fine-tuning/function_calling_finetune.py) | 309 | tool-call training data and job | tuning tool use |
+| [scripts/fine-tuning/reasoning_finetune.py](scripts/fine-tuning/reasoning_finetune.py) | 279 | reasoning-trace data and job | tuning reasoning |
+| [scripts/fine-tuning/vlm_finetune.py](scripts/fine-tuning/vlm_finetune.py) | 228 | image-text data and VLM job | vision-language tuning |
+| [references/fine-tuning/data-formats.md](references/fine-tuning/data-formats.md) | 368 | every dataset format (conversational, instruction, DPO, reasoning, tools, VLM), loss masking, sample weights, validation | preparing or debugging a dataset |
+| [references/fine-tuning/supported-models.md](references/fine-tuning/supported-models.md) | 185 | models per method, recommended starting models, BYOM | choosing a base model |
+| [references/fine-tuning/deployment.md](references/fine-tuning/deployment.md) | 234 | training parameters, monitoring, continued fine-tuning, deployment options, pricing | tuning hyperparameters or deploying the result |
 
 ## Docs
 

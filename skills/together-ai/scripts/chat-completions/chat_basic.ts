@@ -21,7 +21,7 @@ const client = new Together({
 async function basicChat(): Promise<void> {
   console.log("=== Basic Chat ===");
   const response = await client.chat.completions.create({
-    model: "openai/gpt-oss-20b",
+    model: "openai/gpt-oss-120b",
     messages: [{ role: "user", content: "What are some fun things to do in NYC?" }],
   });
   console.log(response.choices[0].message.content);
@@ -31,7 +31,7 @@ async function basicChat(): Promise<void> {
 async function streamingChat(): Promise<void> {
   console.log("=== Streaming ===");
   const stream = await client.chat.completions.create({
-    model: "openai/gpt-oss-20b",
+    model: "openai/gpt-oss-120b",
     messages: [{ role: "user", content: "Write a haiku about coding" }],
     stream: true,
   });
@@ -50,7 +50,7 @@ async function multiTurnChat(): Promise<void> {
   ];
 
   const response = await client.chat.completions.create({
-    model: "openai/gpt-oss-20b",
+    model: "openai/gpt-oss-120b",
     messages: messages as any,
   });
   const assistantReply = response.choices[0].message.content ?? "";
@@ -61,7 +61,7 @@ async function multiTurnChat(): Promise<void> {
   messages.push({ role: "user", content: "How about food recommendations?" });
 
   const response2 = await client.chat.completions.create({
-    model: "openai/gpt-oss-20b",
+    model: "openai/gpt-oss-120b",
     messages: messages as any,
   });
   console.log("User: How about food recommendations?");

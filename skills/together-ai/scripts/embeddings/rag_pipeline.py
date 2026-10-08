@@ -17,17 +17,39 @@ Usage:
 Requires:
     uv pip install "together>=2.0.0"
     export TOGETHER_API_KEY=your_key
+    export EMBEDDING_MODEL=your-project/your-embedding-endpoint  # dedicated endpoint string
 """
 
 import math
+import os
+import sys
+
 from together import Together
 
 client = Together()
 
-EMBEDDING_MODEL = "intfloat/multilingual-e5-large-instruct"
-# Reranking requires a dedicated endpoint. See:
-# https://docs.together.ai/docs/rerank-overview
-CHAT_MODEL = "openai/gpt-oss-20b"
+# No embedding or rerank model is served serverless today. Deploy one on a dedicated
+# endpoint (see domains/embeddings.md), then set EMBEDDING_MODEL (and optionally
+# RERANK_MODEL) to its endpoint string, e.g. "my-project/my-embeddings".
+# Dedicated inference is served from its own base URL.
+EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "")
+RERANK_MODEL: str | None = os.environ.get("RERANK_MODEL") or None
+dedicated_client = Together(
+    base_url=os.environ.get("DEDICATED_BASE_URL", "https://api-inference.together.ai/v1")
+)
+
+
+def require_embedding_model() -> str:
+    """Exit with an actionable message instead of failing request by request."""
+    if not EMBEDDING_MODEL:
+        sys.exit(
+            "EMBEDDING_MODEL is not set. Together serves no embedding models serverless; "
+            "deploy one on a dedicated endpoint and export its endpoint string. "
+            "See domains/embeddings.md."
+        )
+    return EMBEDDING_MODEL
+# Generation runs on serverless chat, on the default client.
+CHAT_MODEL = "openai/gpt-oss-120b"
 
 
 # --- Simple in-memory vector store ---
@@ -48,7 +70,7 @@ class VectorStore:
 
     def add(self, texts: list[str]) -> None:
         """Embed and store a list of texts."""
-        response = client.embeddings.create(
+        response = dedicated_client.embeddings.create(
             model=EMBEDDING_MODEL,
             input=texts,
         )
@@ -79,7 +101,7 @@ def rag_query(store: VectorStore, query: str, top_k: int = 5) -> str:
     """Run the full RAG pipeline: embed -> retrieve -> generate."""
 
     # 1. Embed the query
-    query_embedding = client.embeddings.create(
+    query_embedding = dedicated_client.embeddings.create(
         model=EMBEDDING_MODEL,
         input=query,
     ).data[0].embedding
@@ -109,6 +131,7 @@ def rag_query(store: VectorStore, query: str, top_k: int = 5) -> str:
 
 
 if __name__ == "__main__":
+    require_embedding_model()
     # Sample knowledge base
     knowledge = [
         "Photosynthesis is the process by which green plants convert sunlight into "

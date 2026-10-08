@@ -1,67 +1,33 @@
-# Together AI: AI Evaluations
+# Together AI: Evaluations
 
-Use Together AI evaluations when the user wants a managed LLM-as-a-judge workflow rather than an
-ad hoc prompt loop.
-
-Core evaluation types:
-
-- **Classify**: assign outputs to labels
-- **Score**: grade outputs on a numeric scale
-- **Compare**: compare two candidate outputs with bias controls
-
-This guide also covers external providers used as judges or targets when the workflow still runs
-through Together AI's evaluation system.
-
-## Use this guide for
-
-- Benchmark prompt variants, models, or product responses
-- Grade quality, safety, policy compliance, or task success
-- Run A/B comparisons between model outputs
-- Build repeatable evaluation jobs with uploaded datasets
-- Pull results programmatically after asynchronous execution
-
-## Do not use this guide for
-
-- one-off inference or manual judge prompts -> `domains/chat-completions.md`
-- bulk offline generation rather than evaluation -> `domains/batch-inference.md`
-- when the user wants to improve the model instead of just measure it -> `domains/fine-tuning.md`
-- only if the evaluation target itself is a dedicated endpoint -> `domains/dedicated-model-inference.md`
+Managed LLM-as-a-judge jobs: **classify** outputs into labels, **score** them on a scale, or
+**compare** two responses. Use it instead of a hand-written judge loop when results must be
+repeatable. To change a model rather than measure it, go to `domains/fine-tuning.md`.
 
 ## Workflow
 
-1. Identify whether the user needs classify, score, or compare.
-2. Define the dataset schema before writing code.
-3. Upload the dataset as an eval file and keep the returned file ID.
-4. Configure judge and target models explicitly, especially when mixing providers.
-5. Poll status until completion, then download the result file for analysis.
-
-## Open next
-
-- **Classify / Score / Compare job setup**
-  - Start with [scripts/evaluations/run_evaluation.py](scripts/evaluations/run_evaluation.py) or [scripts/evaluations/run_evaluation.ts](scripts/evaluations/run_evaluation.ts)
-  - Read [references/evaluations/api-reference.md](references/evaluations/api-reference.md) for exact request shapes
-- **Dataset formatting**
-  - Read the dataset sections in [references/evaluations/api-reference.md](references/evaluations/api-reference.md)
-- **Dataset columns, Jinja2 templates, or pre-generated responses**
-  - Read the dataset and template sections in [references/evaluations/api-reference.md](references/evaluations/api-reference.md)
-  - Use `--eval-column`, `--model-a-column`, or `--model-b-column` in the scripts
-- **Evaluating vision-capable models with image inputs**
-  - Read the Image Inputs section in [references/evaluations/api-reference.md](references/evaluations/api-reference.md)
-  - Add an `image_data_urls` column (base64 data URLs) to the dataset; the model and judge must be vision-capable
-- **External providers as judge or target**
-  - Read the model-source and provider sections in [references/evaluations/api-reference.md](references/evaluations/api-reference.md)
-  - Use the scripts with `--judge-model-source external`, `--eval-model-source external`, or compare-side source flags
-- **Polling, listing, or downloading results**
-  - Use the retrieval endpoints documented in [references/evaluations/api-reference.md](references/evaluations/api-reference.md)
-  - Use `--download-results` in the scripts when you want the per-row JSONL locally
+1. Pick classify, score, or compare, and define the dataset columns before writing code.
+2. Upload the dataset as an eval file (`check=False`) and keep the file ID.
+3. Choose judge and target models explicitly. The evaluation service has its **own** serverless
+   allowlist, separate from the main catalog: `GET /evaluation/model-list?model_source=serverless`.
+   It includes `deepseek-ai/DeepSeek-V4-Pro-0813`, `meta-llama/Llama-3.3-70B-Instruct-Turbo`,
+   `openai/gpt-oss-120b`, and `Qwen/Qwen3.5-9B`.
+4. `client.evals.create(...)`, poll status until it is terminal, then download the per-row results.
 
 ## Rules
 
-- The current SDK examples in this repo use `check=False` for eval uploads because local file validation can misclassify eval datasets.
-- Treat dataset schema as part of the product contract; inconsistent fields cause downstream confusion.
-- Compare evaluations are best when both candidate responses are already present in the dataset.
-- Keep judge configuration explicit. Hidden defaults make benchmark interpretation harder.
-- Use Together AI's managed evaluation job instead of rebuilding a manual judge loop when repeatability matters.
+- Upload eval files with `check=False`; local validation misreads eval datasets.
+- Compare works best when both candidate responses are already columns in the dataset.
+- Vision evals need an `image_data_urls` column of base64 data URLs, and a vision-capable model
+  and judge.
+- Keep judge configuration explicit; hidden defaults make results hard to interpret.
+
+## Open next
+
+| File | Lines | Contains | Open when |
+|---|---|---|---|
+| [scripts/evaluations/run_evaluation.py](scripts/evaluations/run_evaluation.py) (.ts) | 458 | CLI for classify, score, and compare: upload, create, poll, `--download-results`; flags `--eval-column`, `--model-a-column`, `--model-b-column`, `--judge-model-source external` | running any evaluation |
+| [references/evaluations/api-reference.md](references/evaluations/api-reference.md) | 779 | request fields, judge and target config, result schemas, dataset format, image inputs, Jinja2 templates, external providers, retrieval endpoints | a field, template, or provider detail the script does not cover |
 
 ## Docs
 

@@ -24,19 +24,19 @@ Each skill contains:
 <!-- BEGIN_SKILLS_TABLE -->
 | Domain guide | What it covers | Scripts |
 |--------------|----------------|---------|
-| **audio.md** | Use Together AI audio APIs for speech synthesis and speech recognition -- REST, streaming, and realtime WebSocket TTS... | `stt_realtime.py`, `stt_transcribe.py`, `stt_transcribe.ts`, `tts_generate.py`, `tts_generate.ts`, `tts_websocket.py` |
-| **batch-inference.md** | Use Together AI's Batch API for large offline workloads where latency is not the primary concern. | `batch_workflow.py`, `batch_workflow.ts` |
-| **chat-completions.md** | Use Together AI's serverless chat/completions API for interactive inference: basic and streaming text generation, mul... | `async_parallel.py`, `chat_basic.py`, `chat_basic.ts`, `debug_headers.py`, `debug_headers.ts`, `reasoning_models.py`, `reasoning_models.ts`, `structured_outputs.py`, `structured_outputs.ts`, `tool_call_loop.py`, `tool_call_loop.ts` |
-| **dedicated-containers.md** | Use Dedicated Container Inference when the user needs a custom runtime, not just managed model hosting. | `queue_client.py`, `queue_client.ts`, `sprocket_hello_world.py` |
+| **audio.md** | Text-to-speech (REST, streaming, realtime WebSocket) and speech-to-text (transcription, translation, diarization, tim... | `stt_realtime.py`, `stt_transcribe.py`, `stt_transcribe.ts`, `tts_generate.py`, `tts_generate.ts`, `tts_websocket.py` |
+| **batch-inference.md** | Asynchronous bulk inference over a JSONL file, up to 50% cheaper than real-time, completing within a 24-hour window (... | `batch_workflow.py`, `batch_workflow.ts` |
+| **chat-completions.md** | Serverless, OpenAI-compatible text generation: one call, billed per token. | `async_parallel.py`, `chat_basic.py`, `chat_basic.ts`, `debug_headers.py`, `debug_headers.ts`, `reasoning_models.py`, `reasoning_models.ts`, `structured_outputs.py`, `structured_outputs.ts`, `tool_call_loop.py`, `tool_call_loop.ts` |
+| **dedicated-containers.md** | Run your own Docker image as an inference worker on Together GPUs: Sprocket handles the request lifecycle, Jig builds... | `queue_client.py`, `queue_client.ts`, `sprocket_hello_world.py` |
 | **dedicated-model-inference.md** | Dedicated model inference (DMI) serves a model on reserved single-tenant GPUs. | `deploy_model.py`, `upload_custom_model.py` |
-| **embeddings.md** | Use Together AI embeddings for dense vector representations, semantic search, RAG retrieval, and reranking -- the plu... | `embed_and_rerank.py`, `embed_and_rerank.ts`, `rag_pipeline.py`, `semantic_search.py` |
-| **evaluations.md** | Use Together AI evaluations when the user wants a managed LLM-as-a-judge workflow rather than an ad hoc prompt loop. | `run_evaluation.py`, `run_evaluation.ts` |
-| **fine-tuning.md** | Use Together AI fine-tuning when the user needs to adapt a model to their own data or behavior. | `dpo_workflow.py`, `finetune_workflow.py`, `function_calling_finetune.py`, `reasoning_finetune.py`, `vlm_finetune.py` |
-| **gpu-clusters.md** | Use Together AI GPU clusters when the user needs infrastructure control instead of a managed inference product. | `manage_cluster.py`, `manage_cluster.ts`, `manage_storage.py` |
-| **images.md** | Use Together AI image APIs for text-to-image generation and image editing, including FLUX and Kontext models, LoRA st... | `generate_image.py`, `generate_image.ts`, `kontext_editing.py`, `lora_generation.py` |
+| **embeddings.md** | Dense vectors for semantic search and RAG retrieval, plus reranking as a second-stage precision step. | `embed_and_rerank.py`, `embed_and_rerank.ts`, `rag_pipeline.py`, `semantic_search.py` |
+| **evaluations.md** | Managed LLM-as-a-judge jobs: **classify** outputs into labels, **score** them on a scale, or **compare** two responses. | `run_evaluation.py`, `run_evaluation.ts` |
+| **fine-tuning.md** | Adapt a model on your data: LoRA (default), full fine-tuning, DPO preference tuning, VLM, function-calling, and reaso... | `dpo_workflow.py`, `finetune_workflow.py`, `function_calling_finetune.py`, `reasoning_finetune.py`, `vlm_finetune.py` |
+| **gpu-clusters.md** | On-demand or reserved H100, H200, and B200 clusters with Kubernetes or Slurm, shared storage, and credentials, for di... | `manage_cluster.py`, `manage_cluster.ts`, `manage_storage.py` |
+| **images.md** | Text-to-image generation and image editing, billed per image (FLUX models also scale with megapixels and steps). | `generate_image.py`, `generate_image.ts`, `kontext_editing.py`, `lora_generation.py` |
 | **kueue.md** | Kueue is a Kubernetes-native job queueing controller. | — |
-| **sandboxes.md** | Use Together Sandboxes when the user wants to execute Python remotely in a managed sandbox. | `execute_with_session.py`, `execute_with_session.ts` |
-| **video.md** | Use Together AI video APIs for text-to-video and image-to-video generation, including keyframe control, model and dim... | `generate_video.py`, `generate_video.ts`, `image_to_video.py` |
+| **sandboxes.md** | Managed remote Python execution with stateful sessions, for running agent-written code, data analysis, and charts. | `execute_with_session.py`, `execute_with_session.ts` |
+| **video.md** | Text-to-video and image-to-video, billed per video. | `generate_video.py`, `generate_video.ts`, `image_to_video.py` |
 | **volcano.md** | Volcano is a Kubernetes-native batch scheduler. | — |
 <!-- END_SKILLS_TABLE -->
 

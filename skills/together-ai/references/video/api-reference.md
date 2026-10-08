@@ -163,9 +163,9 @@ const job = await client.videos.create({
 ```python
 job = client.videos.create(
     prompt="A cat dancing energetically",
-    model="vidu/vidu-2.0",
-    width=1280,
-    height=720,
+    model="minimax/hailuo-02",
+    width=1366,
+    height=768,
     reference_images=[
         "https://cdn.pixabay.com/photo/2020/05/20/08/27/cat-5195431_1280.jpg",
     ],

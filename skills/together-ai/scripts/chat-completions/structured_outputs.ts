@@ -43,7 +43,7 @@ async function jsonSchemaExample(): Promise<void> {
       },
       { role: "user", content: transcript },
     ],
-    model: "openai/gpt-oss-20b",
+    model: "openai/gpt-oss-120b",
     response_format: {
       type: "json_schema",
       json_schema: {
@@ -65,7 +65,7 @@ async function jsonObjectExample(): Promise<void> {
   console.log("=== json_object (simple) ===");
 
   const response = await client.chat.completions.create({
-    model: "openai/gpt-oss-20b",
+    model: "openai/gpt-oss-120b",
     messages: [
       { role: "system", content: "Respond in JSON with keys: name, age, city, hobby" },
       { role: "user", content: "Make up a character for a story" },
@@ -126,7 +126,7 @@ async function reasoningJsonExample(): Promise<void> {
   const jsonSchema = z.toJSONSchema(mathReasoningSchema);
 
   const completion = await client.chat.completions.create({
-    model: "deepseek-ai/DeepSeek-V4-Pro",
+    model: "deepseek-ai/DeepSeek-V4-Pro-0813",
     messages: [
       {
         role: "system",

@@ -24,8 +24,10 @@ const client = new Together({
   apiKey: process.env.TOGETHER_API_KEY,
 });
 
+// Kimi K3 sends the trace as `reasoning_content`; most other models use `reasoning`.
 type ReasoningDelta = ChatCompletionChunk.Choice.Delta & {
   reasoning?: string;
+  reasoning_content?: string;
 };
 
 type ReasoningParams = CompletionCreateParamsStreaming & {
@@ -34,10 +36,10 @@ type ReasoningParams = CompletionCreateParamsStreaming & {
 
 // --- 1. Reasoning field (streaming) ---
 async function reasoningFieldStreaming(): Promise<void> {
-  console.log("=== Reasoning Field (Kimi K2.6 streaming) ===");
+  console.log("=== Reasoning Field (Kimi K3 streaming) ===");
 
   const stream = await client.chat.completions.stream({
-    model: "moonshotai/Kimi-K2.6",
+    model: "moonshotai/Kimi-K3",
     messages: [
       { role: "user", content: "Which number is bigger, 9.11 or 9.9?" },
     ],
@@ -48,7 +50,8 @@ async function reasoningFieldStreaming(): Promise<void> {
 
   for await (const chunk of stream) {
     const delta = chunk.choices[0]?.delta as ReasoningDelta;
-    if (delta?.reasoning) reasoningText += delta.reasoning;
+    const trace = delta?.reasoning ?? delta?.reasoning_content;
+    if (trace) reasoningText += trace;
     if (delta?.content) contentText += delta.content;
   }
 
@@ -62,7 +65,7 @@ async function deepseekR1ThinkTags(): Promise<void> {
   console.log("=== DeepSeek R1 (<think> tags) ===");
 
   const stream = await client.chat.completions.create({
-    model: "deepseek-ai/DeepSeek-V4-Pro",
+    model: "deepseek-ai/DeepSeek-V4-Pro-0813",
     messages: [
       { role: "user", content: "Which number is bigger 9.9 or 9.11?" },
     ],
@@ -90,7 +93,7 @@ async function reasoningEffortExample(): Promise<void> {
 
   for (const effort of ["low", "medium", "high"] as const) {
     const stream = await client.chat.completions.create({
-      model: "openai/gpt-oss-20b",
+      model: "openai/gpt-oss-120b",
       messages: [{ role: "user", content: "Is 17 a prime number?" }],
       temperature: 1.0,
       top_p: 1.0,
@@ -110,12 +113,12 @@ async function reasoningEffortExample(): Promise<void> {
 
 // --- 4. Toggle reasoning on hybrid models ---
 async function toggleReasoning(): Promise<void> {
-  console.log("=== Toggle Reasoning (Kimi K2.6) ===");
+  console.log("=== Toggle Reasoning (Kimi K3) ===");
 
   // Reasoning enabled (thinking mode)
   console.log("  [reasoning=true]");
   const enabledParams: ReasoningParams = {
-    model: "moonshotai/Kimi-K2.6",
+    model: "moonshotai/Kimi-K3",
     messages: [
       { role: "user", content: "What is the capital of France?" },
     ],
@@ -130,7 +133,8 @@ async function toggleReasoning(): Promise<void> {
   let contentText = "";
   for await (const chunk of stream) {
     const delta = chunk.choices[0]?.delta as ReasoningDelta;
-    if (delta?.reasoning) reasoningText += delta.reasoning;
+    const trace = delta?.reasoning ?? delta?.reasoning_content;
+    if (trace) reasoningText += trace;
     if (delta?.content) contentText += delta.content;
   }
 
@@ -140,7 +144,7 @@ async function toggleReasoning(): Promise<void> {
   // Reasoning disabled (instant mode)
   console.log("  [reasoning=false]");
   const disabledParams = {
-    model: "moonshotai/Kimi-K2.6",
+    model: "moonshotai/Kimi-K3",
     messages: [
       { role: "user", content: "What is the capital of France?" },
     ] as ChatCompletionMessageParam[],

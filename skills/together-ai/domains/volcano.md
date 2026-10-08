@@ -7,18 +7,7 @@ Public cookbook: https://docs.together.ai/docs/volcano-on-gpu-clusters. Pair thi
 This guide is self-contained — the YAML and commands below are the whole
 procedure; there are no reference files or scripts for this area.
 
-## Use this guide for
-
-- Installing Volcano on a Together Kubernetes GPU cluster
-- Creating queues with `weight`, `capability`, and reclaim behaviour
-- Submitting all-or-nothing gang-scheduled jobs (`vcjob`, `minAvailable`)
-- Making distributed multi-node training start as one unit or not at all
-- Diagnosing partial pod placement, or a gang stuck `Inqueue`
-
-## Do not use this guide for
-
-- creating the cluster, or getting `kubectl` credentials -> `domains/gpu-clusters.md`
-- gating jobs on a shared GPU quota -> `domains/kueue.md`
+Hand-offs: creating the cluster and getting `kubectl` credentials is `domains/gpu-clusters.md`; gating jobs on a shared GPU quota is `domains/kueue.md`.
 
 ## Setup delta
 

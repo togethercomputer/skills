@@ -185,7 +185,7 @@ tools = [{
 }]
 
 response = client.chat.completions.create(
-    model="Qwen/Qwen2.5-7B-Instruct-Turbo",
+    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
     messages=[{"role": "user", "content": "Weather in NYC?"}],
     tools=tools,
     tool_choice="auto",
@@ -194,7 +194,7 @@ response = client.chat.completions.create(
 
 ```typescript
 const response = await together.chat.completions.create({
-  model: "Qwen/Qwen2.5-7B-Instruct-Turbo",
+  model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
   messages: [{ role: "user", content: "Weather in NYC?" }],
   tools: [
     {
@@ -220,7 +220,7 @@ const response = await together.chat.completions.create({
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `safety_model` | string | Moderation model (e.g., `meta-llama/Llama-Guard-4-12B`) |
+| `safety_model` | string | Moderation model on a dedicated endpoint (none is served serverless) |
 | `compliance` | string | Set to `"hipaa"` for HIPAA mode |
 
 ## Reasoning
@@ -268,7 +268,7 @@ for await (const chunk of stream) {
 
 ```python
 stream = client.chat.completions.create(
-    model="moonshotai/Kimi-K2.6",
+    model="moonshotai/Kimi-K3",
     messages=[{"role": "user", "content": "Which is bigger, 9.11 or 9.9?"}],
     reasoning={"enabled": True},
     temperature=1.0,
@@ -293,7 +293,7 @@ type ReasoningDelta = ChatCompletionChunk.Choice.Delta & {
 };
 
 const stream = await together.chat.completions.create({
-  model: "moonshotai/Kimi-K2.6",
+  model: "moonshotai/Kimi-K3",
   messages: [{ role: "user", content: "Which is bigger, 9.11 or 9.9?" }],
   reasoning: { enabled: true },
   temperature: 1.0,
@@ -346,7 +346,7 @@ client = OpenAI(
     api_key="YOUR_TOGETHER_API_KEY",
 )
 response = client.chat.completions.create(
-    model="openai/gpt-oss-20b",
+    model="openai/gpt-oss-120b",
     messages=[{"role": "user", "content": "Hello!"}],
 )
 print(response.choices[0].message.content)
@@ -404,7 +404,7 @@ import json
 client = Together()
 
 response = client.chat.completions.with_raw_response.create(
-    model="openai/gpt-oss-20b",
+    model="openai/gpt-oss-120b",
     messages=[{"role": "user", "content": "Say hello"}],
     extra_headers={"x-together-debug": "1"},
 )
@@ -423,7 +423,7 @@ const client = new Together();
 
 const response = await client.chat.completions.create(
   {
-    model: "openai/gpt-oss-20b",
+    model: "openai/gpt-oss-120b",
     messages: [{ role: "user", content: "Say hello" }],
   },
   { headers: { "x-together-debug": "1" } }
@@ -442,7 +442,7 @@ curl -s -D - -X POST "https://api.together.xyz/v1/chat/completions" \
   -H "Authorization: Bearer $TOGETHER_API_KEY" \
   -H "Content-Type: application/json" \
   -H "x-together-debug: 1" \
-  -d '{"model":"openai/gpt-oss-20b","messages":[{"role":"user","content":"Say hello"}]}'
+  -d '{"model":"openai/gpt-oss-120b","messages":[{"role":"user","content":"Say hello"}]}'
 ```
 
 Common debug headers:

@@ -2,8 +2,11 @@
 /**
  * Together AI Function Calling — Complete Tool Call Loop
  *
- * Defines tools, sends a request, executes function calls, and passes
- * results back to the model for a final response. Handles parallel calls.
+ * Runs a multi-round tool loop: the model calls tools, the tools run, results
+ * go back, and the loop repeats until the model answers without a tool call.
+ * It also enforces grounding: if the task requires an action and no tool result
+ * exists for it, the loop tells the model what is missing and continues, so a
+ * model that skips a step and claims it happened cannot end the run.
  *
  * Usage:
  *   npx tsx tool_call_loop.ts
@@ -22,6 +25,8 @@ import type {
 const client = new Together({
   apiKey: process.env.TOGETHER_API_KEY,
 });
+
+const MODEL = "meta-llama/Llama-3.3-70B-Instruct-Turbo";
 
 // --- 1. Define tools ---
 const tools: ChatCompletionTool[] = [
@@ -89,7 +94,71 @@ const functions: Record<
   getStockPrice,
 };
 
-// --- 3. Send request with tools ---
+// --- 3. Execute one tool call; errors go back to the model, not up the stack ---
+function executeToolCall(tc: {
+  function: { name: string; arguments: string };
+}): { result: string; ok: boolean } {
+  const fn = functions[tc.function.name];
+  if (!fn) {
+    return { result: JSON.stringify({ error: `unknown tool ${tc.function.name}` }), ok: false };
+  }
+  let args: unknown;
+  try {
+    args = JSON.parse(tc.function.arguments || "{}");
+  } catch (err) {
+    return { result: JSON.stringify({ error: `arguments were not valid JSON: ${err}` }), ok: false };
+  }
+  try {
+    return { result: JSON.stringify(fn(args)), ok: true };
+  } catch (err) {
+    return { result: JSON.stringify({ error: String(err) }), ok: false };
+  }
+}
+
+// --- 4. Loop until no more tool calls AND every required tool has succeeded ---
+async function runToolLoop(
+  messages: ChatCompletionMessageParam[],
+  requiredTools: Set<string> = new Set(),
+  maxRounds = 8,
+): Promise<{ answer: string; succeeded: Set<string>; missing: Set<string> }> {
+  const succeeded = new Set<string>();
+  const missingNow = () => new Set([...requiredTools].filter((t) => !succeeded.has(t)));
+
+  for (let round = 0; round < maxRounds; round++) {
+    const response = await client.chat.completions.create({ model: MODEL, messages, tools });
+    const message = response.choices[0]?.message;
+    if (!message) throw new Error("Model returned no assistant message.");
+
+    const toolCalls = message.tool_calls ?? [];
+    if (toolCalls.length > 0) {
+      messages.push(message);
+      for (const tc of toolCalls) {
+        const { result, ok } = executeToolCall(tc);
+        console.log(`  tool ${tc.function.name}(${tc.function.arguments}) -> ${result}`);
+        if (ok) succeeded.add(tc.function.name);
+        messages.push({ role: "tool", tool_call_id: tc.id, content: result });
+      }
+      continue;
+    }
+
+    const missing = missingNow();
+    if (missing.size === 0) {
+      return { answer: message.content ?? "", succeeded, missing };
+    }
+
+    // Grounding check: detecting the gap is not enough; push the loop to finish the work.
+    messages.push({ role: "assistant", content: message.content ?? "" });
+    messages.push({
+      role: "user",
+      content:
+        `You have not called ${[...missing].sort().join(", ")} yet, so that action has not ` +
+        "happened. Call it now, or say plainly that you could not. Only report IDs and values " +
+        "that a tool result returned.",
+    });
+  }
+  return { answer: "", succeeded, missing: missingNow() };
+}
+
 async function main(): Promise<void> {
   const messages: ChatCompletionMessageParam[] = [
     {
@@ -102,52 +171,16 @@ async function main(): Promise<void> {
     },
   ];
 
-  const response = await client.chat.completions.create({
-    model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+  const { answer, succeeded, missing } = await runToolLoop(
     messages,
-    tools,
-  });
-
-  // --- 4. Process tool calls (handles parallel calls) ---
-  const assistantMessage = response.choices[0]?.message;
-  if (!assistantMessage) {
-    throw new Error("Model returned no assistant message.");
-  }
-  const toolCalls = assistantMessage.tool_calls ?? [];
-
-  if (toolCalls.length > 0) {
-    // Add assistant message with tool calls to history
-    messages.push(assistantMessage);
-
-    for (const tc of toolCalls) {
-      const fnName = tc.function.name;
-      const fnArgs = JSON.parse(tc.function.arguments);
-      const fn = functions[fnName];
-      if (!fn) {
-        throw new Error(`No implementation found for tool: ${fnName}`);
-      }
-
-      console.log(`Calling ${fnName}(${JSON.stringify(fnArgs)})`);
-      const result = fn(fnArgs);
-
-      // Add each tool result to history
-      messages.push({
-        role: "tool",
-        tool_call_id: tc.id,
-        content: JSON.stringify(result),
-      });
-    }
-
-    // --- 5. Get final response with tool results ---
-    const final = await client.chat.completions.create({
-      model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
-      messages,
-      tools,
-    });
-    console.log(`\nAssistant: ${final.choices[0].message.content}`);
+    new Set(["getWeather", "getStockPrice"]),
+  );
+  if (missing.size > 0) {
+    // A non-empty "missing" set means the task is NOT done: report it as a failure.
+    console.log(`\nIncomplete: required tools never succeeded: ${[...missing].sort().join(", ")}`);
   } else {
-    // Model responded directly without calling tools
-    console.log(`Assistant: ${response.choices[0].message.content}`);
+    console.log(`\nTools used: ${[...succeeded].sort().join(", ")}`);
+    console.log(`Assistant: ${answer}`);
   }
 }
 

@@ -1,51 +1,33 @@
 # Together AI: Dedicated Containers
 
-Use Dedicated Container Inference when the user needs a custom runtime, not just managed model
-hosting.
-
-Core building blocks:
-
-- **Jig CLI** for build and deployment
-- **Sprocket SDK** for request handling inside the container
-- **Queue API** for async jobs
-
-## Use this guide for
-
-- Deploy a custom inference worker
-- Bundle custom dependencies or runtime logic into a container
-- Use queue-based async processing with progress tracking
-- Run a specialized image, video, or multimodal pipeline
-
-## Do not use this guide for
-
-- standard model hosting without custom containers -> `domains/dedicated-model-inference.md`
-- full cluster ownership and orchestration control -> `domains/gpu-clusters.md`
-- `domains/chat-completions.md`, `domains/images.md`, or `domains/video.md` when a serverless product already covers the task
+Run your own Docker image as an inference worker on Together GPUs: Sprocket handles the request
+lifecycle, Jig builds and deploys, and clients submit async jobs to a queue. Choose this only when
+the runtime is genuinely custom; a standard model belongs on
+`domains/dedicated-model-inference.md`.
 
 ## Workflow
 
-1. Confirm that the user truly needs a custom container runtime.
-2. Implement the worker with Sprocket's request lifecycle.
-3. Configure `pyproject.toml` for image, runtime, autoscaling, and mounts.
-4. Deploy with Jig.
-5. Submit jobs through the queue API and poll until completion.
-
-## Open next
-
-- **Minimal worker template**
-  - Start with [scripts/dedicated-containers/sprocket_hello_world.py](scripts/dedicated-containers/sprocket_hello_world.py)
-  - Read [references/dedicated-containers/sprocket-sdk.md](references/dedicated-containers/sprocket-sdk.md)
-- **Build, deploy, logs, queue, and secrets**
-  - Read [references/dedicated-containers/jig-cli.md](references/dedicated-containers/jig-cli.md)
-- **Queue submission and polling**
-  - Start with [scripts/dedicated-containers/queue_client.py](scripts/dedicated-containers/queue_client.py) or [scripts/dedicated-containers/queue_client.ts](scripts/dedicated-containers/queue_client.ts)
+1. Confirm a custom runtime is required.
+2. Implement the worker with Sprocket (`setup` once, `predict` per request).
+3. Configure image, runtime, autoscaling, and mounts in `pyproject.toml`.
+4. Build and deploy with `jig`.
+5. Submit jobs to the queue and poll each to completion; tear down the deployment when done.
 
 ## Rules
 
-- Prefer dedicated endpoints over containers unless the runtime or pipeline is genuinely custom.
-- Treat the worker contract and `pyproject.toml` as the source of truth for deployment behavior.
-- Parameterize deployment name, queue inputs, and resource sizing instead of hardcoding them.
-- Queue-based jobs are asynchronous by default; account for polling and result retrieval in client code.
+- `pyproject.toml` is the source of truth for deployment behavior.
+- Queue jobs are asynchronous; client code must poll and fetch results.
+- Deployments bill while running; scale down or delete what you create.
+- Parameterize deployment name, inputs, and resource sizing.
+
+## Open next
+
+| File | Lines | Contains | Open when |
+|---|---|---|---|
+| [scripts/dedicated-containers/sprocket_hello_world.py](scripts/dedicated-containers/sprocket_hello_world.py) | 85 | minimal Sprocket worker | writing a worker |
+| [scripts/dedicated-containers/queue_client.py](scripts/dedicated-containers/queue_client.py) (.ts) | 109 | submit a job, poll, fetch the result | calling a deployed worker |
+| [references/dedicated-containers/sprocket-sdk.md](references/dedicated-containers/sprocket-sdk.md) | 189 | Sprocket base class, `run`, file outputs, HTTP endpoints, env vars | a worker API detail |
+| [references/dedicated-containers/jig-cli.md](references/dedicated-containers/jig-cli.md) | 526 | build, deploy, queue, secrets, volumes commands; `pyproject.toml` schema; full example | deploying or configuring |
 
 ## Docs
 

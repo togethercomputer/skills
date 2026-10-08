@@ -1,30 +1,12 @@
 # Together AI: GPU Clusters
 
-Use Together AI GPU clusters when the user needs infrastructure control instead of a managed
-inference product.
+On-demand or reserved H100, H200, and B200 clusters with Kubernetes or Slurm, shared storage, and
+credentials, for distributed training, multi-node inference, and HPC. Billed per GPU-hour with an
+8-GPU minimum, until deleted.
 
-Typical fits:
-
-- distributed training
-- multi-node inference
-- HPC or Slurm workloads
-- custom Kubernetes jobs
-- attached shared storage and cluster lifecycle management
-
-## Use this guide for
-
-- Provision a cluster and manage it over time
-- Choose between on-demand and reserved capacity
-- Choose Kubernetes or Slurm as the orchestration layer
-- Manage shared volumes and credentials
-- Scale up, scale down, or troubleshoot node health
-
-## Do not use this guide for
-
-- managed single-model hosting -> `domains/dedicated-model-inference.md`
-- containerized inference without owning the full cluster -> `domains/dedicated-containers.md`
-- short-lived remote Python execution -> `domains/sandboxes.md`
-- managed training jobs instead of raw cluster operations -> `domains/fine-tuning.md`
+Hand-offs: serving a model is `domains/dedicated-model-inference.md`; a custom inference container
+is `domains/dedicated-containers.md`; short remote Python is `domains/sandboxes.md`; queueing or
+gang scheduling on a running cluster is `domains/kueue.md` or `domains/volcano.md`.
 
 ## Workflow
 
@@ -33,25 +15,6 @@ Typical fits:
 3. Choose Kubernetes vs Slurm based on orchestration requirements and team tooling.
 4. Select region, GPU type, driver version, and shared storage plan.
 5. Provision first, then layer in access credentials, workload deployment, scaling, and health checks.
-
-## Open next
-
-- **Current regions, instance types, pricing, or a non-creating command plan**
-  - Read [references/gpu-clusters/pricing-and-discovery.md](references/gpu-clusters/pricing-and-discovery.md)
-  - Query the live regions endpoint, then compare only the matching numeric rates
-    on the official pricing table
-- **Cluster creation, scaling, credentials, deletion**
-  - Start with [scripts/gpu-clusters/manage_cluster.py](scripts/gpu-clusters/manage_cluster.py) or [scripts/gpu-clusters/manage_cluster.ts](scripts/gpu-clusters/manage_cluster.ts)
-  - Read [references/gpu-clusters/api-reference.md](references/gpu-clusters/api-reference.md)
-- **Shared storage lifecycle**
-  - Use [scripts/gpu-clusters/manage_storage.py](scripts/gpu-clusters/manage_storage.py)
-  - Read [references/gpu-clusters/api-reference.md](references/gpu-clusters/api-reference.md)
-- **Kubernetes vs Slurm operations**
-  - Read [references/gpu-clusters/cluster-management.md](references/gpu-clusters/cluster-management.md)
-- **Troubleshooting node health, PVCs, or scheduling**
-  - Read [references/gpu-clusters/cluster-management.md](references/gpu-clusters/cluster-management.md)
-- **Together CLI workflows**
-  - Read [references/gpu-clusters/cli.md](references/gpu-clusters/cli.md)
 
 ## Rules
 
@@ -70,9 +33,22 @@ Typical fits:
   provisioning, print it but do not run it.
 - The API requires `cuda_version` and `nvidia_driver_version` as separate fields in addition to the combined `driver_version` string. Pass them via `extra_body` in the Python SDK.
 - Credentials retrieval is part of provisioning. Do not stop at cluster creation if the user needs to run workloads immediately.
-- Slurm and Kubernetes operational patterns differ materially; read the cluster-management reference before improvising.
-- For repeated cluster operations, start from the scripts instead of rebuilding request shapes.
 - Slurm startup scripts (worker/login init, worker/controller prolog and epilog, extra `slurm.conf`) are **Slinky v1.0 only**. A non-zero exit from a worker prolog or epilog drains the node, and calling Slurm commands (`squeue`, `scontrol`, `sacctmgr`) inside any prolog/epilog can deadlock the scheduler.
+
+## Open next
+
+For read-only questions (regions, GPU types, prices, a command to run later), the 82-line
+`pricing-and-discovery.md` is all you need. Open the others only for the detail in their row, and
+read just that section; long ones start with `## Contents`.
+
+| File | Lines | Contains | Open when |
+|---|---|---|---|
+| [references/gpu-clusters/pricing-and-discovery.md](references/gpu-clusters/pricing-and-discovery.md) | 82 | authoritative pricing and stock surfaces, read-only inventory commands, picking the cheapest live option, one-hour on-demand plan | pricing, availability, or a plan without provisioning |
+| [scripts/gpu-clusters/manage_cluster.py](scripts/gpu-clusters/manage_cluster.py) (.ts) | 237 | create, poll, credentials, scale, delete | provisioning or changing a cluster |
+| [scripts/gpu-clusters/manage_storage.py](scripts/gpu-clusters/manage_storage.py) | 129 | create, list, resize, delete shared volumes | managing storage on its own |
+| [references/gpu-clusters/cli.md](references/gpu-clusters/cli.md) | 305 | `tg` cluster and storage commands, global flags, instance types, driver versions | a CLI flag or driver version |
+| [references/gpu-clusters/api-reference.md](references/gpu-clusters/api-reference.md) | 478 | cluster and storage endpoints, request fields, regions, instance types | an API field the script does not set |
+| [references/gpu-clusters/cluster-management.md](references/gpu-clusters/cluster-management.md) | 571 | architecture, access, Slurm config, GPU containers, scaling, storage, health checks, users, billing, troubleshooting, Terraform | operating or debugging a running cluster |
 
 ## Docs
 

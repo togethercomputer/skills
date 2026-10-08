@@ -1,59 +1,37 @@
 # Together AI: Images
 
-Use Together AI image APIs for text-to-image generation and image editing, including FLUX and Kontext models, LoRA styling, and reference-image guidance.
-
-- text-to-image generation
-- image editing with Kontext
-- FLUX.2-specific options
-- LoRA adapters
-- reference-image guidance
-
-## Use this guide for
-
-- Generate still images from prompts
-- Edit an existing image with text guidance
-- Apply LoRA styles to FLUX models
-- Choose image models or dimensions for a product workflow
-
-## Do not use this guide for
-
-- motion or video generation -> `domains/video.md`
-- text-only generation -> `domains/chat-completions.md`
-- only when the user needs a custom image runtime rather than the managed API -> `domains/dedicated-containers.md`
+Text-to-image generation and image editing, billed per image (FLUX models also scale with
+megapixels and steps). Covers FLUX.2, FLUX.1 Kontext editing, LoRA styling, and reference images.
+Motion goes to `domains/video.md`.
 
 ## Workflow
 
-1. Confirm whether the task is generation, editing, or style transfer.
-2. Choose the model family and output dimensions first.
-3. Add reference images, LoRAs, or FLUX.2-only parameters only when the use case needs them.
-4. Generate the asset, then download or decode it into the expected local format.
-
-## Open next
-
-- **Basic text-to-image**
-  - Start with [scripts/images/generate_image.py](scripts/images/generate_image.py) or [scripts/images/generate_image.ts](scripts/images/generate_image.ts)
-  - Read [references/images/api-reference.md](references/images/api-reference.md)
-- **Multiple variations, base64 output, or seeded runs**
-  - Start with [scripts/images/generate_image.py](scripts/images/generate_image.py) or [scripts/images/generate_image.ts](scripts/images/generate_image.ts)
-  - Read [references/images/api-reference.md](references/images/api-reference.md)
-- **Image editing with Kontext**
-  - Start with [scripts/images/kontext_editing.py](scripts/images/kontext_editing.py)
-  - Read [references/images/api-reference.md](references/images/api-reference.md)
-- **Generate then edit (e.g. product photos)**
-  - Start with [scripts/images/kontext_editing.py](scripts/images/kontext_editing.py) (Example 7)
-  - Generate with FLUX, feed the URL to Kontext, save both locally
-- **LoRA styling**
-  - Start with [scripts/images/lora_generation.py](scripts/images/lora_generation.py)
-  - Read [references/images/api-reference.md](references/images/api-reference.md)
-- **Model and dimension selection**
-  - Read [references/images/models.md](references/images/models.md)
+1. Decide whether the task is generation, editing (Kontext), or LoRA style transfer.
+2. Pick the model and dimensions first. Current serverless picks: `black-forest-labs/FLUX.2-dev`
+   (general), `FLUX.2-pro` / `FLUX.2-max` (quality), `FLUX.1-kontext-pro` / `-max` (editing).
+3. Add reference images, LoRAs, or FLUX.2-only parameters only when the task needs them.
+4. Generate, then download the URL or decode `b64_json` promptly.
 
 ## Rules
 
-- Match the script to the workflow type instead of packing every image feature into one request path.
-- Keep model selection explicit because FLUX, Kontext, and partner models differ in capabilities.
-- Preserve reproducibility with seeds when the user needs stable outputs.
-- For editing or reference-image flows, validate that the chosen model actually supports the feature.
+- **Saved files must match their bytes.** Models return JPEG unless you request another format, and
+  `output_format` exists only on FLUX.2. Pass `output_format="png"` on FLUX.2 when PNG is required;
+  otherwise save with the extension of the actual bytes. The scripts' `save_image_bytes` does this.
+- Generate-then-edit: generate with FLUX.2, pass the returned URL as `image_url` to Kontext, and
+  save both results.
+- Kontext takes one source image via `image_url`; `reference_images` is FLUX.2 and Google only.
+- Check that the chosen model supports editing or reference images before promising them.
+- Set `seed` when the user needs reproducible output.
+
+## Open next
+
+| File | Lines | Contains | Open when |
+|---|---|---|---|
+| [scripts/images/generate_image.py](scripts/images/generate_image.py) (.ts) | 162 | text-to-image, variations, base64 save, FLUX.2 options, format-safe saving | generating images |
+| [scripts/images/kontext_editing.py](scripts/images/kontext_editing.py) | 200 | Kontext edits, style transfer, generate-then-edit chain (Example 7) | editing an image |
+| [scripts/images/lora_generation.py](scripts/images/lora_generation.py) | 100 | applying one or more LoRA adapters to FLUX | LoRA styling |
+| [references/images/models.md](references/images/models.md) | 111 | model table, feature matrix by family, supported dimensions, FLUX pricing formula | choosing a model or size |
+| [references/images/api-reference.md](references/images/api-reference.md) | 368 | all parameters, Kontext, reference images, LoRA, steps and dimension guides, troubleshooting | a parameter or error not covered above |
 
 ## Docs
 

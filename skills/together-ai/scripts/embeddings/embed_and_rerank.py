@@ -14,25 +14,46 @@ Usage:
 Requires:
     uv pip install "together>=2.0.0"
     export TOGETHER_API_KEY=your_key
+    export EMBEDDING_MODEL=your-project/your-embedding-endpoint  # dedicated endpoint string
 """
 
 import math
+import os
+import sys
+
 from together import Together
 
 client = Together()
 
-# Set to your dedicated rerank endpoint model name to enable API reranking.
-# See https://docs.together.ai/docs/rerank-overview
-RERANK_MODEL: str | None = None
+# No embedding or rerank model is served serverless today. Deploy one on a dedicated
+# endpoint (see domains/embeddings.md), then set EMBEDDING_MODEL (and optionally
+# RERANK_MODEL) to its endpoint string, e.g. "my-project/my-embeddings".
+# Dedicated inference is served from its own base URL.
+EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "")
+RERANK_MODEL: str | None = os.environ.get("RERANK_MODEL") or None
+dedicated_client = Together(
+    base_url=os.environ.get("DEDICATED_BASE_URL", "https://api-inference.together.ai/v1")
+)
+
+
+def require_embedding_model() -> str:
+    """Exit with an actionable message instead of failing request by request."""
+    if not EMBEDDING_MODEL:
+        sys.exit(
+            "EMBEDDING_MODEL is not set. Together serves no embedding models serverless; "
+            "deploy one on a dedicated endpoint and export its endpoint string. "
+            "See domains/embeddings.md."
+        )
+    return EMBEDDING_MODEL
 
 
 def embed_texts(
     texts: list[str],
-    model: str = "intfloat/multilingual-e5-large-instruct",
+    model: str | None = None,
 ) -> list[list[float]]:
     """Embed a list of texts, returns list of embedding vectors."""
-    response = client.embeddings.create(
-        model=model,
+    response = dedicated_client.embeddings.create(
+        model=model or require_embedding_model(),
         input=texts,
     )
     return [item.embedding for item in response.data]
@@ -60,7 +81,7 @@ def rerank_documents(
     Otherwise falls back to the cosine-similarity scores passed in.
     """
     if RERANK_MODEL is not None:
-        response = client.rerank.create(
+        response = dedicated_client.rerank.create(
             model=RERANK_MODEL,
             query=query,
             documents=documents,
@@ -115,7 +136,7 @@ def rerank_structured(
     if top_n:
         kwargs["top_n"] = top_n
 
-    response = client.rerank.create(**kwargs)
+    response = dedicated_client.rerank.create(**kwargs)
     return [
         {
             "index": item.index,
@@ -127,6 +148,7 @@ def rerank_structured(
 
 
 if __name__ == "__main__":
+    require_embedding_model()
     # --- Example 1: Embed and compute similarity ---
     print("=== Embedding Similarity ===")
     texts = [

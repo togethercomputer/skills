@@ -25,7 +25,7 @@ async function main() {
     {
       custom_id: "req-1",
       body: {
-        model: "Qwen/Qwen2.5-7B-Instruct-Turbo",
+        model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
         messages: [{ role: "user", content: "What is the capital of France?" }],
         max_tokens: 128,
       },
@@ -33,7 +33,7 @@ async function main() {
     {
       custom_id: "req-2",
       body: {
-        model: "Qwen/Qwen2.5-7B-Instruct-Turbo",
+        model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
         messages: [
           {
             role: "user",

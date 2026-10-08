@@ -27,22 +27,9 @@ Together CLI (`tg beta ...` — install with `uv tool install "together[cli]"`; 
 > restarted. Already-running v1 endpoints keep serving until further notice; everything new —
 > and any redeploy of a stopped v1 endpoint — uses the v2 flow this guide describes.
 
-## Use this guide for
-
-- Deploying a model (public, fine-tuned, or uploaded) on dedicated GPUs via the v2 API
-- Anything involving `tg beta endpoints` / `tg beta models` (a.k.a. `together beta ...`) CLI commands
-- Anything involving `client.beta.endpoints` / `client.beta.models` SDK namespaces
-- Traffic management: splits, A/B tests, shadow experiments
-- Autoscaling, scale-to-zero, deployment lifecycle, monitoring (dashboards, events, Prometheus scrape)
-- Uploading custom model weights or LoRA adapters for dedicated serving
-
-## Do not use this guide for
-
-- serverless inference and request-shaping questions -> `domains/chat-completions.md`
-  (the request shape is identical once the endpoint is up).
-- training the model you'll deploy here -> `domains/fine-tuning.md`
-- custom Docker runtimes (Sprocket/Jig) -> `domains/dedicated-containers.md`
-- raw multi-node compute -> `domains/gpu-clusters.md`
+Hand-offs: the request shape for inference is the same as serverless, so
+`domains/chat-completions.md` covers calling the model; training is `domains/fine-tuning.md`;
+your own Docker runtime is `domains/dedicated-containers.md`; raw nodes are `domains/gpu-clusters.md`.
 
 ## Workflow
 
@@ -71,21 +58,6 @@ Together CLI (`tg beta ...` — install with `uv tool install "together[cli]"`; 
 7. Clean up: `tg beta endpoints update <dep_id> --min-replicas 0 --max-replicas 0` to stop
    billing, or `tg beta endpoints rm <ep_id> --force` to tear everything down (it scales
    deployments to zero itself).
-
-## Open next
-
-- **Deploy a model end to end**
-  - Start with [scripts/dedicated-model-inference/deploy_model.py](scripts/dedicated-model-inference/deploy_model.py)
-  - Read [references/dedicated-model-inference/cli-reference.md](references/dedicated-model-inference/cli-reference.md) for the one-command CLI path
-- **Endpoint/deployment lifecycle from the SDK or API** (create, poll, scale, stop, delete, list filters)
-  - Read [references/dedicated-model-inference/api-reference.md](references/dedicated-model-inference/api-reference.md)
-- **Split traffic, A/B tests, shadow experiments**
-  - Read [references/dedicated-model-inference/traffic-routing.md](references/dedicated-model-inference/traffic-routing.md)
-- **Choose a model or config, pricing, upload custom weights or LoRA adapters**
-  - Read [references/dedicated-model-inference/models-and-configs.md](references/dedicated-model-inference/models-and-configs.md)
-  - Start with [scripts/dedicated-model-inference/upload_custom_model.py](scripts/dedicated-model-inference/upload_custom_model.py)
-- **Autoscaling and monitoring**
-  - Read [references/dedicated-model-inference/api-reference.md](references/dedicated-model-inference/api-reference.md) (Autoscaling, Monitoring sections)
 
 ## Rules
 
@@ -129,6 +101,37 @@ Together CLI (`tg beta ...` — install with `uv tool install "together[cli]"`; 
   `--traffic-weight 0`, then scale it down and delete it.
 - The `client.beta.*` SDK surface and `together beta` CLI are **beta**: pin a current SDK
   release (`uv pip install --upgrade together`) and expect the surface to evolve.
+
+## Finishing and teardown
+
+These come from runs that did the hard part and then failed at the end.
+
+- **Do not finish while anything is pending.** If a deployment is still provisioning, a load test
+  or probe is still running, or teardown is unconfirmed, keep polling in the foreground (bounded,
+  up to about 25 minutes for provisioning). Do not schedule a later check and end the turn. If you
+  must stop, list exactly what is still running and the command that checks it.
+- **Teardown is a loop, not one call** (deletion order is in Rules above). A 409 while deleting
+  means a deployment is still stopping: poll until `STOPPED`, then retry the delete. You are done
+  only when `tg beta endpoints ls` no longer shows the endpoint.
+- **Measure, do not assume.** Record wall-clock timestamps when a test starts and ends, and report
+  the measured duration, not the planned one. For autoscaling, align latency samples to the
+  scale-up and scale-down times in the endpoint's events feed (api-reference.md, Events Feed),
+  not to when you expected scaling to happen. Report an observed split from counted `x-cluster`
+  headers, as described in Rules.
+
+## Open next
+
+The workflow and rules above cover a standard deploy, scale, split, and teardown. Open a reference
+only for the detail named in its row, and read just that section; each starts with `## Contents`.
+
+| File | Lines | Contains | Open when |
+|---|---|---|---|
+| [scripts/dedicated-model-inference/deploy_model.py](scripts/dedicated-model-inference/deploy_model.py) | 254 | SDK path: deploy, poll to READY, infer on the dedicated base URL, scale, clean up | scripting the lifecycle in Python |
+| [scripts/dedicated-model-inference/upload_custom_model.py](scripts/dedicated-model-inference/upload_custom_model.py) | 144 | upload custom weights or a LoRA adapter, then deploy | serving your own weights |
+| [references/dedicated-model-inference/cli-reference.md](references/dedicated-model-inference/cli-reference.md) | 299 | every `tg beta endpoints` and `models` command and flag: deploy, get, update, rm, `ab`, `shadow`; what the CLI cannot do | a CLI flag or subcommand |
+| [references/dedicated-model-inference/api-reference.md](references/dedicated-model-inference/api-reference.md) | 477 | SDK and REST for endpoints and deployments: states, autoscaling and scaling metrics, stop/restart, routing, deletion, Prometheus monitoring, Events Feed | SDK calls, metrics, or the events feed |
+| [references/dedicated-model-inference/traffic-routing.md](references/dedicated-model-inference/traffic-routing.md) | 289 | how weights route, stickiness, observing routing via headers, gradual cutover, A/B tests, shadow experiments | traffic splits, A/B, or shadow |
+| [references/dedicated-model-inference/models-and-configs.md](references/dedicated-model-inference/models-and-configs.md) | 351 | choosing a model, deployment profiles, configs, hardware pricing, model and LoRA upload, upload troubleshooting | picking a profile or uploading weights |
 
 ## Docs
 

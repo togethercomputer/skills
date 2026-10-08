@@ -46,7 +46,7 @@ extract = client.chat.completions.create(
         },
         {"role": "user", "content": transcript},
     ],
-    model="openai/gpt-oss-20b",
+    model="openai/gpt-oss-120b",
     response_format={
         "type": "json_schema",
         "json_schema": {
@@ -105,7 +105,7 @@ async function main() {
       },
       { role: "user", content: transcript },
     ],
-    model: "openai/gpt-oss-20b",
+    model: "openai/gpt-oss-120b",
     response_format: {
       type: "json_schema",
       json_schema: {
@@ -141,7 +141,7 @@ curl -X POST "https://api.together.xyz/v1/chat/completions" \
         "content": "Good morning! Today is going to be a busy day. First, I need to make a quick breakfast. While cooking, I will also check my emails."
       }
     ],
-    "model": "openai/gpt-oss-20b",
+    "model": "openai/gpt-oss-120b",
     "response_format": {
       "type": "json_schema",
       "schema": {
@@ -179,7 +179,7 @@ class CalendarEvent(BaseModel):
     participants: list[str]
 
 completion = client.chat.completions.create(
-    model="openai/gpt-oss-20b",
+    model="openai/gpt-oss-120b",
     messages=[
         {"role": "system", "content": "Extract the event information."},
         {"role": "user", "content": "Alice and Bob are going to a science fair on Friday. Answer in JSON"},
@@ -209,7 +209,7 @@ from together import Together
 client = Together()
 
 response = client.chat.completions.create(
-    model="openai/gpt-oss-20b",
+    model="openai/gpt-oss-120b",
     messages=[
         {"role": "system", "content": "Respond in JSON with keys: name, age, city"},
         {"role": "user", "content": "Tell me about yourself"},
@@ -226,7 +226,7 @@ import Together from "together-ai";
 const together = new Together();
 
 const response = await together.chat.completions.create({
-  model: "openai/gpt-oss-20b",
+  model: "openai/gpt-oss-120b",
   messages: [
     { role: "system", content: "Respond in JSON with keys: name, age, city" },
     { role: "user", content: "Tell me about yourself" },
@@ -243,7 +243,7 @@ curl -X POST "https://api.together.xyz/v1/chat/completions" \
   -H "Authorization: Bearer $TOGETHER_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "openai/gpt-oss-20b",
+    "model": "openai/gpt-oss-120b",
     "messages": [
       {"role": "system", "content": "Respond in JSON with keys: name, age, city"},
       {"role": "user", "content": "Tell me about yourself"}
@@ -358,7 +358,7 @@ class MathReasoning(BaseModel):
     final_answer: str
 
 completion = client.chat.completions.create(
-    model="deepseek-ai/DeepSeek-V4-Pro",
+    model="deepseek-ai/DeepSeek-V4-Pro-0813",
     messages=[
         {
             "role": "system",
@@ -400,7 +400,7 @@ const mathReasoningSchema = z.object({
 const jsonSchema = z.toJSONSchema(mathReasoningSchema);
 
 const completion = await together.chat.completions.create({
-  model: "deepseek-ai/DeepSeek-V4-Pro",
+  model: "deepseek-ai/DeepSeek-V4-Pro-0813",
   messages: [
     {
       role: "system",
@@ -443,7 +443,7 @@ class Summary(BaseModel):
 schema = Summary.model_json_schema()
 
 stream = client.chat.completions.create(
-    model="openai/gpt-oss-20b",
+    model="openai/gpt-oss-120b",
     messages=[
         {"role": "system", "content": f"Respond in JSON matching: {json.dumps(schema)}"},
         {"role": "user", "content": "Summarize the benefits of exercise"},
@@ -480,7 +480,7 @@ const summarySchema = z.object({
 const jsonSchema = z.toJSONSchema(summarySchema);
 
 const stream = await together.chat.completions.create({
-  model: "openai/gpt-oss-20b",
+  model: "openai/gpt-oss-120b",
   messages: [
     { role: "system", content: `Respond in JSON matching: ${JSON.stringify(jsonSchema)}` },
     { role: "user", content: "Summarize the benefits of exercise" },
@@ -505,21 +505,20 @@ console.log(`Title: ${result.title}`);
 
 ## Supported Models
 
-### Top Models (json_schema, json_object, regex)
-- `openai/gpt-oss-120b`
-- `openai/gpt-oss-20b`
-- `moonshotai/Kimi-K2.6`
-- `zai-org/GLM-5`
-- `MiniMaxAI/MiniMax-M2.7`
-- `Qwen/Qwen3.6-Plus`
-- `deepseek-ai/DeepSeek-V4-Pro`
+Serverless models that support this as of 2026-10-07, per the [serverless catalog](https://docs.together.ai/docs/serverless/models). Confirm live with `tg beta models public --product serverless --json` (look for `FEATURE_TOOL_CALLING` / `FEATURE_STRUCTURED_OUTPUT`).
 
-### Additional Supported Models
-- `meta-llama/Llama-3.3-70B-Instruct-Turbo`
-- `Qwen/Qwen2.5-7B-Instruct-Turbo`
+- `moonshotai/Kimi-K3`
+- `zai-org/GLM-5.3`
+- `zai-org/GLM-5.3-Flash`
+- `zai-org/GLM-5.2`
+- `deepseek-ai/DeepSeek-V4-Pro-0813`
+- `deepseek-ai/DeepSeek-V4-Flash-0731`
+- `deepseek-ai/DeepSeek-V4.1-Flash`
+- `thinkingmachines/Inkling`
+- `MiniMaxAI/MiniMax-M3`
 - `Qwen/Qwen3.5-9B`
-- `google/gemma-4-31B-it`
-- `google/gemma-3n-E4B-it`
+- `openai/gpt-oss-120b`
+- `meta-llama/Llama-3.3-70B-Instruct-Turbo`
 
 ## Troubleshooting
 
@@ -536,5 +535,5 @@ console.log(`Title: ${result.title}`);
 3. Use `json_schema` mode when you need guaranteed structure
 4. Use `json_object` for simpler cases where prompt guidance is sufficient
 5. Use `regex` mode for simple constrained outputs (classification, IDs, phone numbers)
-6. Works with vision models (e.g., `moonshotai/Kimi-K2.6`)
-7. Works with reasoning models (e.g., `deepseek-ai/DeepSeek-V4-Pro`)
+6. Works with vision models (e.g., `moonshotai/Kimi-K3`)
+7. Works with reasoning models (e.g., `deepseek-ai/DeepSeek-V4-Pro-0813`)

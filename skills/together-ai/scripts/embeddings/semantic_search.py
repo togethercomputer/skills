@@ -13,20 +13,39 @@ Usage:
     python semantic_search.py
 
 Requires:
-    pip install together
+    uv pip install "together>=2.0.0"
     export TOGETHER_API_KEY=your_key
+    export EMBEDDING_MODEL=your-project/your-embedding-endpoint  # dedicated endpoint string
 """
 
 import math
+import os
+import sys
+
 from together import Together
 
 client = Together()
 
-EMBEDDING_MODEL = "intfloat/multilingual-e5-large-instruct"
+# No embedding or rerank model is served serverless today. Deploy one on a dedicated
+# endpoint (see domains/embeddings.md), then set EMBEDDING_MODEL (and optionally
+# RERANK_MODEL) to its endpoint string, e.g. "my-project/my-embeddings".
+# Dedicated inference is served from its own base URL.
+EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "")
+RERANK_MODEL: str | None = os.environ.get("RERANK_MODEL") or None
+dedicated_client = Together(
+    base_url=os.environ.get("DEDICATED_BASE_URL", "https://api-inference.together.ai/v1")
+)
 
-# Set to your dedicated rerank endpoint model name to enable API reranking.
-# See https://docs.together.ai/docs/rerank-overview
-RERANK_MODEL: str | None = None
+
+def require_embedding_model() -> str:
+    """Exit with an actionable message instead of failing request by request."""
+    if not EMBEDDING_MODEL:
+        sys.exit(
+            "EMBEDDING_MODEL is not set. Together serves no embedding models serverless; "
+            "deploy one on a dedicated endpoint and export its endpoint string. "
+            "See domains/embeddings.md."
+        )
+    return EMBEDDING_MODEL
 
 
 # ---------------------------------------------------------------------------
@@ -48,7 +67,7 @@ class VectorStore:
         """Embed and store texts. Batches requests to stay within limits."""
         for start in range(0, len(texts), batch_size):
             batch = texts[start : start + batch_size]
-            response = client.embeddings.create(
+            response = dedicated_client.embeddings.create(
                 model=EMBEDDING_MODEL,
                 input=batch,
             )
@@ -60,7 +79,7 @@ class VectorStore:
 
     def search(self, query: str, top_k: int = 10) -> list[dict]:
         """Embed a query and return the top_k most similar documents."""
-        query_emb = client.embeddings.create(
+        query_emb = dedicated_client.embeddings.create(
             model=EMBEDDING_MODEL,
             input=query,
         ).data[0].embedding
@@ -96,7 +115,7 @@ def rerank(
         return candidates[:top_n]
 
     documents = [c["text"] for c in candidates]
-    response = client.rerank.create(
+    response = dedicated_client.rerank.create(
         model=RERANK_MODEL,
         query=query,
         documents=documents,
@@ -142,6 +161,7 @@ PRODUCTS = [
 
 
 if __name__ == "__main__":
+    require_embedding_model()
     # 1. Build the index
     print("=== Indexing ===")
     store = VectorStore()

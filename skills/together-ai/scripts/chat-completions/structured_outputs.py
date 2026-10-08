@@ -46,7 +46,7 @@ def json_schema_example() -> None:
             },
             {"role": "user", "content": transcript},
         ],
-        model="openai/gpt-oss-20b",
+        model="openai/gpt-oss-120b",
         response_format={
             "type": "json_schema",
             "json_schema": {
@@ -66,7 +66,7 @@ def json_object_example() -> None:
     """Model outputs valid JSON, structure guided by prompt only."""
     print("=== json_object (simple) ===")
     response = client.chat.completions.create(
-        model="openai/gpt-oss-20b",
+        model="openai/gpt-oss-120b",
         messages=[
             {"role": "system", "content": "Respond in JSON with keys: name, age, city, hobby"},
             {"role": "user", "content": "Make up a character for a story"},
@@ -114,7 +114,7 @@ def reasoning_json_example() -> None:
     """Extract structured JSON from a reasoning model."""
     print("=== json_schema + reasoning model ===")
     completion = client.chat.completions.create(
-        model="deepseek-ai/DeepSeek-V4-Pro",
+        model="deepseek-ai/DeepSeek-V4-Pro-0813",
         messages=[
             {
                 "role": "system",

@@ -40,7 +40,7 @@ tools = [{
 }]
 
 response = client.chat.completions.create(
-    model="Qwen/Qwen2.5-7B-Instruct-Turbo",
+    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
     messages=[
         {"role": "system", "content": "You are a helpful assistant that can access external functions."},
         {"role": "user", "content": "What is the current temperature of New York?"},
@@ -58,7 +58,7 @@ import Together from "together-ai";
 const together = new Together();
 
 const response = await together.chat.completions.create({
-  model: "Qwen/Qwen2.5-7B-Instruct-Turbo",
+  model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
   messages: [
     {
       role: "system",
@@ -136,7 +136,7 @@ tools = [
 ]
 
 response = client.chat.completions.create(
-    model="Qwen/Qwen2.5-7B-Instruct-Turbo",
+    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
     messages=[{"role": "user", "content": "What's the current price of Apple's stock?"}],
     tools=tools,
 )
@@ -191,7 +191,7 @@ const tools = [
 ];
 
 const response = await together.chat.completions.create({
-  model: "Qwen/Qwen2.5-7B-Instruct-Turbo",
+  model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
   messages: [
     { role: "user", content: "What's the current price of Apple's stock?" },
   ],
@@ -208,7 +208,7 @@ Model calls the same function multiple times in one turn.
 
 ```python
 response = client.chat.completions.create(
-    model="Qwen/Qwen2.5-7B-Instruct-Turbo",
+    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
     messages=[
         {"role": "system", "content": "You are a helpful assistant that can access external functions."},
         {
@@ -245,7 +245,7 @@ for tc in response.choices[0].message.tool_calls:
 
 ```typescript
 const response = await together.chat.completions.create({
-  model: "Qwen/Qwen2.5-7B-Instruct-Turbo",
+  model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
   messages: [
     {
       role: "system",
@@ -301,7 +301,7 @@ calling: one user prompt triggers multiple different function calls.
 #   get_current_weather(location="Chicago, IL")
 
 response = client.chat.completions.create(
-    model="Qwen/Qwen2.5-7B-Instruct-Turbo",
+    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
     messages=[
         {
             "role": "user",
@@ -320,7 +320,7 @@ for tc in response.choices[0].message.tool_calls:
 
 ```typescript
 const response = await together.chat.completions.create({
-  model: "Qwen/Qwen2.5-7B-Instruct-Turbo",
+  model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
   messages: [
     {
       role: "user",
@@ -358,7 +358,7 @@ messages = [
 
 # Step 1: Model generates tool calls
 response = client.chat.completions.create(
-    model="Qwen/Qwen2.5-7B-Instruct-Turbo",
+    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
     messages=messages,
     tools=tools,
 )
@@ -376,7 +376,7 @@ for tc in response.choices[0].message.tool_calls:
 
 # Step 3: Model produces final answer using all results
 final = client.chat.completions.create(
-    model="Qwen/Qwen2.5-7B-Instruct-Turbo",
+    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
     messages=messages,
     tools=tools,
 )
@@ -404,7 +404,7 @@ const messages: ChatCompletionMessageParam[] = [
 
 // Step 1: Model generates tool calls
 const response = await together.chat.completions.create({
-  model: "Qwen/Qwen2.5-7B-Instruct-Turbo",
+  model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
   messages,
   tools,
 });
@@ -423,7 +423,7 @@ for (const tc of response.choices[0].message?.tool_calls ?? []) {
 
 // Step 3: Model produces final answer
 const final = await together.chat.completions.create({
-  model: "Qwen/Qwen2.5-7B-Instruct-Turbo",
+  model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
   messages,
   tools,
 });
@@ -447,7 +447,7 @@ messages.append({
 })
 
 response = client.chat.completions.create(
-    model="Qwen/Qwen2.5-7B-Instruct-Turbo",
+    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
     messages=messages,
     tools=tools,
 )
@@ -460,7 +460,7 @@ for tc in response.choices[0].message.tool_calls:
     messages.append({"role": "tool", "tool_call_id": tc.id, "content": json.dumps(result)})
 
 final = client.chat.completions.create(
-    model="Qwen/Qwen2.5-7B-Instruct-Turbo",
+    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
     messages=messages,
     tools=tools,
 )
@@ -473,7 +473,7 @@ messages.append({
 })
 
 response2 = client.chat.completions.create(
-    model="Qwen/Qwen2.5-7B-Instruct-Turbo",
+    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
     messages=messages,
     tools=tools,
 )
@@ -494,7 +494,7 @@ messages.push({
 });
 
 const response = await together.chat.completions.create({
-  model: "Qwen/Qwen2.5-7B-Instruct-Turbo",
+  model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
   messages,
   tools,
 });
@@ -512,7 +512,7 @@ for (const tc of response.choices[0].message?.tool_calls ?? []) {
 }
 
 const final = await together.chat.completions.create({
-  model: "Qwen/Qwen2.5-7B-Instruct-Turbo",
+  model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
   messages,
   tools,
 });
@@ -526,7 +526,7 @@ messages.push({
 });
 
 const response2 = await together.chat.completions.create({
-  model: "Qwen/Qwen2.5-7B-Instruct-Turbo",
+  model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
   messages,
   tools,
 });
@@ -665,7 +665,7 @@ for tc in tool_calls:
 
 # 4. Get final response
 final = client.chat.completions.create(
-    model="Qwen/Qwen2.5-7B-Instruct-Turbo",
+    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
     messages=messages,
     tools=tools,
 )
@@ -693,7 +693,7 @@ for (const tc of toolCalls) {
 
 // 4. Get final response
 const final = await together.chat.completions.create({
-  model: "Qwen/Qwen2.5-7B-Instruct-Turbo",
+  model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
   messages,
   tools,
 });
@@ -823,8 +823,17 @@ workflow.
 
 ## Supported Models
 
-openai/gpt-oss-120b, openai/gpt-oss-20b, moonshotai/Kimi-K2.6,
-zai-org/GLM-5.1, zai-org/GLM-5, MiniMaxAI/MiniMax-M2.7,
-Qwen/Qwen3.5-9B, Qwen/Qwen3.6-Plus,
-Qwen/Qwen3-235B-A22B-Instruct-2507-tput, deepseek-ai/DeepSeek-V4-Pro,
-meta-llama/Llama-3.3-70B-Instruct-Turbo, Qwen/Qwen2.5-7B-Instruct-Turbo, google/gemma-4-31B-it
+Serverless models that support this as of 2026-10-07, per the [serverless catalog](https://docs.together.ai/docs/serverless/models). Confirm live with `tg beta models public --product serverless --json` (look for `FEATURE_TOOL_CALLING` / `FEATURE_STRUCTURED_OUTPUT`).
+
+- `moonshotai/Kimi-K3`
+- `zai-org/GLM-5.3`
+- `zai-org/GLM-5.3-Flash`
+- `zai-org/GLM-5.2`
+- `deepseek-ai/DeepSeek-V4-Pro-0813`
+- `deepseek-ai/DeepSeek-V4-Flash-0731`
+- `deepseek-ai/DeepSeek-V4.1-Flash`
+- `thinkingmachines/Inkling`
+- `MiniMaxAI/MiniMax-M3`
+- `Qwen/Qwen3.5-9B`
+- `openai/gpt-oss-120b`
+- `meta-llama/Llama-3.3-70B-Instruct-Turbo`

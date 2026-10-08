@@ -14,9 +14,27 @@ Requires:
 """
 
 import base64
+import pathlib
 from together import Together
 
 client = Together()
+
+
+def save_image_bytes(data: bytes, output_path: str) -> str:
+    """Write image bytes under an extension that matches their real format.
+
+    Most models return JPEG unless you ask for another format (`output_format` is
+    FLUX.2-only), so "out.png" would otherwise hold JPEG bytes. Returns the path
+    actually written.
+    """
+    signatures = {b"\x89PNG\r\n\x1a\n": ".png", b"\xff\xd8\xff": ".jpg", b"RIFF": ".webp"}
+    actual = next((ext for sig, ext in signatures.items() if data.startswith(sig)), None)
+    path = pathlib.Path(output_path)
+    if actual and path.suffix.lower() not in ({actual} | ({".jpeg"} if actual == ".jpg" else set())):
+        print(f"  Note: model returned {actual[1:].upper()} bytes; saving as {path.with_suffix(actual).name}")
+        path = path.with_suffix(actual)
+    path.write_bytes(data)
+    return str(path)
 
 
 def generate_image_url(
@@ -66,12 +84,9 @@ def generate_and_save(
         response_format="base64",
     )
     image_data = base64.b64decode(response.data[0].b64_json)
-
-    with open(output_path, "wb") as f:
-        f.write(image_data)
-
-    print(f"  Saved to {output_path} ({len(image_data)} bytes)")
-    return output_path
+    saved = save_image_bytes(image_data, output_path)
+    print(f"  Saved to {saved} ({len(image_data)} bytes)")
+    return saved
 
 
 def generate_flux2(

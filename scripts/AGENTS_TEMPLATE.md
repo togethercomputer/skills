@@ -16,10 +16,16 @@ Four levels. Each is opened only when the level above it says to.
 | 3 | `domains/AREA.md` — one guide per product area | the router points there |
 | 4 | `references/AREA/*.md`, `scripts/AREA/*` | a domain guide points there |
 
-The router holds no API shapes, model names, or parameter lists. That is deliberate: it makes the
-router unable to answer a product question on its own, which is what stops an agent from
-short-circuiting at level 2. Adding a product area adds a row to the routing table, not a new
-competing skill description.
+Every level is sized so an agent can decide what to load next without loading it first. The router
+is small (about 70 lines) because every task pays for it: it holds setup, a one-line-per-area guide
+table, and the rules that apply everywhere, and nothing product-specific. Each guide covers its
+common path on its own and ends with an `## Open next` menu stating every file's size, contents,
+and when to open it, so agents skip files they do not need.
+
+This shape comes from a measured regression. An earlier router was about 14k characters and told
+agents to read guides "fully" and to prefer scripts over memory; across 13 evaluated tasks, runs
+loaded 57% more skill content than with the separate per-product skills, at the same pass rate.
+Keep the router lean and the menus precise.
 
 ## Domain registry
 
@@ -109,8 +115,13 @@ The default prompt must explicitly mention the skill as `$together-ai`.
 ### Domain guides
 
 `domains/AREA.md` is where a product area is actually documented. Each guide follows the same shape:
-lead paragraph, `## Use this guide for`, `## Do not use this guide for` (links to sibling guides),
-`## Workflow`, `## Open next` (pointers into `references/` and `scripts/`), `## Rules`, `## Docs`.
+a lead paragraph (what it is, how it bills, one `Hand-offs:` line to sibling guides), `## Workflow`
+(or `## Essentials` with a minimal call), `## Rules`, `## Open next`, and `## Docs`.
+
+`## Open next` is a table with columns `File | Lines | Contains | Open when`. Describe what is
+inside each file concretely enough that an agent can tell whether it needs it, and list long
+references by the sections they contain. `quality_check.py` warns when a stated line count drifts
+more than 25% from the file, so rerun it after editing a script or reference.
 
 The two Kubernetes guides (`kueue.md`, `volcano.md`) are self-contained cookbooks with inline YAML
 and no reference or script files. That is intentional — do not force them into the table shape.
@@ -196,6 +207,7 @@ And `python scripts/quality_check.py` warns on:
 - generic `scripts/` links
 - unsafe tempfile usage in Python scripts
 - missing trigger eval sets
+- `Open next` line counts that drift more than 25% from the file
 
 ## Adding a new product area
 
@@ -204,9 +216,10 @@ Do **not** create a second skill directory. Add a domain guide instead:
 1. Create `skills/together-ai/domains/AREA.md` following the standard guide shape
 2. Add `skills/together-ai/references/AREA/` for detailed specs (model tables, API params)
 3. Add `skills/together-ai/scripts/AREA/` with runnable v2 SDK examples for multi-step workflows
-4. Add a row to the **Routing** table in `SKILL.md`, with concrete `Signals` — literal symbols,
-   method names, and ID prefixes route far more reliably than topic words
-5. Add a **Disambiguation** row if the new area is a near-miss for an existing one
+4. Add a one-line row to the **Guides** table in `SKILL.md`; name the literal symbols, commands, or
+   ID prefixes users will mention — they route more reliably than topic words
+5. If the new area is easily confused with an existing one, add a clause to the **Close calls**
+   paragraph under the table
 6. Add cases to `quality/routing-evals/together-ai.json`
 7. Validate with `python scripts/quick_validate.py skills/together-ai`
 8. Run `./scripts/publish.sh` to regenerate AGENTS.md and README.md
@@ -252,8 +265,10 @@ If a Together API changes, update in this order:
 - Add `README.md`, `CHANGELOG.md`, or `INSTALLATION_GUIDE.md` inside the skill directory — the Agent Skills spec forbids extraneous docs within skills
 - Create a second `skills/together-*` directory — new product areas are domain guides, not skills
 - Write `../references/...` inside a domain guide — all skill paths are skill-root-relative
-- Put API shapes, model names, or parameter lists in the router; that is what makes agents stop at
-  level 2 instead of opening the guide
+- Grow the router with product detail; every task pays for every line of it. Put product detail in
+  the guide and deep detail in references
+- Hardcode a model ID as available without checking the live catalog; IDs in guides, references,
+  and scripts are examples, and the scripts' defaults should be on the current serverless list
 - Use angle brackets in any `description` frontmatter field
 - Use v1 SDK method names in any code
 - Add dependencies beyond `together` to scripts without noting it in the docstring

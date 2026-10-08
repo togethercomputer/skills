@@ -1,54 +1,38 @@
 # Together AI: Batch Inference
 
-Use Together AI's Batch API for large offline workloads where latency is not the primary concern.
-
-Typical fits:
-
-- bulk classification
-- synthetic data generation
-- dataset transformations
-- large summarization or enrichment jobs
-- low-cost asynchronous inference
-
-## Use this guide for
-
-- The user has many independent requests to run
-- A JSONL request file is acceptable
-- Turnaround time can be minutes or hours instead of seconds
-- Lower cost matters more than immediate interactivity
-
-## Do not use this guide for
-
-- real-time requests or tool-calling apps -> `domains/chat-completions.md`
-- managed LLM-as-a-judge workflows -> `domains/evaluations.md`
-- retrieval-specific vector generation -> `domains/embeddings.md`
+Asynchronous bulk inference over a JSONL file, up to 50% cheaper than real-time, completing
+within a 24-hour window (small batches usually finish in minutes). For requests a user is
+waiting on, use `domains/chat-completions.md` instead.
 
 ## Workflow
 
-1. Build a JSONL file where each line contains `custom_id` and `body`.
-2. Upload the file with `purpose="batch-api"`.
-3. Create the batch with `input_file_id=...` and the target endpoint.
-4. Poll until the job is terminal.
-5. Download output and error files, then reconcile by `custom_id`.
-
-## Open next
-
-- **End-to-end batch workflow**
-  - Start with [scripts/batch-inference/batch_workflow.py](scripts/batch-inference/batch_workflow.py) or [scripts/batch-inference/batch_workflow.ts](scripts/batch-inference/batch_workflow.ts)
-- **Request format, status model, and result downloads**
-  - Read [references/batch-inference/api-reference.md](references/batch-inference/api-reference.md)
-- **Operational guidance and batch sizing**
-  - Read [references/batch-inference/api-reference.md](references/batch-inference/api-reference.md)
+1. Write a JSONL file; each line is `{"custom_id": ..., "body": {chat request}}`.
+2. Upload it: `client.files.upload(file=path, purpose="batch-api", check=False)`; the server
+   validates during `VALIDATING`.
+3. `client.batches.create(input_file_id=..., endpoint="/v1/chat/completions")`.
+4. Poll `client.batches.retrieve(batch_id)` until `COMPLETED`, `FAILED`, `EXPIRED`, or
+   `CANCELLED`.
+5. Download the output **and** error files with `client.files.content(id)`; reconcile rows by
+   `custom_id`.
 
 ## Rules
 
-- Use `input_file_id`, not legacy file parameters.
-- Keep `custom_id` stable and meaningful so result reconciliation is easy.
-- Batch is for independent requests. If the workload depends on shared conversation state, it is probably the wrong tool.
-- Always inspect the error file in addition to the success output.
-- `client.batches.create()` returns a wrapper; access the batch object via `response.job` (e.g., `response.job.id`). `client.batches.retrieve()` returns the batch object directly.
-- For classification or labeling workloads, set `max_tokens` low (e.g., 4), use `temperature: 0`, and constrain the system prompt to return only the label. This minimizes output tokens and cost.
-- Small batches (under 1K requests) typically complete in minutes. The 24-hour completion window is a maximum, not typical.
+- `client.batches.create()` returns a wrapper: the batch is `response.job` (`response.job.id`).
+  `client.batches.retrieve()` returns the batch directly.
+- `meta-llama/Llama-3.3-70B-Instruct-Turbo` carries the 50% batch discount. Some serverless
+  models cannot run in batch; the reference lists them.
+- Keep `custom_id` unique and meaningful; results come back unordered.
+- Batch is for independent requests; shared conversation state belongs in chat.
+- Always read the error file; failed rows appear only there.
+- For classification, set `max_tokens` low (about 4), `temperature` 0, and ask for the label
+  only.
+
+## Open next
+
+| File | Lines | Contains | Open when |
+|---|---|---|---|
+| [scripts/batch-inference/batch_workflow.py](scripts/batch-inference/batch_workflow.py) (.ts) | 170 | build JSONL, upload, create, poll, download, reconcile | running a batch end to end |
+| [references/batch-inference/api-reference.md](references/batch-inference/api-reference.md) | 310 | JSONL input and output formats, job object and statuses, discounted and excluded models, limits, error codes, CLI | a format detail, status, limit, or error |
 
 ## Docs
 

@@ -63,7 +63,7 @@ type ScriptArgs = {
   downloadResults?: string;
 };
 
-const JUDGE_MODEL = "deepseek-ai/DeepSeek-V4-Pro";
+const JUDGE_MODEL = "deepseek-ai/DeepSeek-V4-Pro-0813";
 const EVAL_MODEL = "Qwen/Qwen3.5-9B";
 const DEFAULT_EVAL_SYSTEM_TEMPLATE = "You are a helpful assistant.";
 const DEFAULT_INPUT_TEMPLATE = "{{prompt}}";
@@ -193,7 +193,7 @@ function parseScriptArgs(): ScriptArgs {
     temperature: parseNumber(flags.temperature, 0.7, "--temperature"),
     evalExternalApiToken: flags["eval-external-api-token"],
     evalExternalBaseUrl: flags["eval-external-base-url"],
-    modelA: flags["model-a"] ?? "Qwen/Qwen3-235B-A22B-Instruct-2507-tput",
+    modelA: flags["model-a"] ?? "meta-llama/Llama-3.3-70B-Instruct-Turbo",
     modelASource: parseModelSource(flags["model-a-source"], "--model-a-source"),
     modelAColumn: flags["model-a-column"],
     modelAExternalApiToken: flags["model-a-external-api-token"],

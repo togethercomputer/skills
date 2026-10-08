@@ -57,7 +57,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--model",
-        default="Qwen/Qwen2.5-7B-Instruct-Turbo",
+        default="meta-llama/Llama-3.3-70B-Instruct-Turbo",
         help="Model to use when generating a sample batch payload",
     )
     parser.add_argument(

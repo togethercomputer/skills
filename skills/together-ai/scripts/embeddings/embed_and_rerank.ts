@@ -14,13 +14,31 @@
  * Requires:
  *   npm install together-ai
  *   export TOGETHER_API_KEY=your_key
+ *   export EMBEDDING_MODEL=your-project/your-embedding-endpoint  # dedicated endpoint string
  */
 
 import Together from "together-ai";
 
-const client = new Together({
+// No embedding model is served serverless today. Deploy one on a dedicated endpoint
+// (see domains/embeddings.md) and set EMBEDDING_MODEL to its endpoint string.
+// Dedicated inference is served from its own base URL.
+const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL ?? "";
+const dedicatedClient = new Together({
   apiKey: process.env.TOGETHER_API_KEY,
+  baseURL: process.env.DEDICATED_BASE_URL ?? "https://api-inference.together.ai/v1",
 });
+
+function requireEmbeddingModel(): string {
+  if (!EMBEDDING_MODEL) {
+    console.error(
+      "EMBEDDING_MODEL is not set. Together serves no embedding models serverless; " +
+        "deploy one on a dedicated endpoint and export its endpoint string. " +
+        "See domains/embeddings.md.",
+    );
+    process.exit(1);
+  }
+  return EMBEDDING_MODEL;
+}
 
 function cosineSimilarity(a: number[], b: number[]): number {
   let dot = 0, normA = 0, normB = 0;
@@ -33,8 +51,8 @@ function cosineSimilarity(a: number[], b: number[]): number {
 }
 
 async function embedTexts(texts: string[]): Promise<number[][]> {
-  const response = await client.embeddings.create({
-    model: "intfloat/multilingual-e5-large-instruct",
+  const response = await dedicatedClient.embeddings.create({
+    model: requireEmbeddingModel(),
     input: texts,
   });
   return response.data.map((item) => item.embedding);

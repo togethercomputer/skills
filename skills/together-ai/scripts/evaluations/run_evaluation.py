@@ -31,7 +31,7 @@ from together import Together
 client = Together()
 
 MODEL_SOURCES = ("serverless", "dedicated", "external")
-JUDGE_MODEL = "deepseek-ai/DeepSeek-V4-Pro"
+JUDGE_MODEL = "deepseek-ai/DeepSeek-V4-Pro-0813"
 EVAL_MODEL = "Qwen/Qwen3.5-9B"
 DEFAULT_EVAL_SYSTEM_TEMPLATE = "You are a helpful assistant."
 DEFAULT_INPUT_TEMPLATE = "{{prompt}}"
@@ -391,7 +391,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--eval-external-base-url", help="Custom OpenAI-compatible base URL for the target")
     parser.add_argument(
         "--model-a",
-        default="Qwen/Qwen3-235B-A22B-Instruct-2507-tput",
+        default="meta-llama/Llama-3.3-70B-Instruct-Turbo",
         help="Model A for compare evaluations",
     )
     parser.add_argument(

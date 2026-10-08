@@ -7,18 +7,7 @@ Public cookbook: https://docs.together.ai/docs/kueue-on-gpu-clusters. Pair this 
 This guide is self-contained — the YAML and commands below are the whole
 procedure; there are no reference files or scripts for this area.
 
-## Use this guide for
-
-- Installing Kueue on a Together Kubernetes GPU cluster
-- Defining `ResourceFlavor`, `ClusterQueue`, and `LocalQueue` quota
-- Submitting jobs that wait for quota instead of starting immediately
-- Sharing one GPU pool across teams or workloads without overcommitting it
-- Diagnosing a job stuck suspended, or one that bypassed quota entirely
-
-## Do not use this guide for
-
-- creating the cluster, or getting `kubectl` credentials -> `domains/gpu-clusters.md`
-- gang scheduling, where a job's pods must all start together -> `domains/volcano.md`
+Hand-offs: creating the cluster and getting `kubectl` credentials is `domains/gpu-clusters.md`; gang scheduling (pods that must all start together) is `domains/volcano.md`.
 
 ## Setup delta
 

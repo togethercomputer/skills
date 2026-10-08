@@ -21,7 +21,7 @@ def basic_chat() -> None:
     """Send a single chat completion request."""
     print("=== Basic Chat ===")
     response = client.chat.completions.create(
-        model="openai/gpt-oss-20b",
+        model="openai/gpt-oss-120b",
         messages=[{"role": "user", "content": "What are some fun things to do in NYC?"}],
     )
     print(response.choices[0].message.content)
@@ -32,7 +32,7 @@ def streaming_chat() -> None:
     """Stream tokens incrementally."""
     print("=== Streaming ===")
     stream = client.chat.completions.create(
-        model="openai/gpt-oss-20b",
+        model="openai/gpt-oss-120b",
         messages=[{"role": "user", "content": "Write a haiku about coding"}],
         stream=True,
     )
@@ -51,7 +51,7 @@ def multi_turn_chat() -> None:
     ]
 
     response = client.chat.completions.create(
-        model="openai/gpt-oss-20b",
+        model="openai/gpt-oss-120b",
         messages=messages,
     )
     assistant_reply = response.choices[0].message.content
@@ -63,7 +63,7 @@ def multi_turn_chat() -> None:
     messages.append({"role": "user", "content": "How about food recommendations?"})
 
     response = client.chat.completions.create(
-        model="openai/gpt-oss-20b",
+        model="openai/gpt-oss-120b",
         messages=messages,
     )
     print(f"User: How about food recommendations?")

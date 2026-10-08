@@ -13,17 +13,21 @@
 
 ## Full Model Table
 
+Serverless reasoning models as of 2026-10-07 (source:
+[Reasoning](https://docs.together.ai/docs/inference/chat/reasoning)). Kimi K3, GLM-5, DeepSeek-R1
+and its distillations, QwQ-32B, and DeepSeek V3.1 are now dedicated-only. The trace arrives on
+`reasoning` or `reasoning_content` depending on the model (Kimi K3 uses `reasoning_content`), so
+read both.
+
 | Model | API String | Type | Context | Tool Calling |
 |-------|-----------|------|---------|--------------|
-| DeepSeek-V4-Pro | `deepseek-ai/DeepSeek-V4-Pro` | Hybrid (on by default) | 512K | Yes |
-| GLM-5 | `zai-org/GLM-5` | Hybrid (on by default) | 200K | Yes |
-| GPT-OSS 120B | `openai/gpt-oss-120b` | Adjustable effort | 128K | No |
-| GPT-OSS 20B | `openai/gpt-oss-20b` | Adjustable effort | 128K | No |
-| Kimi K2.6 | `moonshotai/Kimi-K2.6` | Hybrid (on by default) | 262K | Yes |
-| MiniMax M2.7 | `MiniMaxAI/MiniMax-M2.7` | Reasoning only | 202K | Yes |
-| Nemotron 3 Ultra 550B A55B | `nvidia/nemotron-3-ultra-550b-a55b` | Hybrid (on by default) | 512K | Yes |
+| Kimi K3 | `moonshotai/Kimi-K3` | Hybrid (on by default) | 1M | Yes |
+| DeepSeek V4 Pro 0813 | `deepseek-ai/DeepSeek-V4-Pro-0813` | Hybrid (on by default) | 1M | Yes |
+| GLM-5.2 | `zai-org/GLM-5.2` | Hybrid (on by default) | 512K | Yes |
+| MiniMax M3 | `MiniMaxAI/MiniMax-M3` | Hybrid (on by default) | 512K | Yes |
+| Qwen3.6 Plus | `Qwen/Qwen3.6-Plus` | Hybrid (on by default) | 1M | No |
 | Qwen3.5 9B | `Qwen/Qwen3.5-9B` | Hybrid (on by default) | 262K | Yes |
-| Qwen3.6 Plus | `Qwen/Qwen3.6-Plus` | Hybrid (on by default) | 1M | Yes |
+| GPT-OSS 120B | `openai/gpt-oss-120b` | Adjustable effort | 128K | Yes |
 
 **Type definitions:**
 - **Reasoning only**: Always produces reasoning tokens. Cannot be toggled off.
@@ -101,12 +105,11 @@ curl -X POST "https://api.together.xyz/v1/chat/completions" \
 Hybrid models support `reasoning={"enabled": True/False}` to toggle reasoning on or off.
 
 **Models supporting this parameter:**
-- `deepseek-ai/DeepSeek-V4-Pro` (on by default)
+- `deepseek-ai/DeepSeek-V4-Pro-0813` (on by default)
 - `Qwen/Qwen3.5-9B` (on by default)
 - `Qwen/Qwen3.6-Plus` (on by default)
-- `moonshotai/Kimi-K2.6` (on by default)
-- `nvidia/nemotron-3-ultra-550b-a55b` (on by default)
-- `zai-org/GLM-5` (on by default)
+- `moonshotai/Kimi-K3` (on by default)
+- `zai-org/GLM-5.2` (on by default)
 
 ### Python -- Enable Reasoning
 
@@ -116,7 +119,7 @@ from together import Together
 client = Together()
 
 stream = client.chat.completions.create(
-    model="moonshotai/Kimi-K2.6",
+    model="moonshotai/Kimi-K3",
     messages=[
         {"role": "user", "content": "Which number is bigger, 9.11 or 9.9? Think carefully."},
     ],
@@ -154,7 +157,7 @@ type ReasoningDelta = ChatCompletionChunk.Choice.Delta & {
 };
 
 const params: ReasoningParams = {
-  model: "moonshotai/Kimi-K2.6",
+  model: "moonshotai/Kimi-K3",
   messages: [
     {
       role: "user",
@@ -180,7 +183,7 @@ for await (const chunk of stream) {
 
 ```python
 response = client.chat.completions.create(
-    model="moonshotai/Kimi-K2.6",
+    model="moonshotai/Kimi-K3",
     messages=[{"role": "user", "content": "What is the capital of France?"}],
     reasoning={"enabled": False},
     temperature=0.6,
@@ -207,7 +210,7 @@ prompt:
 ```python
 # Ask for concise reasoning
 response = client.chat.completions.create(
-    model="deepseek-ai/DeepSeek-V4-Pro",
+    model="deepseek-ai/DeepSeek-V4-Pro-0813",
     messages=[
         {
             "role": "user",
@@ -219,7 +222,7 @@ response = client.chat.completions.create(
 
 # Or suggest a reasoning budget
 response = client.chat.completions.create(
-    model="deepseek-ai/DeepSeek-V4-Pro",
+    model="deepseek-ai/DeepSeek-V4-Pro-0813",
     messages=[
         {
             "role": "user",
@@ -238,7 +241,7 @@ response = client.chat.completions.create(
 
 ### Separate reasoning field (most models)
 
-Models like Kimi K2.6, GLM-5, DeepSeek-V4-Pro, GPT-OSS, and Qwen3.5 return reasoning in a dedicated
+Models like Kimi K3, GLM-5, DeepSeek-V4-Pro, GPT-OSS, and Qwen3.5 return reasoning in a dedicated
 `reasoning` field on the response message or streaming delta.
 
 The field is symmetric: the model returns its chain of thought in `reasoning` (or `delta.reasoning`
@@ -250,7 +253,7 @@ key is still accepted on input for backward compatibility, but prefer `reasoning
 
 ```python
 response = client.chat.completions.create(
-    model="moonshotai/Kimi-K2.6",
+    model="moonshotai/Kimi-K3",
     messages=[{"role": "user", "content": "Say test 10 times"}],
 )
 print("Reasoning:", response.choices[0].message.reasoning)
@@ -261,7 +264,7 @@ print("Answer:", response.choices[0].message.content)
 
 ```typescript
 const response = await together.chat.completions.create({
-  model: "moonshotai/Kimi-K2.6",
+  model: "moonshotai/Kimi-K3",
   messages: [{ role: "user", content: "Say test 10 times" }],
 } as any);
 
@@ -273,7 +276,7 @@ console.log("Answer:", response.choices[0].message.content);
 
 ```python
 stream = client.chat.completions.create(
-    model="moonshotai/Kimi-K2.6",
+    model="moonshotai/Kimi-K3",
     messages=[{"role": "user", "content": "Which number is bigger, 9.11 or 9.9?"}],
     stream=True,
 )
@@ -293,7 +296,7 @@ for chunk in stream:
 import type { ChatCompletionChunk } from "together-ai/resources/chat/completions";
 
 const stream = await together.chat.completions.stream({
-  model: "moonshotai/Kimi-K2.6",
+  model: "moonshotai/Kimi-K3",
   messages: [
     { role: "user", content: "Which number is bigger, 9.11 or 9.9?" },
   ],
@@ -314,8 +317,8 @@ Reasoning output is billed as completion tokens. The extra token counts (reasoni
 prompt tokens) always live somewhere on `response.usage`, but their **location varies by model**, so
 read both shapes defensively.
 
-- **Reasoning models** (for example `deepseek-ai/DeepSeek-V4-Pro`, `Qwen/Qwen3.6-Plus`,
-  `zai-org/GLM-5`) nest them OpenAI-style:
+- **Reasoning models** (for example `deepseek-ai/DeepSeek-V4-Pro-0813`, `Qwen/Qwen3.6-Plus`,
+  `zai-org/GLM-5.2`) nest them OpenAI-style:
   - `usage.completion_tokens_details.reasoning_tokens`
   - `usage.prompt_tokens_details.cached_tokens`
 - **Some non-reasoning models** (for example `meta-llama/Llama-3.3-70B-Instruct-Turbo`) return
@@ -370,7 +373,7 @@ class MathReasoning(BaseModel):
     final_answer: str
 
 completion = client.chat.completions.create(
-    model="deepseek-ai/DeepSeek-V4-Pro",
+    model="deepseek-ai/DeepSeek-V4-Pro-0813",
     messages=[
         {
             "role": "system",
@@ -412,7 +415,7 @@ const mathReasoningSchema = z.object({
 const jsonSchema = z.toJSONSchema(mathReasoningSchema);
 
 const completion = await together.chat.completions.create({
-  model: "deepseek-ai/DeepSeek-V4-Pro",
+  model: "deepseek-ai/DeepSeek-V4-Pro-0813",
   messages: [
     {
       role: "system",
@@ -444,7 +447,7 @@ if (completion?.choices?.[0]?.message?.content) {
 - Strong performance on math, code, and agentic tool use
 - Avoid micromanaging reasoning steps -- let the model determine methodology
 
-### Kimi K2.6
+### Kimi K3
 - Temperature 1.0 for thinking mode, 0.6 for instant mode
 - Supports both reasoning and non-reasoning modes
 - Excels at multi-turn tool calling with reasoning interleaved

@@ -1,51 +1,33 @@
 # Together AI: Video
 
-Use Together AI video APIs for text-to-video and image-to-video generation, including keyframe control, model and dimension selection, and asynchronous job polling.
-
-- text-to-video generation
-- image-to-video generation
-- first-frame and last-frame keyframe control
-- asynchronous job polling
-- local download of completed outputs
-
-## Use this guide for
-
-- Generate short videos from prompts
-- Animate an existing image
-- Choose among Veo, Sora, Kling, Seedance, PixVerse, Vidu, or other supported models
-- Add polling and download logic to a product or script
-
-## Do not use this guide for
-
-- still-image generation or editing -> `domains/images.md`
-- only when a custom video-serving runtime is required -> `domains/dedicated-containers.md`
+Text-to-video and image-to-video, billed per video. Every request is an **async job**: create,
+poll to a terminal state, then download. Still images go to `domains/images.md`.
 
 ## Workflow
 
-1. Confirm whether the user needs text-to-video or image-to-video.
-2. Choose the model based on duration, dimension, keyframe support, and audio support.
-3. Submit the async job and poll until a terminal state.
-4. Download the result promptly before signed URLs expire.
-
-## Open next
-
-- **Text-to-video generation**
-  - Start with [scripts/video/generate_video.py](scripts/video/generate_video.py) or [scripts/video/generate_video.ts](scripts/video/generate_video.ts)
-  - Read [references/video/api-reference.md](references/video/api-reference.md)
-- **Image-to-video with keyframes**
-  - Start with [scripts/video/image_to_video.py](scripts/video/image_to_video.py)
-  - Read [references/video/api-reference.md](references/video/api-reference.md)
-- **Parameter tuning, polling, or troubleshooting**
-  - Read [references/video/api-reference.md](references/video/api-reference.md)
-- **Model, dimension, and prompt-limit selection**
-  - Read [references/video/models.md](references/video/models.md)
+1. Decide text-to-video or image-to-video (first and/or last keyframe).
+2. Pick the model by duration, resolution, keyframe and audio support; for example
+   `google/veo-3.1`, `ByteDance/Seedance-2.0`, `minimax/hailuo-02`, `Wan-AI/wan2.7-i2v`.
+3. `client.videos.create(...)`, then poll `client.videos.retrieve(job.id)` every 10 to 60 seconds
+   until `completed` or `failed`.
+4. Download `outputs.video_url` immediately; the signed URL expires.
 
 ## Rules
 
-- Together video generation is asynchronous; do not treat it like a synchronous image call.
-- Keyframe support is model-specific. Validate support before promising first-plus-last-frame control.
-- Keep polling and download logic as part of the workflow, not as an afterthought.
-- Use explicit dimensions and generation parameters rather than relying on unstable defaults.
+- Do not treat video like a synchronous image call, and do not end the task while a job you
+  submitted is still `in_progress`.
+- Keyframe and reference-image support are model-specific; check before promising them.
+- Set dimensions and duration explicitly rather than relying on defaults.
+- HTTP 402 `insufficient balance` is an account problem; switching models will not help.
+
+## Open next
+
+| File | Lines | Contains | Open when |
+|---|---|---|---|
+| [scripts/video/generate_video.py](scripts/video/generate_video.py) (.ts) | 130 | text-to-video, polling loop, reference images, download | generating from a prompt |
+| [scripts/video/image_to_video.py](scripts/video/image_to_video.py) | 160 | first/last keyframe control | animating an image |
+| [references/video/models.md](references/video/models.md) | 59 | model table, per-model dimensions, feature support, prompt limits | choosing a model or size |
+| [references/video/api-reference.md](references/video/api-reference.md) | 312 | create and status fields, job statuses, polling pattern, guidance and steps, troubleshooting | a parameter or failure not covered above |
 
 ## Docs
 

@@ -22,7 +22,7 @@ const client = new Together({
 async function main(): Promise<void> {
   const response = await client.chat.completions.create(
     {
-      model: "openai/gpt-oss-20b",
+      model: "openai/gpt-oss-120b",
       messages: [{ role: "user", content: "Say hello in one sentence." }],
     },
     { headers: { "x-together-debug": "1" } }

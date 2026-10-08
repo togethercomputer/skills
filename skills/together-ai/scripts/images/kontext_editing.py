@@ -14,11 +14,29 @@ Requires:
 """
 
 import base64
+import pathlib
 
 import requests
 from together import Together
 
 client = Together()
+
+
+def save_image_bytes(data: bytes, output_path: str) -> str:
+    """Write image bytes under an extension that matches their real format.
+
+    Most models return JPEG unless you ask for another format (`output_format` is
+    FLUX.2-only), so "out.png" would otherwise hold JPEG bytes. Returns the path
+    actually written.
+    """
+    signatures = {b"\x89PNG\r\n\x1a\n": ".png", b"\xff\xd8\xff": ".jpg", b"RIFF": ".webp"}
+    actual = next((ext for sig, ext in signatures.items() if data.startswith(sig)), None)
+    path = pathlib.Path(output_path)
+    if actual and path.suffix.lower() not in ({actual} | ({".jpeg"} if actual == ".jpg" else set())):
+        print(f"  Note: model returned {actual[1:].upper()} bytes; saving as {path.with_suffix(actual).name}")
+        path = path.with_suffix(actual)
+    path.write_bytes(data)
+    return str(path)
 
 KONTEXT_PRO = "black-forest-labs/FLUX.1-kontext-pro"
 KONTEXT_MAX = "black-forest-labs/FLUX.1-kontext-max"
@@ -77,22 +95,18 @@ def edit_and_save(
 
     response = client.images.generate(**kwargs)
     image_data = base64.b64decode(response.data[0].b64_json)
-
-    with open(output_path, "wb") as f:
-        f.write(image_data)
-
-    print(f"  Saved to {output_path} ({len(image_data):,} bytes)")
-    return output_path
+    saved = save_image_bytes(image_data, output_path)
+    print(f"  Saved to {saved} ({len(image_data):,} bytes)")
+    return saved
 
 
 def download_image(url: str, output_path: str) -> str:
     """Download an image from a URL and save it locally."""
     resp = requests.get(url, timeout=60)
     resp.raise_for_status()
-    with open(output_path, "wb") as f:
-        f.write(resp.content)
-    print(f"  Downloaded {output_path} ({len(resp.content):,} bytes)")
-    return output_path
+    saved = save_image_bytes(resp.content, output_path)
+    print(f"  Downloaded {saved} ({len(resp.content):,} bytes)")
+    return saved
 
 
 def style_transfer(image_url: str, style: str, **kwargs) -> str:
@@ -167,7 +181,7 @@ if __name__ == "__main__":
     print("\n=== Generate-then-Edit Pipeline ===")
     print("Step 1: Generate base image with FLUX")
     gen_response = client.images.generate(
-        model="black-forest-labs/FLUX.1-schnell",
+        model="black-forest-labs/FLUX.2-dev",
         prompt="A white ceramic vase with dried flowers on a wooden table",
         width=1024,
         height=1024,

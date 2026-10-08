@@ -2,9 +2,14 @@
 
 ## Embedding Models
 
+No embedding model is served serverless today, so every model below needs a dedicated endpoint:
+deploy it, then pass the endpoint string as `model` on `https://api-inference.together.ai/v1`.
+List what can be deployed with
+`tg beta models public --product dedicated --json` and filter `displayType == "embedding"`.
+
 | Model | API String | Size | Dimensions | Context | Best For |
 |-------|-----------|------|-----------|---------|----------|
-| Multilingual E5 Large | `intfloat/multilingual-e5-large-instruct` | 560M | 1,024 | 514 tokens | Multilingual retrieval (recommended) |
+| Multilingual E5 Large | `intfloat/multilingual-e5-large-instruct` | 560M | 1,024 | 514 tokens | Multilingual retrieval (dedicated endpoint) |
 
 ## Rerank Models
 
