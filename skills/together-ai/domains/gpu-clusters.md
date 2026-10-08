@@ -6,6 +6,10 @@ inference, and HPC. Sizes are multiples of 8 GPUs. `ON_DEMAND` bills from creati
 delete the cluster; `RESERVED` is charged for the full reserved term. Shared storage bills
 separately and keeps billing after the cluster is deleted.
 
+Clusters left beta in SDK and CLI 2.40: `tg clusters ...` and `client.clusters` are the new
+names. `tg beta clusters` and `client.beta.clusters` remain identical aliases and are the only
+names before 2.40, so this skill's commands and scripts use them to work on every v2 version.
+
 Hand-offs: serving a model is `domains/dedicated-model-inference.md`; a custom inference container
 is `domains/dedicated-containers.md`; short remote Python is `domains/sandboxes.md`; queueing or
 gang scheduling on a running cluster is `domains/kueue.md` or `domains/volcano.md`.

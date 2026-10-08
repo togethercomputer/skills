@@ -15,7 +15,8 @@ only when it holds a detail you need. Paths are relative to this skill's directo
   then `client = Together()`. TypeScript: `npm install together-ai`, then `new Together()`.
 - CLI: `uv tool install "together[cli]"` gives `tg` (alias `together`), used for dedicated
   inference, clusters, and fine-tuning. If `tg beta endpoints` or `tg beta models` is missing, the
-  CLI is outdated: `uv tool upgrade together`.
+  CLI is outdated: `uv tool upgrade together`. From 2.40, `tg` prints JSON by default when an AI
+  agent runs it; pass `--no-json` for tables.
 
 ## Guides
 

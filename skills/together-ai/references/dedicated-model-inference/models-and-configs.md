@@ -318,6 +318,15 @@ tg beta models ls-files ml_abc123
 Deploy the adapter's `ml_...` ID like a base model, using a config for its base model
 ([Upload a LoRA adapter](https://docs.together.ai/docs/dedicated-endpoints/adapter)).
 
+To attach an adapter to a running deployment instead, use the SDK or API (there is no CLI
+command): `client.beta.endpoints.adapters.create(project_id=..., endpoint_id=...,
+deployment_id=..., adapter_model_id=...)`, with `list`, `retrieve`, `update` (pin a revision),
+and `delete` alongside. Pass `force=True` to evict the oldest adapter when the deployment is at
+adapter capacity. Deployment profiles report an `adapter_mode` (`ADAPTER_MODE_FIXED`,
+`ADAPTER_MODE_DYNAMIC`, or `ADAPTER_MODE_DISABLED`), and `list_supported(adapter_mode=...)`
+filters on it; check it before attaching. Attachment status reports `adapter_valid` and
+`adapter_valid_reason` ([Add a deployment adapter](https://docs.together.ai/reference/dmi/adapters-add)).
+
 ## Download and delete models
 
 Download a model's or adapter's files back to your machine, or delete the record:
