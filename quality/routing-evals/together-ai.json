@@ -1,0 +1,249 @@
+[
+  {
+    "query": "Build a Together AI text-to-speech endpoint that streams audio chunks back to the browser while the user types.",
+    "expected_domain": "domains/audio.md"
+  },
+  {
+    "query": "I need to transcribe customer support calls with speaker diarization and word timestamps using Together AI.",
+    "expected_domain": "domains/audio.md"
+  },
+  {
+    "query": "Show me how to stream microphone PCM audio into Together AI for realtime captions.",
+    "expected_domain": "domains/audio.md"
+  },
+  {
+    "query": "I have 4 million product descriptions to classify overnight on Together AI and latency does not matter. What's the Batch API workflow?",
+    "expected_domain": "domains/batch-inference.md"
+  },
+  {
+    "query": "Help me prepare a JSONL file and launch a Together AI batch job for bulk summarization.",
+    "expected_domain": "domains/batch-inference.md"
+  },
+  {
+    "query": "We need the cheapest way to run thousands of independent Together AI chat requests asynchronously and download the results later.",
+    "expected_domain": "domains/batch-inference.md"
+  },
+  {
+    "query": "Build a Together AI chat endpoint with server-sent streaming and a Qwen model.",
+    "expected_domain": "domains/chat-completions.md"
+  },
+  {
+    "query": "Show me a full tool-calling loop on Together AI where the model can call weather and calendar functions.",
+    "expected_domain": "domains/chat-completions.md"
+  },
+  {
+    "query": "I need Together AI chat completions to return a strict JSON schema and optionally enable reasoning mode.",
+    "expected_domain": "domains/chat-completions.md"
+  },
+  {
+    "query": "I need to deploy a custom Dockerized FLUX pipeline on Together AI using Jig and Sprocket.",
+    "expected_domain": "domains/dedicated-containers.md"
+  },
+  {
+    "query": "Help me build a Together AI container worker that processes queue jobs and emits progress updates.",
+    "expected_domain": "domains/dedicated-containers.md"
+  },
+  {
+    "query": "Show me the pyproject.toml and queue client needed for Together Dedicated Container Inference.",
+    "expected_domain": "domains/dedicated-containers.md"
+  },
+  {
+    "query": "Generate embeddings for all my docs on Together AI and store them in Pinecone for semantic search.",
+    "expected_domain": "domains/embeddings.md"
+  },
+  {
+    "query": "I want a Together AI retrieval pipeline that embeds the query, retrieves candidates, and reranks them before generation.",
+    "expected_domain": "domains/embeddings.md"
+  },
+  {
+    "query": "Show me how to call Together AI embeddings in batches and compute cosine similarity between documents.",
+    "expected_domain": "domains/embeddings.md"
+  },
+  {
+    "query": "Set up a Together AI evaluation job to score model responses from 1 to 10 using a judge model.",
+    "expected_domain": "domains/evaluations.md"
+  },
+  {
+    "query": "I want to compare two answer variants with Together AI and download the evaluation results later.",
+    "expected_domain": "domains/evaluations.md"
+  },
+  {
+    "query": "Show me how to upload a dataset and run a classify evaluation on Together AI with an external judge model.",
+    "expected_domain": "domains/evaluations.md"
+  },
+  {
+    "query": "Fine-tune Llama with LoRA on my support conversations using Together AI.",
+    "expected_domain": "domains/fine-tuning.md"
+  },
+  {
+    "query": "I need a Together AI DPO workflow that starts from SFT and then trains on preference pairs.",
+    "expected_domain": "domains/fine-tuning.md"
+  },
+  {
+    "query": "Show me how to prepare function-calling training data and run a Together AI fine-tune.",
+    "expected_domain": "domains/fine-tuning.md"
+  },
+  {
+    "query": "Provision a Together AI H100 Kubernetes cluster and attach shared storage for distributed training.",
+    "expected_domain": "domains/gpu-clusters.md"
+  },
+  {
+    "query": "I need a reserved Slurm cluster on Together AI and the tcloud CLI commands to manage it.",
+    "expected_domain": "domains/gpu-clusters.md"
+  },
+  {
+    "query": "Show me how to scale a Together AI cluster, get kube credentials, and troubleshoot GPU health.",
+    "expected_domain": "domains/gpu-clusters.md"
+  },
+  {
+    "query": "List current Together AI GPU cluster regions, find the cheapest on-demand option, and show the command without creating it.",
+    "expected_domain": "domains/gpu-clusters.md"
+  },
+  {
+    "query": "Generate a FLUX.2 product hero image on Together AI and save it locally as PNG.",
+    "expected_domain": "domains/images.md"
+  },
+  {
+    "query": "Edit an uploaded image with Together AI Kontext so the background becomes a rainy cyberpunk alley.",
+    "expected_domain": "domains/images.md"
+  },
+  {
+    "query": "Apply two LoRA adapters to a Together AI image generation request for a stylized portrait.",
+    "expected_domain": "domains/images.md"
+  },
+  {
+    "query": "Install Kueue on my Together AI cluster and gate GPU jobs on quota so they queue until capacity frees up.",
+    "expected_domain": "domains/kueue.md"
+  },
+  {
+    "query": "Share a fixed GPU pool across teams on a Together cluster; admit jobs only when quota is available and suspend the rest.",
+    "expected_domain": "domains/kueue.md"
+  },
+  {
+    "query": "Set up a Kueue ClusterQueue, ResourceFlavor, and LocalQueue for GPU quota on Together AI and submit a queued job.",
+    "expected_domain": "domains/kueue.md"
+  },
+  {
+    "query": "Run Python remotely on Together AI, keep the session alive, and generate a matplotlib chart from a CSV upload.",
+    "expected_domain": "domains/sandboxes.md"
+  },
+  {
+    "query": "I want an agent to write Python and execute it in a Together Sandbox with session reuse.",
+    "expected_domain": "domains/sandboxes.md"
+  },
+  {
+    "query": "Show me how to upload a file to Together Sandboxes and inspect the returned display outputs.",
+    "expected_domain": "domains/sandboxes.md"
+  },
+  {
+    "query": "Create a text-to-video workflow on Together AI that polls until completion and downloads the MP4.",
+    "expected_domain": "domains/video.md"
+  },
+  {
+    "query": "Animate this product image with first-frame control on Together AI and save the finished clip locally.",
+    "expected_domain": "domains/video.md"
+  },
+  {
+    "query": "I need help choosing between Veo, Kling, and PixVerse models for a Together AI video generation job.",
+    "expected_domain": "domains/video.md"
+  },
+  {
+    "query": "Install Volcano on my Together AI Kubernetes cluster and run a gang-scheduled multi-node training job.",
+    "expected_domain": "domains/volcano.md"
+  },
+  {
+    "query": "My distributed training on a Together cluster keeps starting some workers while others stay pending. I need all pods scheduled together or none.",
+    "expected_domain": "domains/volcano.md"
+  },
+  {
+    "query": "Create a Volcano queue and a vcjob that requests 8 GPUs with minAvailable on Together AI.",
+    "expected_domain": "domains/volcano.md"
+  },
+  {
+    "query": "Deploy a Together AI dedicated endpoint for Qwen, choose hardware, and autoscale it between 1 and 4 replicas.",
+    "expected_domain": "domains/dedicated-model-inference.md"
+  },
+  {
+    "query": "I finished a Together fine-tune and now need to host the resulting model on a single-tenant endpoint.",
+    "expected_domain": "domains/dedicated-model-inference.md"
+  },
+  {
+    "query": "Upload a custom Hugging Face model to Together AI and serve it from a dedicated endpoint.",
+    "expected_domain": "domains/dedicated-model-inference.md"
+  },
+  {
+    "query": "Animate a product photo into a five-second video with Together AI.",
+    "expected_domain": "domains/video.md",
+    "near_miss": true
+  },
+  {
+    "query": "Deploy a custom image container to Together AI because I need my own runtime.",
+    "expected_domain": "domains/dedicated-containers.md",
+    "near_miss": true
+  },
+  {
+    "query": "Build a streaming chatbot with tool calling and structured JSON outputs.",
+    "expected_domain": "domains/chat-completions.md",
+    "near_miss": true
+  },
+  {
+    "query": "I have 50k prompts and nobody is waiting on the results \u2014 just make it cheap.",
+    "expected_domain": "domains/batch-inference.md",
+    "near_miss": true
+  },
+  {
+    "query": "Same 50k prompts but a user is watching a progress bar, so latency matters.",
+    "expected_domain": "domains/chat-completions.md",
+    "near_miss": true
+  },
+  {
+    "query": "Our multi-node training job must not start until every worker pod can be placed.",
+    "expected_domain": "domains/volcano.md",
+    "near_miss": true
+  },
+  {
+    "query": "Hold submitted jobs until the team's GPU allocation frees up.",
+    "expected_domain": "domains/kueue.md",
+    "near_miss": true
+  },
+  {
+    "query": "Provision the Kubernetes GPU cluster and wire up kubectl before we schedule anything.",
+    "expected_domain": "domains/gpu-clusters.md",
+    "near_miss": true
+  },
+  {
+    "query": "Serve a stock Llama model on reserved GPUs with autoscaling, no custom Docker image.",
+    "expected_domain": "domains/dedicated-model-inference.md",
+    "near_miss": true
+  },
+  {
+    "query": "Run some Python the model wrote and show me the resulting chart.",
+    "expected_domain": "domains/sandboxes.md",
+    "near_miss": true
+  },
+  {
+    "query": "Score which of two model outputs is better using a judge model.",
+    "expected_domain": "domains/evaluations.md",
+    "near_miss": true
+  },
+  {
+    "query": "Adapt the model to our internal tone using 5k labelled examples.",
+    "expected_domain": "domains/fine-tuning.md",
+    "near_miss": true
+  },
+  {
+    "query": "Turn our docs into vectors so we can retrieve the right passage.",
+    "expected_domain": "domains/embeddings.md",
+    "near_miss": true
+  },
+  {
+    "query": "Read this meeting recording back to me as text with who said what.",
+    "expected_domain": "domains/audio.md",
+    "near_miss": true
+  },
+  {
+    "query": "Make a still product shot, no motion.",
+    "expected_domain": "domains/images.md",
+    "near_miss": true
+  }
+]

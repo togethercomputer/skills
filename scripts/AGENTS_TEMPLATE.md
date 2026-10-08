@@ -1,6 +1,41 @@
 # AGENTS.md
 
-This repository contains {{skill_count}} agent skills for the Together AI platform. Each skill is a self-contained directory following the [Agent Skills specification](https://agentskills.io/specification).
+This repository contains a single agent skill, `together-ai`, covering the whole Together AI
+platform. It follows the [Agent Skills specification](https://agentskills.io/specification) and is
+organised around **progressive disclosure**: triggering the skill costs a small, constant amount of
+context no matter how many product areas it covers.
+
+## Architecture
+
+Four levels. Each is opened only when the level above it says to.
+
+| Level | What | Loaded when |
+|-------|------|-------------|
+| 1 | `SKILL.md` frontmatter `description` | always in context |
+| 2 | `SKILL.md` body — the **router** | the skill triggers |
+| 3 | `domains/AREA.md` — one guide per product area | the router points there |
+| 4 | `references/AREA/*.md`, `scripts/AREA/*` | a domain guide points there |
+
+Every level is sized so an agent can decide what to load next without loading it first. The router
+is small (about 70 lines) because every task pays for it: it holds setup, a one-line-per-area guide
+table, and the rules that apply everywhere, and nothing product-specific. Each guide covers its
+common path on its own and ends with an `## Open next` menu stating every file's size, contents,
+and when to open it, so agents skip files they do not need.
+
+This shape comes from a measured regression. An earlier router was about 14k characters and told
+agents to read guides "fully" and to prefer scripts over memory; across 13 evaluated tasks, runs
+loaded 57% more skill content than with the separate per-product skills, at the same pass rate.
+Keep the router lean and the menus precise.
+
+## Domain registry
+
+There are {{domain_count}} domain guides under `skills/together-ai/domains/`:
+
+<domains>
+{{#domains}}
+- **{{file}}** ({{title}}): {{summary}}
+{{/domains}}
+</domains>
 
 ## Skill registry
 
@@ -14,24 +49,37 @@ This repository contains {{skill_count}} agent skills for the Together AI platfo
 
 ```
 togetherai-skills/
-├── AGENTS.md                     # This file — agent instructions
+├── AGENTS.md                     # This file — generated, do not hand-edit
 ├── README.md                     # Human-facing docs
 ├── LICENSE                       # MIT
 ├── quality/
-│   └── trigger-evals/            # Skill trigger eval sets
+│   ├── trigger-evals/            # Does the skill fire at all?
+│   └── routing-evals/            # Does it open the RIGHT domain guide?
 ├── scripts/                      # Repo tooling and generators
 └── skills/
-    └── together-<product>/       # One directory per skill
-        ├── SKILL.md              # Required — frontmatter + instructions
+    └── together-ai/
+        ├── SKILL.md              # Level 2 — the router
         ├── agents/
-        │   └── openai.yaml       # Optional — UI metadata for OpenAI/Codex surfaces
-        ├── references/           # Optional — detailed reference docs
-        │   ├── models.md
-        │   ├── api-reference.md
+        │   └── openai.yaml       # UI metadata for OpenAI/Codex surfaces
+        ├── domains/              # Level 3 — one guide per product area
+        │   ├── chat-completions.md
+        │   ├── images.md
         │   └── ...
-        └── scripts/              # Optional — runnable Python examples
-            └── <workflow>.py
+        ├── references/           # Level 4 — deep docs, one subdir per area
+        │   └── AREA/
+        │       ├── models.md
+        │       └── api-reference.md
+        └── scripts/              # Level 4 — runnable examples, one subdir per area
+            └── AREA/
+                └── workflow.py
 ```
+
+### Path convention
+
+Every path written inside the skill — in `SKILL.md` and in every `domains/*.md` — is relative to
+the **skill root** (`skills/together-ai/`), not to the file containing the link. So a domain guide
+links to `references/images/models.md`, never `../references/images/models.md`.
+`scripts/quick_validate.py` enforces this for both `SKILL.md` and every domain guide.
 
 ## Working with skills
 
@@ -41,7 +89,7 @@ Every skill must have a `SKILL.md` with YAML frontmatter and a Markdown body:
 
 ```yaml
 ---
-name: together-<product>
+name: together-ai
 description: "One-line description, no angle brackets, max 1024 chars"
 ---
 ```
@@ -52,26 +100,41 @@ Optional frontmatter fields: `license`, `allowed-tools`, `metadata`, `compatibil
 Rules:
 - `name` must be kebab-case, max 64 characters
 - `description` must NOT contain angle brackets (`<` or `>`)
-- Body should stay lean; target under 500 lines and move deep detail into `references/`
+- The router body stays lean; target under 500 lines. Product detail belongs in
+  `domains/`, and deep detail in `references/`
 
 ### agents/openai.yaml
 
-Every skill in this repo includes `agents/openai.yaml` with:
+The skill includes `agents/openai.yaml` with:
 - `display_name`
 - `short_description`
 - `default_prompt`
 
-The default prompt must explicitly mention the skill as `$skill-name`.
+The default prompt must explicitly mention the skill as `$together-ai`.
+
+### Domain guides
+
+`domains/AREA.md` is where a product area is actually documented. Each guide follows the same shape:
+a lead paragraph (what it is, how it bills, one `Hand-offs:` line to sibling guides), `## Workflow`
+(or `## Essentials` with a minimal call), `## Rules`, `## Open next`, and `## Docs`.
+
+`## Open next` is a table with columns `File | Lines | Contains | Open when`. Describe what is
+inside each file concretely enough that an agent can tell whether it needs it, and list long
+references by the sections they contain. `quality_check.py` warns when a stated line count drifts
+more than 25% from the file, so rerun it after editing a script or reference.
+
+The two Kubernetes guides (`kueue.md`, `volcano.md`) are self-contained cookbooks with inline YAML
+and no reference or script files. That is intentional — do not force them into the table shape.
 
 ### References
 
-Markdown files in `references/` are loaded on demand when the agent needs deeper detail. Use these for model lists, full API specs, CLI command references, and data format documentation.
+Markdown files in `references/AREA/` are loaded on demand when the agent needs deeper detail. Use these for model lists, full API specs, CLI command references, and data format documentation.
 
 For reference files over ~100 lines, include a short `## Contents` section near the top so agents can route quickly.
 
 ### Scripts
 
-Python files in `scripts/` are runnable examples demonstrating complete workflows. All scripts in this repo use the **Together Python v2 SDK** (`together>=2.0.0`).
+Files in `scripts/AREA/` are runnable examples demonstrating complete workflows. Python scripts use the **Together Python v2 SDK** (`together>=2.0.0`); several areas also ship TypeScript (`.ts`) equivalents using the `together-ai` npm package.
 
 ## Code conventions
 
@@ -108,8 +171,10 @@ These are the correct v2 SDK method names. Do NOT use v1 patterns:
 - Frontmatter descriptions should route by user intent, not read like marketing copy
 - `SKILL.md` should tell the agent when to open a specific reference or run a specific script
 - Avoid generic folder links such as `See [scripts/](scripts/)`; link to the exact script
-- Keep overlapping skills explicit about hand-off boundaries
-- Maintain trigger eval sets in `quality/trigger-evals/`
+- Keep overlapping domain guides explicit about hand-off boundaries, via
+  `## Do not use this guide for`
+- Maintain trigger eval sets in `quality/trigger-evals/` and routing eval sets in
+  `quality/routing-evals/`
 
 ### Markdown style
 
@@ -124,7 +189,7 @@ These are the correct v2 SDK method names. Do NOT use v1 patterns:
 Before committing changes, validate each modified skill:
 
 ```bash
-python scripts/quick_validate.py skills/together-<skill>
+python scripts/quick_validate.py skills/together-ai
 ```
 
 The validator checks:
@@ -132,7 +197,8 @@ The validator checks:
 - `name` is present, kebab-case, max 64 chars
 - `description` is present, no angle brackets, max 1024 chars
 - No disallowed frontmatter keys
-- Referenced files in `references/` and `scripts/` exist
+- Referenced files in `references/`, `scripts/`, and `domains/` exist — checked in
+  `SKILL.md` and in every `domains/*.md`
 
 And `python scripts/quality_check.py` warns on:
 - oversized `SKILL.md` files
@@ -141,52 +207,69 @@ And `python scripts/quality_check.py` warns on:
 - generic `scripts/` links
 - unsafe tempfile usage in Python scripts
 - missing trigger eval sets
+- `Open next` line counts that drift more than 25% from the file
 
-## Adding a new skill
+## Adding a new product area
 
-1. Create `skills/together-<product>/SKILL.md` with frontmatter and body
-2. Add `references/` files for detailed specs (model tables, API params)
-3. Add `scripts/` with runnable Python v2 SDK examples if the skill involves multi-step workflows
-4. Create `agents/openai.yaml` with `display_name`, `short_description`, and `default_prompt`
-5. Validate with `python scripts/quick_validate.py skills/together-<product>`
-6. Run `./scripts/publish.sh` to regenerate AGENTS.md and README.md
-7. Update `.claude-plugin/marketplace.json` with the new skill entry
+Do **not** create a second skill directory. Add a domain guide instead:
 
-## Modifying existing skills
+1. Create `skills/together-ai/domains/AREA.md` following the standard guide shape
+2. Add `skills/together-ai/references/AREA/` for detailed specs (model tables, API params)
+3. Add `skills/together-ai/scripts/AREA/` with runnable v2 SDK examples for multi-step workflows
+4. Add a one-line row to the **Guides** table in `SKILL.md`; name the literal symbols, commands, or
+   ID prefixes users will mention — they route more reliably than topic words
+5. If the new area is easily confused with an existing one, add a clause to the **Close calls**
+   paragraph under the table
+6. Add cases to `quality/routing-evals/together-ai.json`
+7. Validate with `python scripts/quick_validate.py skills/together-ai`
+8. Run `./scripts/publish.sh` to regenerate AGENTS.md and README.md
 
-- Read the full SKILL.md before making changes
-- Keep inline examples minimal — move detailed content to `references/`
+`.claude-plugin/marketplace.json` needs no per-area entry — skills are auto-discovered from the
+repo, and it has never enumerated them.
+
+## Modifying the skill
+
+- Read the router (`SKILL.md`) and the relevant domain guide before making changes
+- Keep inline examples minimal — move detailed content to `references/AREA/`
 - If updating SDK code, ensure it follows v2 patterns (see table above)
-- If a model is deprecated, remove it from the model tables in `references/`
+- If a model is deprecated, remove it from the model tables in `references/AREA/`
 - Test any script changes by reviewing the code (scripts require a Together API key to actually run)
 
 ## Common tasks
 
 ### Update a model list
 
-Model tables live in `references/models.md` (or similar) within each skill. Update the table rows. Do not change the table structure unless adding a new column that all rows need.
+Model tables live in `skills/together-ai/references/AREA/models.md` (or similar). Update the table rows. Do not change the table structure unless adding a new column that all rows need.
 
 ### Add a new script
 
-1. Create `skills/together-<skill>/scripts/<descriptive_name>.py`
+1. Create `skills/together-ai/scripts/AREA/descriptive_name.py`
 2. Follow the script conventions above (docstring, `__main__`, type hints)
-3. Add a reference line to the `## Resources` section of the skill's `SKILL.md`:
+3. Link it from the `## Open next` section of `domains/AREA.md`, using a skill-root-relative path:
    ```
-   - **Runnable script**: See [scripts/<name>.py](scripts/<name>.py) — short description (v2 SDK)
+   - Start with [scripts/AREA/name.py](scripts/AREA/name.py)
    ```
 
 ### Fix an API pattern
 
 If a Together API changes, update in this order:
-1. The `SKILL.md` inline examples
-2. The `references/` docs
-3. The `scripts/` files
-4. This `AGENTS.md` if the v2 SDK patterns table needs updating
+1. The relevant `domains/AREA.md` guide
+2. The `references/AREA/` docs
+3. The `scripts/AREA/` files
+4. `SKILL.md` if a universal rule or the v2 SDK table changed
+5. `scripts/AGENTS_TEMPLATE.md` if the v2 SDK patterns table needs updating (never hand-edit
+   `AGENTS.md`; it is generated)
 
 ## Do not
 
-- Add `README.md`, `CHANGELOG.md`, or `INSTALLATION_GUIDE.md` inside individual skill directories — the Agent Skills spec forbids extraneous docs within skills
+- Add `README.md`, `CHANGELOG.md`, or `INSTALLATION_GUIDE.md` inside the skill directory — the Agent Skills spec forbids extraneous docs within skills
+- Create a second `skills/together-*` directory — new product areas are domain guides, not skills
+- Write `../references/...` inside a domain guide — all skill paths are skill-root-relative
+- Grow the router with product detail; every task pays for every line of it. Put product detail in
+  the guide and deep detail in references
+- Hardcode a model ID as available without checking the live catalog; IDs in guides, references,
+  and scripts are examples, and the scripts' defaults should be on the current serverless list
 - Use angle brackets in any `description` frontmatter field
 - Use v1 SDK method names in any code
 - Add dependencies beyond `together` to scripts without noting it in the docstring
-- Create empty `references/` or `scripts/` directories — only include if they contain files
+- Create empty `references/`, `scripts/`, or `domains/` directories — only include if they contain files

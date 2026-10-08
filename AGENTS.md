@@ -1,24 +1,58 @@
 # AGENTS.md
 
-This repository contains 14 agent skills for the Together AI platform. Each skill is a self-contained directory following the [Agent Skills specification](https://agentskills.io/specification).
+This repository contains a single agent skill, `together-ai`, covering the whole Together AI
+platform. It follows the [Agent Skills specification](https://agentskills.io/specification) and is
+organised around **progressive disclosure**: triggering the skill costs a small, constant amount of
+context no matter how many product areas it covers.
+
+## Architecture
+
+Four levels. Each is opened only when the level above it says to.
+
+| Level | What | Loaded when |
+|-------|------|-------------|
+| 1 | `SKILL.md` frontmatter `description` | always in context |
+| 2 | `SKILL.md` body — the **router** | the skill triggers |
+| 3 | `domains/AREA.md` — one guide per product area | the router points there |
+| 4 | `references/AREA/*.md`, `scripts/AREA/*` | a domain guide points there |
+
+Every level is sized so an agent can decide what to load next without loading it first. The router
+is small (about 70 lines) because every task pays for it: it holds setup, a one-line-per-area guide
+table, and the rules that apply everywhere, and nothing product-specific. Each guide covers its
+common path on its own and ends with an `## Open next` menu stating every file's size, contents,
+and when to open it, so agents skip files they do not need.
+
+This shape comes from a measured regression. An earlier router was about 14k characters and told
+agents to read guides "fully" and to prefer scripts over memory; across 13 evaluated tasks, runs
+loaded 57% more skill content than with the separate per-product skills, at the same pass rate.
+Keep the router lean and the menus precise.
+
+## Domain registry
+
+There are 14 domain guides under `skills/together-ai/domains/`:
+
+<domains>
+- **audio.md** (Audio): Text-to-speech (REST, streaming, realtime WebSocket) and speech-to-text (transcription, translation, diarization, timestamps, realtime).
+- **batch-inference.md** (Batch Inference): Asynchronous bulk inference over a JSONL file, up to 50% cheaper than real-time, with a 24-hour completion window (batches under 1,000 requests usually finish in minutes; complex or busy models can occasionally run past 24 hours, so track status rather than wall-clock time).
+- **chat-completions.md** (Chat Completions): Serverless, OpenAI-compatible text generation: one call, billed per token.
+- **dedicated-containers.md** (Dedicated Containers): Run your own Docker image as an inference worker on Together GPUs: Sprocket handles the request lifecycle, Jig builds and deploys, and clients submit async jobs to a queue.
+- **dedicated-model-inference.md** (Dedicated Model Inference): Dedicated model inference (DMI) serves a model on reserved single-tenant GPUs.
+- **embeddings.md** (Embeddings and Reranking): **Together does not currently offer embedding or rerank models.** Checked 2026-10-07.
+- **evaluations.md** (Evaluations): Managed LLM-as-a-judge jobs: **classify** outputs into labels, **score** them on a scale, or **compare** two responses.
+- **fine-tuning.md** (Fine-Tuning): Adapt a model on your data: LoRA (default), full fine-tuning, DPO preference tuning, VLM, function-calling, and reasoning tuning, plus bring-your-own-model uploads.
+- **gpu-clusters.md** (GPU Clusters): GPU clusters (H100, H200, B200, B300, and other types; availability varies by region) with Kubernetes or Slurm, shared storage, and credentials, for distributed training, multi-node inference, and HPC.
+- **images.md** (Images): Text-to-image generation and image editing.
+- **kueue.md** (Kueue on Together GPU clusters): Kueue is a Kubernetes-native job queueing controller.
+- **sandboxes.md** (Sandboxes): Managed remote Python execution with stateful sessions, for running agent-written code, data analysis, and charts.
+- **video.md** (Video): Text-to-video and image-to-video, billed per video.
+- **volcano.md** (Volcano on Together GPU clusters): Volcano is a Kubernetes-native batch scheduler.
+
+</domains>
 
 ## Skill registry
 
 <skills>
-- **together-chat-completions**: Real-time and streaming text generation via Together AI's OpenAI-compatible chat/completions API, including multi-turn conversations, tool and function calling, structured JSON outputs, and reasoning models. Reach for it whenever the user wants to build or debug text generation on Together AI, unless they specifically need batch jobs, embeddings, fine-tuning, dedicated endpoints, dedicated containers, or GPU clusters.
-- **together-images**: Text-to-image generation and image editing via Together AI, including FLUX and Kontext models, LoRA-based styling, reference-image guidance, and local image downloads. Reach for it whenever the user wants to generate or edit images on Together AI rather than create videos or build text-only chat applications.
-- **together-video**: Text-to-video and image-to-video generation via Together AI, including keyframe control, model and dimension selection, asynchronous job polling, and video downloads. Reach for it whenever the user wants motion generation on Together AI rather than still-image generation or text-only inference.
-- **together-audio**: Text-to-speech and speech-to-text via Together AI, including REST, streaming, and realtime WebSocket TTS, plus transcription, translation, diarization, timestamps, and live STT. Reach for it whenever the user needs audio in or audio out on Together AI rather than chat generation, image or video creation, or model training.
-- **together-embeddings**: Dense vector embeddings, semantic search, RAG pipelines, and reranking via Together AI. Generate embeddings with open-source models and rerank results behind dedicated endpoints. Reach for it whenever the user needs vector representations or retrieval quality improvements rather than direct text generation.
-- **together-fine-tuning**: LoRA, full fine-tuning, DPO preference tuning, VLM training, function-calling tuning, reasoning tuning, and BYOM uploads on Together AI. Reach for it whenever the user wants to adapt a model on custom data rather than only run inference, evaluate outputs, or host an existing model.
-- **together-batch-inference**: High-volume, asynchronous offline inference at up to 50% lower cost via Together AI's Batch API. Prepare JSONL inputs, upload files, create jobs, poll status, and download outputs. Reach for it whenever the user needs non-interactive bulk inference rather than real-time chat or evaluation jobs.
-- **together-evaluations**: LLM-as-a-judge evaluation framework on Together AI. Classify, score, and compare model outputs, select judge models, use external-provider judges or targets, poll results and download reports. Reach for it whenever the user wants to benchmark outputs, grade responses, compare A/B variants, or operationalize automated evaluations.
-- **together-sandboxes**: Remote Python execution in managed sandboxes on Together AI with stateful sessions, file uploads, data analysis, chart generation, and notebook-like runs via the Sandboxes API. Reach for it whenever the user wants managed remote Python execution instead of local execution, raw clusters, or full model hosting.
-- **together-dedicated-model-inference**: Deploy and operate models on dedicated GPUs with Together AI's Dedicated Model Inference (DMI, the v2 dedicated endpoints API): beta endpoints, deployments, deployment profiles and hardware configs, autoscaling, traffic splitting, A/B tests, shadow experiments, Prometheus metrics, and custom model or LoRA adapter uploads. Reach for it whenever the user mentions together beta endpoints or tg beta commands, client.beta.endpoints, DMI resources like ep_/dep_/cr_/ml_ IDs, or wants production model serving with traffic management on Together AI. This is the current dedicated-hosting API and also covers migrating off the retired legacy v1 endpoints API (non-beta client.endpoints / together endpoints), whose create and restart now return HTTP 403.
-- **together-dedicated-containers**: Custom Dockerized inference workers on Together AI's managed GPU infrastructure. Build with Sprocket SDK, configure with Jig CLI, submit async queue jobs, and poll results. Reach for it whenever the user needs container-level control rather than a standard model endpoint or raw cluster.
-- **together-gpu-clusters**: On-demand and reserved GPU clusters (H100, H200, B200) on Together AI with Kubernetes or Slurm orchestration, shared storage, credential management, and cluster scaling for ML and HPC jobs. Reach for it when the user needs multi-node compute or infrastructure control rather than a managed model endpoint.
-- **together-volcano**: Install and use the Volcano batch scheduler on a Together AI Kubernetes GPU cluster for gang scheduling. Covers installing Volcano, creating queues, submitting all-or-nothing gang-scheduled jobs (vcjobs), and verifying placement. Reach for it when a job on a Together cluster needs its pods scheduled all-at-once or not at all, such as distributed multi-node training, rather than per-pod best-effort scheduling. Pins Volcano v1.15.0.
-- **together-kueue**: Install and use the Kueue job-queueing controller on a Together AI Kubernetes GPU cluster to gate jobs on quota. Covers installing Kueue, defining ResourceFlavor, ClusterQueue, and LocalQueue quota, submitting jobs to a queue, and watching quota admit or suspend them. Reach for it when a Together cluster's GPU pool must be shared across teams or workloads by quota, admitting jobs only when capacity is free, rather than letting every job start immediately. Pins Kueue v0.18.3 (API kueue.x-k8s.io/v1beta2).
+- **together-ai**: Together AI platform skill covering every product area: chat completions and streaming text generation, tool calling, structured outputs, reasoning and vision models; image generation and editing with FLUX and Kontext; video generation; text-to-speech and speech-to-text; embeddings, reranking, and RAG retrieval; fine-tuning (LoRA, full, DPO, VLM, BYOM); batch inference; LLM-as-a-judge evaluations; code sandboxes; dedicated model inference (tg beta endpoints, deployments, autoscaling, traffic splits, custom model and LoRA uploads); dedicated containers (Sprocket, Jig, queue jobs); GPU clusters (H100, H200, B200, Kubernetes, Slurm); and Kueue quota queueing or Volcano gang scheduling on those clusters. Reach for it whenever the user builds, debugs, deploys, trains, evaluates, or operates anything on Together AI, or mentions the together SDK, the tg or together CLI, api.together.ai, TOGETHER_API_KEY, or a Together-hosted model id. The skill body routes each request to the matching domain guide.
 
 </skills>
 
@@ -26,24 +60,37 @@ This repository contains 14 agent skills for the Together AI platform. Each skil
 
 ```
 togetherai-skills/
-├── AGENTS.md                     # This file — agent instructions
+├── AGENTS.md                     # This file — generated, do not hand-edit
 ├── README.md                     # Human-facing docs
 ├── LICENSE                       # MIT
 ├── quality/
-│   └── trigger-evals/            # Skill trigger eval sets
+│   ├── trigger-evals/            # Does the skill fire at all?
+│   └── routing-evals/            # Does it open the RIGHT domain guide?
 ├── scripts/                      # Repo tooling and generators
 └── skills/
-    └── together-<product>/       # One directory per skill
-        ├── SKILL.md              # Required — frontmatter + instructions
+    └── together-ai/
+        ├── SKILL.md              # Level 2 — the router
         ├── agents/
-        │   └── openai.yaml       # Optional — UI metadata for OpenAI/Codex surfaces
-        ├── references/           # Optional — detailed reference docs
-        │   ├── models.md
-        │   ├── api-reference.md
+        │   └── openai.yaml       # UI metadata for OpenAI/Codex surfaces
+        ├── domains/              # Level 3 — one guide per product area
+        │   ├── chat-completions.md
+        │   ├── images.md
         │   └── ...
-        └── scripts/              # Optional — runnable Python examples
-            └── <workflow>.py
+        ├── references/           # Level 4 — deep docs, one subdir per area
+        │   └── AREA/
+        │       ├── models.md
+        │       └── api-reference.md
+        └── scripts/              # Level 4 — runnable examples, one subdir per area
+            └── AREA/
+                └── workflow.py
 ```
+
+### Path convention
+
+Every path written inside the skill — in `SKILL.md` and in every `domains/*.md` — is relative to
+the **skill root** (`skills/together-ai/`), not to the file containing the link. So a domain guide
+links to `references/images/models.md`, never `../references/images/models.md`.
+`scripts/quick_validate.py` enforces this for both `SKILL.md` and every domain guide.
 
 ## Working with skills
 
@@ -53,7 +100,7 @@ Every skill must have a `SKILL.md` with YAML frontmatter and a Markdown body:
 
 ```yaml
 ---
-name: together-<product>
+name: together-ai
 description: "One-line description, no angle brackets, max 1024 chars"
 ---
 ```
@@ -64,26 +111,41 @@ Optional frontmatter fields: `license`, `allowed-tools`, `metadata`, `compatibil
 Rules:
 - `name` must be kebab-case, max 64 characters
 - `description` must NOT contain angle brackets (`<` or `>`)
-- Body should stay lean; target under 500 lines and move deep detail into `references/`
+- The router body stays lean; target under 500 lines. Product detail belongs in
+  `domains/`, and deep detail in `references/`
 
 ### agents/openai.yaml
 
-Every skill in this repo includes `agents/openai.yaml` with:
+The skill includes `agents/openai.yaml` with:
 - `display_name`
 - `short_description`
 - `default_prompt`
 
-The default prompt must explicitly mention the skill as `$skill-name`.
+The default prompt must explicitly mention the skill as `$together-ai`.
+
+### Domain guides
+
+`domains/AREA.md` is where a product area is actually documented. Each guide follows the same shape:
+a lead paragraph (what it is, how it bills, one `Hand-offs:` line to sibling guides), `## Workflow`
+(or `## Essentials` with a minimal call), `## Rules`, `## Open next`, and `## Docs`.
+
+`## Open next` is a table with columns `File | Lines | Contains | Open when`. Describe what is
+inside each file concretely enough that an agent can tell whether it needs it, and list long
+references by the sections they contain. `quality_check.py` warns when a stated line count drifts
+more than 25% from the file, so rerun it after editing a script or reference.
+
+The two Kubernetes guides (`kueue.md`, `volcano.md`) are self-contained cookbooks with inline YAML
+and no reference or script files. That is intentional — do not force them into the table shape.
 
 ### References
 
-Markdown files in `references/` are loaded on demand when the agent needs deeper detail. Use these for model lists, full API specs, CLI command references, and data format documentation.
+Markdown files in `references/AREA/` are loaded on demand when the agent needs deeper detail. Use these for model lists, full API specs, CLI command references, and data format documentation.
 
 For reference files over ~100 lines, include a short `## Contents` section near the top so agents can route quickly.
 
 ### Scripts
 
-Python files in `scripts/` are runnable examples demonstrating complete workflows. All scripts in this repo use the **Together Python v2 SDK** (`together>=2.0.0`).
+Files in `scripts/AREA/` are runnable examples demonstrating complete workflows. Python scripts use the **Together Python v2 SDK** (`together>=2.0.0`); several areas also ship TypeScript (`.ts`) equivalents using the `together-ai` npm package.
 
 ## Code conventions
 
@@ -120,8 +182,10 @@ These are the correct v2 SDK method names. Do NOT use v1 patterns:
 - Frontmatter descriptions should route by user intent, not read like marketing copy
 - `SKILL.md` should tell the agent when to open a specific reference or run a specific script
 - Avoid generic folder links such as `See [scripts/](scripts/)`; link to the exact script
-- Keep overlapping skills explicit about hand-off boundaries
-- Maintain trigger eval sets in `quality/trigger-evals/`
+- Keep overlapping domain guides explicit about hand-off boundaries, via
+  `## Do not use this guide for`
+- Maintain trigger eval sets in `quality/trigger-evals/` and routing eval sets in
+  `quality/routing-evals/`
 
 ### Markdown style
 
@@ -136,7 +200,7 @@ These are the correct v2 SDK method names. Do NOT use v1 patterns:
 Before committing changes, validate each modified skill:
 
 ```bash
-python scripts/quick_validate.py skills/together-<skill>
+python scripts/quick_validate.py skills/together-ai
 ```
 
 The validator checks:
@@ -144,7 +208,8 @@ The validator checks:
 - `name` is present, kebab-case, max 64 chars
 - `description` is present, no angle brackets, max 1024 chars
 - No disallowed frontmatter keys
-- Referenced files in `references/` and `scripts/` exist
+- Referenced files in `references/`, `scripts/`, and `domains/` exist — checked in
+  `SKILL.md` and in every `domains/*.md`
 
 And `python scripts/quality_check.py` warns on:
 - oversized `SKILL.md` files
@@ -153,52 +218,69 @@ And `python scripts/quality_check.py` warns on:
 - generic `scripts/` links
 - unsafe tempfile usage in Python scripts
 - missing trigger eval sets
+- `Open next` line counts that drift more than 25% from the file
 
-## Adding a new skill
+## Adding a new product area
 
-1. Create `skills/together-<product>/SKILL.md` with frontmatter and body
-2. Add `references/` files for detailed specs (model tables, API params)
-3. Add `scripts/` with runnable Python v2 SDK examples if the skill involves multi-step workflows
-4. Create `agents/openai.yaml` with `display_name`, `short_description`, and `default_prompt`
-5. Validate with `python scripts/quick_validate.py skills/together-<product>`
-6. Run `./scripts/publish.sh` to regenerate AGENTS.md and README.md
-7. Update `.claude-plugin/marketplace.json` with the new skill entry
+Do **not** create a second skill directory. Add a domain guide instead:
 
-## Modifying existing skills
+1. Create `skills/together-ai/domains/AREA.md` following the standard guide shape
+2. Add `skills/together-ai/references/AREA/` for detailed specs (model tables, API params)
+3. Add `skills/together-ai/scripts/AREA/` with runnable v2 SDK examples for multi-step workflows
+4. Add a one-line row to the **Guides** table in `SKILL.md`; name the literal symbols, commands, or
+   ID prefixes users will mention — they route more reliably than topic words
+5. If the new area is easily confused with an existing one, add a clause to the **Close calls**
+   paragraph under the table
+6. Add cases to `quality/routing-evals/together-ai.json`
+7. Validate with `python scripts/quick_validate.py skills/together-ai`
+8. Run `./scripts/publish.sh` to regenerate AGENTS.md and README.md
 
-- Read the full SKILL.md before making changes
-- Keep inline examples minimal — move detailed content to `references/`
+`.claude-plugin/marketplace.json` needs no per-area entry — skills are auto-discovered from the
+repo, and it has never enumerated them.
+
+## Modifying the skill
+
+- Read the router (`SKILL.md`) and the relevant domain guide before making changes
+- Keep inline examples minimal — move detailed content to `references/AREA/`
 - If updating SDK code, ensure it follows v2 patterns (see table above)
-- If a model is deprecated, remove it from the model tables in `references/`
+- If a model is deprecated, remove it from the model tables in `references/AREA/`
 - Test any script changes by reviewing the code (scripts require a Together API key to actually run)
 
 ## Common tasks
 
 ### Update a model list
 
-Model tables live in `references/models.md` (or similar) within each skill. Update the table rows. Do not change the table structure unless adding a new column that all rows need.
+Model tables live in `skills/together-ai/references/AREA/models.md` (or similar). Update the table rows. Do not change the table structure unless adding a new column that all rows need.
 
 ### Add a new script
 
-1. Create `skills/together-<skill>/scripts/<descriptive_name>.py`
+1. Create `skills/together-ai/scripts/AREA/descriptive_name.py`
 2. Follow the script conventions above (docstring, `__main__`, type hints)
-3. Add a reference line to the `## Resources` section of the skill's `SKILL.md`:
+3. Link it from the `## Open next` section of `domains/AREA.md`, using a skill-root-relative path:
    ```
-   - **Runnable script**: See [scripts/<name>.py](scripts/<name>.py) — short description (v2 SDK)
+   - Start with [scripts/AREA/name.py](scripts/AREA/name.py)
    ```
 
 ### Fix an API pattern
 
 If a Together API changes, update in this order:
-1. The `SKILL.md` inline examples
-2. The `references/` docs
-3. The `scripts/` files
-4. This `AGENTS.md` if the v2 SDK patterns table needs updating
+1. The relevant `domains/AREA.md` guide
+2. The `references/AREA/` docs
+3. The `scripts/AREA/` files
+4. `SKILL.md` if a universal rule or the v2 SDK table changed
+5. `scripts/AGENTS_TEMPLATE.md` if the v2 SDK patterns table needs updating (never hand-edit
+   `AGENTS.md`; it is generated)
 
 ## Do not
 
-- Add `README.md`, `CHANGELOG.md`, or `INSTALLATION_GUIDE.md` inside individual skill directories — the Agent Skills spec forbids extraneous docs within skills
+- Add `README.md`, `CHANGELOG.md`, or `INSTALLATION_GUIDE.md` inside the skill directory — the Agent Skills spec forbids extraneous docs within skills
+- Create a second `skills/together-*` directory — new product areas are domain guides, not skills
+- Write `../references/...` inside a domain guide — all skill paths are skill-root-relative
+- Grow the router with product detail; every task pays for every line of it. Put product detail in
+  the guide and deep detail in references
+- Hardcode a model ID as available without checking the live catalog; IDs in guides, references,
+  and scripts are examples, and the scripts' defaults should be on the current serverless list
 - Use angle brackets in any `description` frontmatter field
 - Use v1 SDK method names in any code
 - Add dependencies beyond `together` to scripts without noting it in the docstring
-- Create empty `references/` or `scripts/` directories — only include if they contain files
+- Create empty `references/`, `scripts/`, or `domains/` directories — only include if they contain files

@@ -17,6 +17,9 @@ TRIGGER_EVALS_DIR = REPO_ROOT / "quality" / "trigger-evals"
 LONG_SKILL_LIMIT = 500
 LONG_REFERENCE_LIMIT = 100
 TOC_RE = re.compile(r"^## (Contents|Table of Contents)$", re.MULTILINE)
+# A row of a domain guide's "Open next" menu: | [path](path) (.ts) | 123 | ...
+MENU_ROW_RE = re.compile(r"^\| \[[^\]]+\]\(([^)]+)\)[^|]*\| *(\d+) *\|", re.MULTILINE)
+MENU_DRIFT_LIMIT = 0.25
 GENERIC_SCRIPT_LINK_RE = re.compile(r"\[[^\]]+\]\(scripts/\)")
 OPENAI_FIELDS = ("display_name", "short_description", "default_prompt")
 
@@ -57,7 +60,7 @@ def validate_skill_body(skill_dir: Path) -> list[str]:
 
 def validate_references(skill_dir: Path) -> list[str]:
     warnings: list[str] = []
-    for ref_path in sorted((skill_dir / "references").glob("*.md")):
+    for ref_path in sorted((skill_dir / "references").rglob("*.md")):
         line_count = ref_path.read_text(encoding="utf-8").count("\n") + 1
         head = "\n".join(ref_path.read_text(encoding="utf-8").splitlines()[:30])
         if line_count > LONG_REFERENCE_LIMIT and not TOC_RE.search(head):
@@ -69,10 +72,32 @@ def validate_references(skill_dir: Path) -> list[str]:
 
 def validate_scripts(skill_dir: Path) -> list[str]:
     warnings: list[str] = []
-    for script_path in sorted((skill_dir / "scripts").glob("*.py")):
+    for script_path in sorted((skill_dir / "scripts").rglob("*.py")):
         text = script_path.read_text(encoding="utf-8")
         if "tempfile.mktemp" in text:
-            warnings.append(f"{skill_dir.name}: {script_path.name} uses tempfile.mktemp")
+            warnings.append(f"{skill_dir.name}: {script_path.relative_to(skill_dir)} uses tempfile.mktemp")
+    return warnings
+
+
+def validate_domain_menus(skill_dir: Path) -> list[str]:
+    """Check the line counts in each domain guide's "Open next" menu against the files.
+
+    Agents use these counts to decide whether a file is worth loading, so a stale count
+    quietly mis-steers them. Run ./scripts/publish.sh after editing a script or reference.
+    """
+    warnings: list[str] = []
+    for guide in sorted((skill_dir / "domains").glob("*.md")):
+        for match in MENU_ROW_RE.finditer(guide.read_text(encoding="utf-8")):
+            target = skill_dir / match.group(1)
+            if not target.exists():
+                continue  # quick_validate.py reports missing files
+            stated = int(match.group(2))
+            actual = target.read_text(encoding="utf-8").count("\n") + 1
+            if abs(actual - stated) > MENU_DRIFT_LIMIT * max(actual, 1):
+                warnings.append(
+                    f"{skill_dir.name}: {guide.relative_to(skill_dir)} says {match.group(1)} "
+                    f"is {stated} lines; it is {actual}"
+                )
     return warnings
 
 
@@ -105,6 +130,7 @@ def main() -> int:
         warnings.extend(validate_skill_body(skill_dir))
         warnings.extend(validate_references(skill_dir))
         warnings.extend(validate_scripts(skill_dir))
+        warnings.extend(validate_domain_menus(skill_dir))
         warnings.extend(validate_trigger_eval(skill_dir))
 
     if warnings:
