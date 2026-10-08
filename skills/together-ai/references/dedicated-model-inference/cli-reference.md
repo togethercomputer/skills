@@ -80,16 +80,16 @@ name/ID (adds a deployment to it).
 | `--min-replicas` / `--max-replicas` | 1 / 1 | Replica bounds. Pass a range (e.g. 1/10) to autoscale. |
 | `--scale-up-window` | — | Seconds the metric must stay above target before adding replicas. |
 | `--scale-down-window` | — | Cooldown seconds between scale-downs. |
-| `--scale-to-zero-window` | — | Idle time before scaling to zero replicas. |
 | `--model-revision` | latest | Model revision ID (`rv_...`) to pin. |
 | `--scaling-metric` / `--scaling-target` / `--scaling-percentile` | — | Autoscale on one metric (pair with a `--min`/`--max` range): metric name + target, optional percentile (`p50`/`p90`/`p95`/`p99`, latency metrics only). The CLI takes a single metric as flat flags — the JSON `scaling_metrics` array is SDK/API-only. |
 | `--placement` | — | Placement profile ID to use. |
-| `--regions` | — | Comma-separated inline placement regions (mutually exclusive with `--placement`). |
-| `--constraint` | — | `required` or `preferred` — how strictly to enforce inline placement regions. |
-| `--enable-lora` | off | Run the multi-LoRA kernel so adapters hot-load. Toggling later needs a redeploy. |
+| `--placement.regions` | — | Comma-separated inline placement regions (mutually exclusive with `--placement`). |
+| `--placement.constraint` | — | `required` or `preferred` — how strictly to enforce inline placement regions. |
+| `--placement.hipaa` | off | Require HIPAA-eligible placement. |
+| `--inactive-timeout` | off | Minutes without requests before the deployment stops itself (30–1440; `0` disables). |
 
-There is no `--inactive-timeout` / auto-shutdown — deployments run and bill until you stop
-them.
+Without `--inactive-timeout`, a deployment runs and bills until you stop it. The scale-to-zero
+window is an SDK/API autoscaling field (`scale_to_zero_window`), not a CLI flag.
 
 ```bash
 # Deploy a public model, single replica
@@ -110,7 +110,7 @@ weights download and hardware is allocated.
 ## endpoints ls / get
 
 ```bash
-tg beta endpoints ls [--limit N] [--after CURSOR] [--org] [--public]
+tg beta endpoints ls [--limit N] [--after CURSOR] [--org]
 tg beta endpoints get ep_abc123    # endpoint detail: split + each deployment's state/replicas
 tg beta endpoints get dep_abc123   # deployment detail (parent endpoint resolved automatically)
 
@@ -149,9 +149,9 @@ tg beta endpoints update dep_abc123 --traffic-weight 0
 
 | Flag | Description |
 | --- | --- |
-| `--name` | Rename the deployment. |
 | `--min-replicas` / `--max-replicas` | Updated replica bounds. |
-| `--scale-up-window` / `--scale-down-window` / `--scale-to-zero-window` | Autoscaling stabilization windows. |
+| `--scale-up-window` / `--scale-down-window` | Autoscaling stabilization windows. |
+| `--inactive-timeout` | Minutes without requests before the deployment stops itself (30–1440; `0` disables). |
 | `--scaling-metric` / `--scaling-target` / `--scaling-percentile` | Autoscale on one metric: metric name + target, plus an optional percentile (`p50`/`p90`/`p95`/`p99`, latency metrics only). The CLI takes a single metric this way; the JSON `scaling_metrics` array is SDK/API-only (see api-reference.md, Scaling Metrics). |
 | `--traffic-weight` | Capacity weight in the endpoint's traffic split. Upserts just this deployment's entry; `0` stops routing to it. |
 | `--etag` | ETag for optimistic concurrency. |
@@ -160,10 +160,9 @@ Notes:
 
 - `--traffic-weight` edits one deployment's split entry. Replacing the whole split at once is
   still an SDK/API operation (`endpoints.update(traffic_split=[...])`).
-- LoRA loading can't be changed after a deployment is created — redeploy with
-  `deploy --enable-lora` to turn it on or off.
-- There is no `--inactive-timeout` — auto-shutdown was removed; stop idle deployments with
-  `--min-replicas 0 --max-replicas 0`.
+- To stop an idle deployment by hand, set `--min-replicas 0 --max-replicas 0`; to have it stop
+  itself, set `--inactive-timeout`. A deployment with an inactivity timeout cannot take part in
+  a rollout.
 
 ## endpoints rm (smart delete)
 
@@ -204,10 +203,9 @@ with `Model ml_… not found`. Use the `ml_` ID only for a model that lives in y
 | Flag | Description |
 | --- | --- |
 | `--control` | Control deployment ID currently serving live traffic. Required. |
-| `--percent` | Traffic percent for the variant, integer 1–100 (default 1). |
+| `--percent` | Traffic percent for the variant, integer 1–99. Required. |
 | `--config` | Config for the variant (auto-selected like `deploy`). |
 | `--name` | Variant deployment name (defaults to model name + suffix). |
-| `--enable-lora` | Enable the multi-LoRA kernel on the variant. |
 
 Ramping or editing an existing experiment is SDK/API only (`ab_experiments.update` replaces
 the whole member set, and requires `update_mask="members"` + the current `etag` or it 400s —

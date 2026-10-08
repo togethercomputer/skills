@@ -2,7 +2,7 @@
 /**
  * Together AI Chat Completions — Reasoning Models
  *
- * Demonstrates reasoning with separate reasoning field, DeepSeek R1 <think> tags,
+ * Demonstrates reasoning with separate reasoning fields, parsing DeepSeek-R1 <think> tags,
  * reasoning effort control, and enabling/disabling reasoning on hybrid models.
  *
  * Usage:
@@ -60,29 +60,22 @@ async function reasoningFieldStreaming(): Promise<void> {
   console.log();
 }
 
-// --- 2. DeepSeek R1 (<think> tags) ---
-async function deepseekR1ThinkTags(): Promise<void> {
-  console.log("=== DeepSeek R1 (<think> tags) ===");
+// --- 2. <think> tags (DeepSeek-R1 on a dedicated endpoint) ---
+// DeepSeek-R1 puts its reasoning inside <think> tags in `content`. It is no longer
+// served serverless on Together, and current serverless reasoning models use a
+// separate `reasoning` or `reasoning_content` field, so this parser runs offline.
+function splitThinkTags(text: string): { thinking: string; answer: string } {
+  const match = text.match(/<think>([\s\S]*?)<\/think>/);
+  return {
+    thinking: match ? match[1].trim() : "",
+    answer: text.replace(/<think>[\s\S]*?<\/think>/, "").trim(),
+  };
+}
 
-  const stream = await client.chat.completions.create({
-    model: "deepseek-ai/DeepSeek-V4-Pro-0813",
-    messages: [
-      { role: "user", content: "Which number is bigger 9.9 or 9.11?" },
-    ],
-    stream: true,
-  });
-
-  let fullContent = "";
-  for await (const chunk of stream) {
-    fullContent += chunk.choices[0]?.delta?.content || "";
-  }
-
-  // Parse <think> tags
-  const thinkMatch = fullContent.match(/<think>([\s\S]*?)<\/think>/);
-  const thinking = thinkMatch ? thinkMatch[1].trim() : "";
-  const answer = fullContent.replace(/<think>[\s\S]*?<\/think>/, "").trim();
-
-  console.log(`Thinking: ${thinking.slice(0, 200)}...`);
+function thinkTagsExample(): void {
+  console.log("=== <think> tags (DeepSeek-R1 on a dedicated endpoint) ===");
+  const { thinking, answer } = splitThinkTags("<think>9.9 is 9.90, and 9.90 > 9.11.</think>9.9 is bigger.");
+  console.log(`Thinking: ${thinking}`);
   console.log(`Answer: ${answer}`);
   console.log();
 }
@@ -158,7 +151,7 @@ async function toggleReasoning(): Promise<void> {
 
 async function main(): Promise<void> {
   await reasoningFieldStreaming();
-  await deepseekR1ThinkTags();
+  thinkTagsExample();
   await reasoningEffortExample();
   await toggleReasoning();
 }

@@ -9,13 +9,13 @@ poll to a terminal state, then download. Still images go to `domains/images.md`.
 2. Pick the model by duration, resolution, keyframe and audio support; for example
    `google/veo-3.1`, `ByteDance/Seedance-2.0`, `minimax/hailuo-02`, `Wan-AI/wan2.7-i2v`.
 3. `client.videos.create(...)`, then poll `client.videos.retrieve(job.id)` every 10 to 60 seconds
-   until `completed` or `failed`.
+   until `completed`, `failed`, or `cancelled` (it passes through `queued` and `in_progress`).
 4. Download `outputs.video_url` immediately; the signed URL expires.
 
 ## Rules
 
 - Do not treat video like a synchronous image call, and do not end the task while a job you
-  submitted is still `in_progress`.
+  submitted is still `queued` or `in_progress`.
 - Keyframe and reference-image support are model-specific; check before promising them.
 - Set dimensions and duration explicitly rather than relying on defaults.
 - HTTP 402 `insufficient balance` is an account problem; switching models will not help.
@@ -31,5 +31,5 @@ poll to a terminal state, then download. Still images go to `domains/images.md`.
 
 ## Docs
 
-- [Videos Overview](https://docs.together.ai/docs/videos-overview)
+- [Videos Overview](https://docs.together.ai/docs/inference/videos/overview)
 - [Create Video API](https://docs.together.ai/reference/create-videos)

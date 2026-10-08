@@ -126,7 +126,6 @@ curl -X POST "https://api.together.ai/v2/projects/$PROJECT_ID/endpoints/ep_abc12
 | `model` | Yes | Model resource name. Omit `/revisions/{rv}` to pin the latest revision at create time. |
 | `config` | Yes | Config-revision resource name. Hardware and engine are fixed for the deployment's life. |
 | `autoscaling` | Yes | Replica bounds + optional scaling metrics. See [Autoscaling](#autoscaling). |
-| `enable_lora` | No | Enable LoRA adapter loading. Toggling later requires a redeploy. |
 
 The speculator (draft model for speculative decoding) comes from the config and is pinned at
 creation — it cannot be set on the deployment.
@@ -270,8 +269,9 @@ Caveats:
 
 ## Stop / Restart
 
-There is **no automatic idle shutdown** — a deployment runs and bills until you stop it
-(the earlier `inactive_timeout` auto-stop was removed from the API).
+Idle shutdown is off by default: a deployment runs and bills until you stop it, unless you set
+`inactive_timeout` (30–1440 minutes; `0` disables) on the deployment, which stops it after that
+long without requests. A deployment with an inactivity timeout cannot take part in a rollout.
 
 ```python
 # Stop (drains, then STOPPED; billing stops)
@@ -461,8 +461,9 @@ across the split — is in [traffic-routing.md](traffic-routing.md) (Observing r
 
 ## Troubleshooting
 
-- **`routing_error` / 503 on a `READY` deployment** — the deployment isn't in the traffic
-  split with a non-zero weight, or it has zero ready replicas.
+- **HTTP 400 `endpoint_not_configured` on a `READY` deployment** — the deployment isn't in the
+  traffic split with a non-zero weight, or it has zero ready replicas. HTTP 400
+  `endpoint_not_ready` means every deployment behind the endpoint is stopped.
 - **`DEGRADED` with `Cannot place replicas: insufficient GPU capacity`** — hardware for the
   config is constrained. The scheduler keeps retrying; compare `status.scheduledReplicas` to
   `desiredReplicas`. Request fewer replicas or pick a smaller-footprint config.

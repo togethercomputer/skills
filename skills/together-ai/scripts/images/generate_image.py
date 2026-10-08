@@ -23,8 +23,8 @@ client = Together()
 def save_image_bytes(data: bytes, output_path: str) -> str:
     """Write image bytes under an extension that matches their real format.
 
-    Most models return JPEG unless you ask for another format (`output_format` is
-    FLUX.2-only), so "out.png" would otherwise hold JPEG bytes. Returns the path
+    Image models return JPEG by default (`output_format` defaults to "jpeg"), so
+    "out.png" would otherwise hold JPEG bytes. Returns the path
     actually written.
     """
     signatures = {b"\x89PNG\r\n\x1a\n": ".png", b"\xff\xd8\xff": ".jpg", b"RIFF": ".webp"}
@@ -104,8 +104,10 @@ def generate_flux2(
         prompt=prompt,
         width=width,
         height=height,
-        prompt_upsampling=prompt_upsampling,
         output_format=output_format,
+        # FLUX.2 [pro] only. The SDK has no prompt_upsampling argument, so it goes
+        # through extra_body.
+        extra_body={"prompt_upsampling": prompt_upsampling},
     )
     if reference_images:
         kwargs["reference_images"] = reference_images

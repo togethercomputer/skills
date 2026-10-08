@@ -63,7 +63,7 @@ type ScriptArgs = {
   downloadResults?: string;
 };
 
-const JUDGE_MODEL = "deepseek-ai/DeepSeek-V4-Pro-0813";
+const JUDGE_MODEL = "openai/gpt-oss-120b";
 const EVAL_MODEL = "Qwen/Qwen3.5-9B";
 const DEFAULT_EVAL_SYSTEM_TEMPLATE = "You are a helpful assistant.";
 const DEFAULT_INPUT_TEMPLATE = "{{prompt}}";

@@ -9,7 +9,9 @@ tokens. Serving the result is `domains/dedicated-model-inference.md`; measuring 
 
 1. Pick the method that matches the behavior change; prefer LoRA unless there is a reason to pay
    for full fine-tuning.
-2. Check the base model supports that method: `tg beta models public --product fine-tuning`.
+2. Check the base model is supported: `tg fine-tuning model-limits MODEL` returns its LoRA and
+   full-training limits, or an error if it cannot be fine-tuned. The full list is on the
+   [supported models](https://docs.together.ai/docs/fine-tuning/supported-models) page.
 3. Validate the dataset format before uploading, so bad files fail before you spend tokens.
 4. Upload the file and keep its ID, then create the job with method-specific parameters.
 5. Poll job state and events until it is terminal; read checkpoints and per-step metrics.
@@ -27,7 +29,7 @@ tokens. Serving the result is `domains/dedicated-model-inference.md`; measuring 
 | [scripts/fine-tuning/finetune_workflow.py](scripts/fine-tuning/finetune_workflow.py) | 229 | LoRA or full: validate, upload, create, monitor | standard SFT |
 | [scripts/fine-tuning/dpo_workflow.py](scripts/fine-tuning/dpo_workflow.py) | 267 | preference-pair data and DPO parameters | DPO |
 | [scripts/fine-tuning/function_calling_finetune.py](scripts/fine-tuning/function_calling_finetune.py) | 309 | tool-call training data and job | tuning tool use |
-| [scripts/fine-tuning/reasoning_finetune.py](scripts/fine-tuning/reasoning_finetune.py) | 279 | reasoning-trace data and job | tuning reasoning |
+| [scripts/fine-tuning/reasoning_finetune.py](scripts/fine-tuning/reasoning_finetune.py) | 281 | reasoning-trace data and job | tuning reasoning |
 | [scripts/fine-tuning/vlm_finetune.py](scripts/fine-tuning/vlm_finetune.py) | 228 | image-text data and VLM job | vision-language tuning |
 | [references/fine-tuning/data-formats.md](references/fine-tuning/data-formats.md) | 368 | every dataset format (conversational, instruction, DPO, reasoning, tools, VLM), loss masking, sample weights, validation | preparing or debugging a dataset |
 | [references/fine-tuning/supported-models.md](references/fine-tuning/supported-models.md) | 185 | models per method, recommended starting models, BYOM | choosing a base model |
@@ -35,8 +37,8 @@ tokens. Serving the result is `domains/dedicated-model-inference.md`; measuring 
 
 ## Docs
 
-- [Fine-tuning Quickstart](https://docs.together.ai/docs/fine-tuning-quickstart)
-- [Data Preparation](https://docs.together.ai/docs/fine-tuning-data-preparation)
-- [Fine-tuning Models](https://docs.together.ai/docs/fine-tuning-models)
-- [Deploying a Fine-Tuned Model](https://docs.together.ai/docs/deploying-a-fine-tuned-model)
+- [Fine-tuning Quickstart](https://docs.together.ai/docs/fine-tuning/quickstart)
+- [Data Preparation](https://docs.together.ai/docs/fine-tuning/data-preparation)
+- [Fine-tuning Models](https://docs.together.ai/docs/fine-tuning/supported-models)
+- [Deploying a Fine-Tuned Model](https://docs.together.ai/docs/fine-tuning/deployment)
 - [Fine-tuning API](https://docs.together.ai/reference/post-fine-tunes)

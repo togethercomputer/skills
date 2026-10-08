@@ -592,6 +592,8 @@ final = client.chat.completions.create(
 
 chunks = []
 for chunk in final:
+    if not chunk.choices:  # final usage-only chunk
+        continue
     token = chunk.choices[0].delta.content or ""
     chunks.append(token)
     print(token, end="", flush=True)
@@ -823,7 +825,7 @@ workflow.
 
 ## Supported Models
 
-Serverless models that support this as of 2026-10-07, per the [serverless catalog](https://docs.together.ai/docs/serverless/models). Confirm live with `tg beta models public --product serverless --json` (look for `FEATURE_TOOL_CALLING` / `FEATURE_STRUCTURED_OUTPUT`).
+Serverless models that support this as of 2026-10-07, per the [serverless catalog](https://docs.together.ai/docs/serverless/models). Availability changes; a request with `max_tokens=1` confirms a model is live.
 
 - `moonshotai/Kimi-K3`
 - `zai-org/GLM-5.3`

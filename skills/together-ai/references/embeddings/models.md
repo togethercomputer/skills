@@ -2,22 +2,20 @@
 
 ## Embedding Models
 
-No embedding model is served serverless today, so every model below needs a dedicated endpoint:
-deploy it, then pass the endpoint string as `model` on `https://api-inference.together.ai/v1`.
-List what can be deployed with
-`tg beta models public --product dedicated --json` and filter `displayType == "embedding"`.
+Together does not currently offer embedding or rerank models (checked 2026-10-07): the serverless
+catalog lists none, and the [deprecations page](https://docs.together.ai/docs/deprecations) shows
+the models below removed. They are kept here for reference only.
 
 | Model | API String | Size | Dimensions | Context | Best For |
 |-------|-----------|------|-----------|---------|----------|
-| Multilingual E5 Large | `intfloat/multilingual-e5-large-instruct` | 560M | 1,024 | 514 tokens | Multilingual retrieval (dedicated endpoint) |
+| Multilingual E5 Large | `intfloat/multilingual-e5-large-instruct` | 560M | 1,024 | 514 tokens | Removed 2026-09-15 |
 
 ## Rerank Models
 
-Reranking is currently available exclusively via dedicated endpoints. Deploy a rerank model
-as a dedicated endpoint, then use the `/v1/rerank` API.
+No rerank model is currently offered: `mixedbread-ai/Mxbai-Rerank-Large-V2` was removed on
+2026-03-06 and the dedicated deployment catalog lists no rerank models. The `/v1/rerank` API
+shape below applies if the user already has a rerank endpoint.
 
-See the [Rerank Overview](https://docs.together.ai/docs/rerank-overview) for available models
-and setup instructions.
 
 ## Embeddings API Parameters
 
@@ -93,6 +91,5 @@ embedding use cases including retrieval, semantic similarity, and classification
 
 ### Reranking
 
-There are currently no serverless rerank models. Reranking requires deploying a model on a
-dedicated endpoint. See the [Rerank Overview](https://docs.together.ai/docs/rerank-overview)
-for available models and instructions.
+No rerank model is currently offered, serverless or in the dedicated catalog. Without one, keep
+the cosine-similarity order.

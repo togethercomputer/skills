@@ -2,7 +2,7 @@
 
 ## Complete Model Table
 
-Serverless video models as of 2026-10-07 (source: [Serverless models](https://docs.together.ai/docs/serverless/models)); confirm live with `tg beta models public --product serverless --modality video --json`. `-` means not stated in the catalog: check the model's docs page before relying on a duration, size, or keyframe mode. Names ending in I2V take an input image; R2V takes reference media.
+Serverless video models as of 2026-10-07 (source: [Serverless models](https://docs.together.ai/docs/serverless/models)). If a listed model returns an unavailable error, treat the runtime response and the [deprecations page](https://docs.together.ai/docs/deprecations) as the source of truth. `-` means not stated in the catalog: check the model's docs page before relying on a duration, size, or keyframe mode. Names ending in I2V take an input image; R2V takes reference media.
 
 | Organization | Model | API String | Duration | Dimensions | FPS | Keyframes |
 |-------------|-------|-----------|----------|-----------|-----|-----------|

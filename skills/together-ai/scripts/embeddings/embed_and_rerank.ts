@@ -19,8 +19,8 @@
 
 import Together from "together-ai";
 
-// No embedding model is served serverless today. Deploy one on a dedicated endpoint
-// (see domains/embeddings.md) and set EMBEDDING_MODEL to its endpoint string.
+// Together does not currently offer embedding models (see domains/embeddings.md).
+// If you already have an embedding endpoint, set EMBEDDING_MODEL to its endpoint string.
 // Dedicated inference is served from its own base URL.
 const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL ?? "";
 const dedicatedClient = new Together({
@@ -31,9 +31,9 @@ const dedicatedClient = new Together({
 function requireEmbeddingModel(): string {
   if (!EMBEDDING_MODEL) {
     console.error(
-      "EMBEDDING_MODEL is not set. Together serves no embedding models serverless; " +
-        "deploy one on a dedicated endpoint and export its endpoint string. " +
-        "See domains/embeddings.md.",
+      "EMBEDDING_MODEL is not set. Together does not currently offer embedding models " +
+        "(serverless or in the dedicated catalog). If you already have an embedding " +
+        "endpoint, export its endpoint string. See domains/embeddings.md.",
     );
     process.exit(1);
   }

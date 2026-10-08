@@ -179,9 +179,10 @@ capacity](#instance-types-and-capacity)) — don't quote rates from memory.
 Cost levers:
 
 - `min_replicas` sets the cost floor (always running); `max_replicas` sets the ceiling.
-- **Stop when idle** — scale to `0/0` (or delete). There is **no automatic idle shutdown**;
-  a deployment runs and bills until you stop it, and the first request after a restart pays
-  a cold start.
+- **Stop when idle** — scale to `0/0` (or delete), or set `--inactive-timeout` (30–1440
+  minutes) so the deployment stops itself after that long without requests. Idle shutdown is
+  off by default: without it, a deployment runs and bills until you stop it. The first request
+  after a restart pays a cold start.
 - **On-demand** (per-minute, no commitment) vs **reserved** (committed term, lower effective
   rate, guaranteed hardware — contact Together sales).
 
@@ -239,7 +240,9 @@ tg beta models create gemma-4-31b-it --base-model ml_CbJNwQC2ZqCU2iFT3mrCh
 ```python
 model = client.beta.models.create(
     project_id=project_id,
-    model={"name": "gemma-4-31b-it", "base_model_id": "ml_CbJNwQC2ZqCU2iFT3mrCh"},
+    name="gemma-4-31b-it",
+    base_model_id="ml_CbJNwQC2ZqCU2iFT3mrCh",
+    type="model",  # "adapter" for a LoRA adapter; fixed at create time
 )
 ```
 
@@ -264,7 +267,6 @@ tg beta models remote-uploads create ml_abc123 \
 ```python
 job = client.beta.models.remote_uploads.create(
     project_id=project_id,
-    type="model",
     model_id="ml_abc123",
     remote_url="https://huggingface.co/your-org/your-repo",
     token="hf_your_token",
@@ -290,35 +292,31 @@ tg beta endpoints deploy ml_abc123 --endpoint my-custom-model --config cr_abc123
 
 ## Upload a LoRA adapter
 
-Same flow as a custom model with `--type adapter` (`type="adapter"` in the SDK). Adapter-specific
-requirements:
+Same flow as a custom model, except the record is created with `--type adapter`
+(`type="adapter"` in the SDK). The type is fixed at create time; upload commands take no type.
+Adapter-specific requirements:
 
 - The adapter directory must contain `adapter_config.json` and `adapter_model.safetensors`.
 - The adapter must target a supported base model (set via `base_model_id` on the record).
 - Adapter versioning isn't supported — re-upload under a new name.
 
 ```bash
-tg beta models create my-stsb-lora --base-model ml_CbJNwQC2ZqCU2iFT3mrCh
+tg beta models create my-stsb-lora --type adapter --base-model ml_CbJNwQC2ZqCU2iFT3mrCh
 
 # Local
-tg beta models upload ml_abc123 ./path/to/adapter-dir --type adapter
+tg beta models upload ml_abc123 ./path/to/adapter-dir
 
 # Remote
 tg beta models remote-uploads create ml_abc123 \
-  --from https://huggingface.co/your-org/your-adapter --type adapter --token hf_your_token
+  --from https://huggingface.co/your-org/your-adapter --token hf_your_token
 
-# Poll / verify — read commands take the PLURAL --type adapters
-tg beta models remote-uploads retrieve job_abc123 --type adapters
-tg beta models ls-files ml_abc123 --type adapters
+# Poll / verify
+tg beta models remote-uploads retrieve job_abc123
+tg beta models ls-files ml_abc123
 ```
 
-Note the `--type` asymmetry: write commands (`upload`, `remote-uploads create`) take singular
-`model`/`adapter`; read commands (`ls-files`, `remote-uploads retrieve`/`list`) take plural
-`models`/`adapters`.
-
-Deploy the adapter's `ml_...` ID like a base model, using a config for its base model. To
-hot-load adapters onto a running deployment, the deployment must have been created with
-`--enable-lora` (toggling later requires a redeploy).
+Deploy the adapter's `ml_...` ID like a base model, using a config for its base model
+([Upload a LoRA adapter](https://docs.together.ai/docs/dedicated-endpoints/adapter)).
 
 ## Download and delete models
 

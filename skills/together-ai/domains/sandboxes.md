@@ -27,5 +27,5 @@ workloads go to `domains/gpu-clusters.md` or `domains/dedicated-containers.md`.
 
 ## Docs
 
-- [Together Sandboxes](https://docs.together.ai/docs/together-code-interpreter)
+- [Together Sandboxes](https://docs.together.ai/docs/together-code-sandbox)
 - [Sandboxes API](https://docs.together.ai/reference/tci-execute)

@@ -33,15 +33,15 @@ There are 14 domain guides under `skills/together-ai/domains/`:
 
 <domains>
 - **audio.md** (Audio): Text-to-speech (REST, streaming, realtime WebSocket) and speech-to-text (transcription, translation, diarization, timestamps, realtime).
-- **batch-inference.md** (Batch Inference): Asynchronous bulk inference over a JSONL file, up to 50% cheaper than real-time, completing within a 24-hour window (small batches usually finish in minutes).
+- **batch-inference.md** (Batch Inference): Asynchronous bulk inference over a JSONL file, up to 50% cheaper than real-time, with a 24-hour completion window (batches under 1,000 requests usually finish in minutes; complex or busy models can occasionally run past 24 hours, so track status rather than wall-clock time).
 - **chat-completions.md** (Chat Completions): Serverless, OpenAI-compatible text generation: one call, billed per token.
 - **dedicated-containers.md** (Dedicated Containers): Run your own Docker image as an inference worker on Together GPUs: Sprocket handles the request lifecycle, Jig builds and deploys, and clients submit async jobs to a queue.
 - **dedicated-model-inference.md** (Dedicated Model Inference): Dedicated model inference (DMI) serves a model on reserved single-tenant GPUs.
-- **embeddings.md** (Embeddings and Reranking): Dense vectors for semantic search and RAG retrieval, plus reranking as a second-stage precision step.
+- **embeddings.md** (Embeddings and Reranking): **Together does not currently offer embedding or rerank models.** Checked 2026-10-07.
 - **evaluations.md** (Evaluations): Managed LLM-as-a-judge jobs: **classify** outputs into labels, **score** them on a scale, or **compare** two responses.
 - **fine-tuning.md** (Fine-Tuning): Adapt a model on your data: LoRA (default), full fine-tuning, DPO preference tuning, VLM, function-calling, and reasoning tuning, plus bring-your-own-model uploads.
-- **gpu-clusters.md** (GPU Clusters): On-demand or reserved H100, H200, and B200 clusters with Kubernetes or Slurm, shared storage, and credentials, for distributed training, multi-node inference, and HPC.
-- **images.md** (Images): Text-to-image generation and image editing, billed per image (FLUX models also scale with megapixels and steps).
+- **gpu-clusters.md** (GPU Clusters): GPU clusters (H100, H200, B200, B300, and other types; availability varies by region) with Kubernetes or Slurm, shared storage, and credentials, for distributed training, multi-node inference, and HPC.
+- **images.md** (Images): Text-to-image generation and image editing.
 - **kueue.md** (Kueue on Together GPU clusters): Kueue is a Kubernetes-native job queueing controller.
 - **sandboxes.md** (Sandboxes): Managed remote Python execution with stateful sessions, for running agent-written code, data analysis, and charts.
 - **video.md** (Video): Text-to-video and image-to-video, billed per video.

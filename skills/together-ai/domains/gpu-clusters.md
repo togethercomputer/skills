@@ -1,8 +1,10 @@
 # Together AI: GPU Clusters
 
-On-demand or reserved H100, H200, and B200 clusters with Kubernetes or Slurm, shared storage, and
-credentials, for distributed training, multi-node inference, and HPC. Billed per GPU-hour with an
-8-GPU minimum, until deleted.
+GPU clusters (H100, H200, B200, B300, and other types; availability varies by region) with
+Kubernetes or Slurm, shared storage, and credentials, for distributed training, multi-node
+inference, and HPC. Sizes are multiples of 8 GPUs. `ON_DEMAND` bills from creation until you
+delete the cluster; `RESERVED` is charged for the full reserved term. Shared storage bills
+separately and keeps billing after the cluster is deleted.
 
 Hand-offs: serving a model is `domains/dedicated-model-inference.md`; a custom inference container
 is `domains/dedicated-containers.md`; short remote Python is `domains/sandboxes.md`; queueing or

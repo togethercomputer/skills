@@ -11,25 +11,33 @@
 
 ## Complete Model Table
 
-Serverless image models as of 2026-10-07 (source: [Serverless models](https://docs.together.ai/docs/serverless/models)). Confirm live with `tg beta models public --product serverless --modality image --json`. FLUX.1 [schnell], Imagen 4.0, HiDream, DreamShaper, Ideogram 4.0, and SD 3 Medium are no longer listed.
+Serverless image models as of 2026-10-07 (source: [Serverless models](https://docs.together.ai/docs/serverless/models)). If a listed model returns an unavailable error, treat the runtime response and the [deprecations page](https://docs.together.ai/docs/deprecations) as the source of truth. Partner-hosted models (for example FLUX.2) return 403 `third_party_data_sharing_blocked` unless the organization enables third-party data sharing. FLUX.1 [schnell], FLUX.1 [dev], Imagen 4.0, HiDream, DreamShaper, and SD 3 Medium are no longer listed.
 
 | Organization | Model | API String | Default Steps |
 |-------------|-------|-----------|--------------|
-| Black Forest Labs | FLUX.2 [dev] | `black-forest-labs/FLUX.2-dev` | - |
+| OpenAI | GPT Image 2 | `openai/gpt-image-2` | - |
+| OpenAI | GPT Image 1.5 | `openai/gpt-image-1.5` | - |
+| Google | Flash Image 2.5 (Nano Banana) | `google/flash-image-2.5` | - |
+| Google | Gemini 3 Pro Image (Nano Banana Pro) | `google/gemini-3-pro-image` | - |
+| Google | Gemini 3.1 Flash Image (Nano Banana 2) | `google/flash-image-3.1` | - |
+| Google | Gemini 3.1 Flash-Lite Image (Nano Banana 2 Lite) | `google/flash-image-3.1-lite` | - |
 | Black Forest Labs | FLUX.2 [pro] | `black-forest-labs/FLUX.2-pro` | - |
-| Black Forest Labs | FLUX.2 [max] | `black-forest-labs/FLUX.2-max` | - |
+| Black Forest Labs | FLUX.2 [dev] | `black-forest-labs/FLUX.2-dev` | - |
 | Black Forest Labs | FLUX.2 [flex] | `black-forest-labs/FLUX.2-flex` | - |
+| Black Forest Labs | FLUX.2 [max] | `black-forest-labs/FLUX.2-max` | - |
 | Black Forest Labs | FLUX1.1 [pro] | `black-forest-labs/FLUX.1.1-pro` | - |
 | Black Forest Labs | FLUX.1 Kontext [pro] | `black-forest-labs/FLUX.1-kontext-pro` | 28 |
 | Black Forest Labs | FLUX.1 Kontext [max] | `black-forest-labs/FLUX.1-kontext-max` | 28 |
-| Google | Flash Image 2.5 (Nano Banana) | `google/flash-image-2.5` | - |
-| Google | Gemini 3.1 Flash Image (Nano Banana 2) | `google/flash-image-3.1` | - |
-| Google | Gemini 3 Pro Image (Nano Banana Pro) | `google/gemini-3-pro-image` | - |
 | ByteDance | Seedream 5.0 Lite | `ByteDance/Seedream-5.0-lite` | - |
 | ByteDance | Seedream 4.0 | `ByteDance-Seed/Seedream-4.0` | - |
 | ByteDance | Seedream 3.0 | `ByteDance-Seed/Seedream-3.0` | - |
+| Qwen | Qwen Image 2.0 Pro | `Qwen/Qwen-Image-2.0-Pro` | - |
+| Qwen | Qwen Image 2.0 | `Qwen/Qwen-Image-2.0` | - |
 | Qwen | Qwen Image | `Qwen/Qwen-Image` | - |
+| Wan-AI | Wan 2.6 Image | `Wan-AI/Wan2.6-image` | - |
+| Ideogram | Ideogram 4.0 | `ideogram/ideogram-4.0` | - |
 | Ideogram | Ideogram 3.0 | `ideogram/ideogram-3.0` | - |
+| Pruna AI | P-Image-Ideogram | `prunaai/p-image-ideogram` | - |
 | RunDiffusion | Juggernaut Pro Flux | `RunDiffusion/Juggernaut-pro-flux` | - |
 | RunDiffusion | Juggernaut Lightning Flux | `Rundiffusion/Juggernaut-Lightning-Flux` | - |
 | Stability AI | SD XL | `stabilityai/stable-diffusion-xl-base-1.0` | - |
@@ -55,19 +63,15 @@ All models above support text-to-image generation via the `prompt` parameter.
 - `google/gemini-3-pro-image`
 - `google/flash-image-2.5`
 
-### LoRA Compatible (via `image_loras`)
-
-- `black-forest-labs/FLUX.2-dev` -- Up to 2 LoRAs, scale 0.3-1.2
-
 ## Recommended Models
 
 | Use Case | Model | API String |
 |----------|-------|-----------|
-| Best quality | Flash Image 2.5 | `google/flash-image-2.5` |
+| Text-to-image (Together's pick) | GPT Image 2 | `openai/gpt-image-2` |
+| Image-to-image (Together's pick) | GPT Image 2 | `openai/gpt-image-2` |
+| Alternative to GPT Image 2 | Flash Image 2.5 | `google/flash-image-2.5` |
 | Highest quality FLUX | FLUX.2 Pro | `black-forest-labs/FLUX.2-pro` |
 | Image editing | FLUX.1 Kontext Max | `black-forest-labs/FLUX.1-kontext-max` |
-| Fast generation | Juggernaut Lightning Flux | `Rundiffusion/Juggernaut-Lightning-Flux` |
-| LoRA styles | FLUX.2 Dev | `black-forest-labs/FLUX.2-dev` |
 | Typography | FLUX.2 Flex | `black-forest-labs/FLUX.2-flex` |
 | Text in images | Ideogram 3.0 | `ideogram/ideogram-3.0` |
 | Up to 4K output | Gemini 3 Pro Image | `google/gemini-3-pro-image` |
@@ -77,8 +81,8 @@ All models above support text-to-image generation via the `prompt` parameter.
 | Variant | Best For | Unique Features |
 |---------|----------|-----------------|
 | Pro | Production, highest fidelity | Up to 9MP output, fastest |
-| Dev | Development, LoRA support | `guidance`, `steps`, `image_loras` |
-| Flex | Maximum control, typography | `guidance`, `steps`, adjustable |
+| Dev | Development | `guidance_scale`, `steps` |
+| Flex | Maximum control, typography | `guidance_scale`, `steps`, adjustable |
 
 ## Supported Dimensions
 
@@ -105,7 +109,19 @@ All models above support text-to-image generation via the `prompt` parameter.
 
 ## FLUX Pricing Formula
 
-```
-Cost = MP x Price_per_MP x (Steps / Default_Steps)
-MP = Width x Height / 1,000,000
-```
+Image models bill one of two ways; the **Unit** column of the
+[serverless catalog](https://docs.together.ai/docs/serverless/models#image-models) says which
+([How image models bill](https://docs.together.ai/docs/serverless/overview#how-image-models-bill)).
+
+- **By megapixel** (models Together serves directly, such as FLUX1.1 [pro], FLUX.1 Kontext, and
+  FLUX.2 [max]): cost scales with output megapixels, and is scaled up when you exceed the
+  model's default step count.
+
+  ```
+  MP = Width x Height / 1,000,000
+  Cost ~= MP x Price_per_MP   (higher when steps exceed the default)
+  ```
+
+- **By image, estimated** (provider-hosted models, which is most of them): the provider's own
+  per-request charge is passed through, and varies with resolution and quality. Generate one
+  image at the target settings to see the real cost before a large run.

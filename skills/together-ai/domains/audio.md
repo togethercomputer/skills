@@ -15,10 +15,13 @@ translation, diarization, timestamps, realtime). Serverless TTS includes `hexgra
 
 ## Rules
 
-- TTS: `client.audio.speech.create()`. REST returns a `BinaryAPIResponse`; save it with
-  `response.write_to_file(path)`. There is no `stream_to_file`.
-- Streaming TTS (`stream=True`) yields `AudioSpeechStreamChunk` objects: check `chunk.type` and
-  decode `base64.b64decode(chunk.delta)`. The stream has no file-writing helper.
+- TTS: `client.audio.speech.create()` returns a `BinaryAPIResponse`; save it with
+  `response.write_to_file(path)` (that object has no `stream_to_file`). The docs' alternative,
+  `with client.audio.speech.with_streaming_response.create(...) as r: r.stream_to_file(path)`,
+  also works.
+- Streaming TTS needs `stream=True` and `response_format="raw"` (with a `response_encoding` such
+  as `"pcm_s16le"`). It yields `AudioSpeechStreamChunk` objects of type
+  `conversation.item.audio_output.delta`; decode audio with `base64.b64decode(chunk.delta)`.
 - STT: `client.audio.transcriptions.create()` and `client.audio.translations.create()`. Limits:
   80 MB direct upload, 1 GB by URL, 4 hours of audio per request. Pass a public HTTPS URL as
   `file=` for big files; split audio longer than 4 hours.
@@ -41,8 +44,8 @@ translation, diarization, timestamps, realtime). Serverless TTS includes `hexgra
 
 ## Docs
 
-- [Text-to-Speech](https://docs.together.ai/docs/text-to-speech)
-- [Speech-to-Text](https://docs.together.ai/docs/speech-to-text)
+- [Text-to-Speech](https://docs.together.ai/docs/inference/text-to-speech/overview)
+- [Speech-to-Text](https://docs.together.ai/docs/inference/transcription/overview)
 - [TTS REST API](https://docs.together.ai/reference/audio-speech)
 - [TTS WebSocket API](https://docs.together.ai/reference/audio-speech-websocket)
 - [Audio Transcriptions API](https://docs.together.ai/reference/audio-transcriptions)

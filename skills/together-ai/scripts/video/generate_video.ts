@@ -37,8 +37,8 @@ async function waitForVideo(
       console.log(`  URL: ${url}`);
       return url;
     }
-    if (status.status === "failed") {
-      throw new Error(`Video generation failed: ${JSON.stringify(status.error)}`);
+    if (status.status === "failed" || (status.status as string) === "cancelled") {
+      throw new Error(`Video generation ${status.status}: ${JSON.stringify(status.error)}`);
     }
 
     await new Promise((r) => setTimeout(r, pollMs));

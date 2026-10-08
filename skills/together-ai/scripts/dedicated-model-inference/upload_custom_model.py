@@ -6,9 +6,9 @@ Register a model record, import weights from Hugging Face or a presigned S3
 URL, poll the upload job, and deploy the result on a dedicated endpoint.
 
 Usage:
-    python upload_custom_model.py create --name gemma-4-31b-it --base-model ml_base123
-    python upload_custom_model.py upload --model ml_abc123 --from-url https://huggingface.co/org/repo [--hf-token hf_...] [--adapter]
-    python upload_custom_model.py poll --job job_abc123 [--adapter]
+    python upload_custom_model.py create --name gemma-4-31b-it --base-model ml_base123 [--adapter]
+    python upload_custom_model.py upload --model ml_abc123 --from-url https://huggingface.co/org/repo [--hf-token hf_...]
+    python upload_custom_model.py poll --job job_abc123
     python upload_custom_model.py deploy --model ml_abc123 --config cr_abc123 --endpoint my-custom-model
 
 Requires:
@@ -38,23 +38,28 @@ client = Together()
 PROJECT_ID = client.whoami().project_id
 
 
-def create_record(name: str, base_model_id: str, description: str | None = None):
-    """Register the model/adapter record. Weights are attached by a later upload."""
+def create_record(name: str, base_model_id: str, adapter: bool, description: str | None = None):
+    """Register the model/adapter record. Weights are attached by a later upload.
+
+    Whether the record is a full model or a LoRA adapter is set here, via `type`.
+    """
     if "/" in name:
         print(f"WARNING: '{name}' looks org-prefixed; this produces an unrenamable doubled slug.")
     model = client.beta.models.create(
         project_id=PROJECT_ID,
-        model={"name": name, "base_model_id": base_model_id, "description": description},
+        name=name,
+        base_model_id=base_model_id,
+        type="adapter" if adapter else "model",
+        description=description,
     )
     print(f"Created model record: {model.id} ({model.name})")
     return model
 
 
-def start_remote_upload(model_id: str, remote_url: str, hf_token: str | None, adapter: bool):
+def start_remote_upload(model_id: str, remote_url: str, hf_token: str | None):
     """Stream weights server-side from Hugging Face or a presigned S3 URL."""
     job = client.beta.models.remote_uploads.create(
         project_id=PROJECT_ID,
-        type="adapter" if adapter else "model",
         model_id=model_id,
         remote_url=remote_url,
         token=hf_token,
@@ -63,14 +68,11 @@ def start_remote_upload(model_id: str, remote_url: str, hf_token: str | None, ad
     return job
 
 
-def poll_job(job_id: str, adapter: bool, timeout: int = 7200, poll: int = 20):
+def poll_job(job_id: str, timeout: int = 7200, poll: int = 20):
     """Poll the upload job until REMOTE_UPLOAD_STATUS_SUCCEEDED."""
-    upload_type = "adapters" if adapter else "models"
     elapsed = 0
     while elapsed < timeout:
-        job = client.beta.models.remote_uploads.retrieve(
-            job_id, project_id=PROJECT_ID, type=upload_type
-        )
+        job = client.beta.models.remote_uploads.retrieve(job_id, project_id=PROJECT_ID)
         print(f"  {job.status}  {job.status_message or ''}")
         if job.status == "REMOTE_UPLOAD_STATUS_SUCCEEDED":
             print("Upload complete. Verify files with: tg beta models ls-files <model_id>")
@@ -111,16 +113,15 @@ def main() -> int:
     p.add_argument("--name", required=True, help="Bare name, no org prefix")
     p.add_argument("--base-model", required=True, help="Supported base model ID (ml_...)")
     p.add_argument("--description", default=None)
+    p.add_argument("--adapter", action="store_true", help="Register a LoRA adapter instead of a full model")
 
     p = sub.add_parser("upload", help="Start a remote upload from HF or presigned S3 URL")
     p.add_argument("--model", required=True, help="Model record ID (ml_...)")
     p.add_argument("--from-url", required=True, help="HF repo URL or presigned S3 archive URL")
     p.add_argument("--hf-token", default=None, help="Token for gated/private HF repos")
-    p.add_argument("--adapter", action="store_true", help="Upload is a LoRA adapter")
 
     p = sub.add_parser("poll", help="Poll an upload job until it succeeds")
     p.add_argument("--job", required=True, help="Upload job ID (job_...)")
-    p.add_argument("--adapter", action="store_true")
 
     p = sub.add_parser("deploy", help="Deploy the uploaded model")
     p.add_argument("--model", required=True, help="Model ID (ml_...)")
@@ -130,11 +131,11 @@ def main() -> int:
 
     args = parser.parse_args()
     if args.command == "create":
-        create_record(args.name, args.base_model, args.description)
+        create_record(args.name, args.base_model, args.adapter, args.description)
     elif args.command == "upload":
-        start_remote_upload(args.model, args.from_url, args.hf_token, args.adapter)
+        start_remote_upload(args.model, args.from_url, args.hf_token)
     elif args.command == "poll":
-        poll_job(args.job, args.adapter)
+        poll_job(args.job)
     elif args.command == "deploy":
         deploy(args.model, args.config, args.config_project, args.endpoint)
     return 0

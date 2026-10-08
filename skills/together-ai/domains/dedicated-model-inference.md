@@ -61,15 +61,18 @@ your own Docker runtime is `domains/dedicated-containers.md`; raw nodes are `dom
 
 ## Rules
 
-- **Billing runs while replicas run, and there is no automatic idle shutdown.** Per minute,
-  per replica, by hardware. The old `inactive_timeout` auto-stop was removed — always scale to
-  zero (`min_replicas: 0, max_replicas: 0`) or delete when the user is done; a forgotten
-  deployment bills until someone stops it.
+- **Billing runs while replicas run.** Per minute, per replica, by hardware. Idle shutdown is off
+  unless you set an inactivity timeout: `--inactive-timeout N` on `deploy` or `update` (30 to
+  1440 minutes, `0` disables; `inactive_timeout` in a current Python SDK). It stops the deployment
+  after N minutes without requests. Otherwise scale to zero (`min_replicas: 0, max_replicas: 0`)
+  or delete when the user is done; a forgotten deployment bills until someone stops it. A
+  deployment with an inactivity timeout cannot take part in a rollout.
 - **A `READY` deployment serves nothing until it's in the endpoint's traffic split.** The CLI's
   `deploy` routes automatically; otherwise set a weight with `tg beta endpoints update <dep_id>
   --traffic-weight N` (upserts one entry) or replace the split via SDK
-  `endpoints.update(traffic_split=[...])`. A `routing_error`/503 on a READY deployment almost
-  always means a missing/zero weight.
+  `endpoints.update(traffic_split=[...])`. HTTP 400 `endpoint_not_configured` on a READY
+  deployment means it is missing from the split or has weight 0; 400 `endpoint_not_ready` means
+  no deployment behind the endpoint is running.
 - **Management IDs vs endpoint string.** Management calls take IDs (`ep_`, `dep_`, `cr_`, `ml_`,
   `abx_`, `exp_`); inference takes the endpoint string `<project_slug>/<endpoint_name>`.
 - **The SDK requires `project_id` on every method** — derive it with `client.whoami().project_id`.
@@ -115,7 +118,8 @@ These come from runs that did the hard part and then failed at the end.
   only when `tg beta endpoints ls` no longer shows the endpoint.
 - **Measure, do not assume.** Record wall-clock timestamps when a test starts and ends, and report
   the measured duration, not the planned one. For autoscaling, align latency samples to the
-  scale-up and scale-down times in the endpoint's events feed (api-reference.md, Events Feed),
+  scale-up and scale-down times in the endpoint's events feed (`tg beta endpoints events EP_ID
+  --json`, or api-reference.md, Events Feed),
   not to when you expected scaling to happen. Report an observed split from counted `x-cluster`
   headers, as described in Rules.
 
@@ -127,11 +131,11 @@ only for the detail named in its row, and read just that section; each starts wi
 | File | Lines | Contains | Open when |
 |---|---|---|---|
 | [scripts/dedicated-model-inference/deploy_model.py](scripts/dedicated-model-inference/deploy_model.py) | 254 | SDK path: deploy, poll to READY, infer on the dedicated base URL, scale, clean up | scripting the lifecycle in Python |
-| [scripts/dedicated-model-inference/upload_custom_model.py](scripts/dedicated-model-inference/upload_custom_model.py) | 144 | upload custom weights or a LoRA adapter, then deploy | serving your own weights |
-| [references/dedicated-model-inference/cli-reference.md](references/dedicated-model-inference/cli-reference.md) | 299 | every `tg beta endpoints` and `models` command and flag: deploy, get, update, rm, `ab`, `shadow`; what the CLI cannot do | a CLI flag or subcommand |
-| [references/dedicated-model-inference/api-reference.md](references/dedicated-model-inference/api-reference.md) | 477 | SDK and REST for endpoints and deployments: states, autoscaling and scaling metrics, stop/restart, routing, deletion, Prometheus monitoring, Events Feed | SDK calls, metrics, or the events feed |
-| [references/dedicated-model-inference/traffic-routing.md](references/dedicated-model-inference/traffic-routing.md) | 289 | how weights route, stickiness, observing routing via headers, gradual cutover, A/B tests, shadow experiments | traffic splits, A/B, or shadow |
-| [references/dedicated-model-inference/models-and-configs.md](references/dedicated-model-inference/models-and-configs.md) | 351 | choosing a model, deployment profiles, configs, hardware pricing, model and LoRA upload, upload troubleshooting | picking a profile or uploading weights |
+| [scripts/dedicated-model-inference/upload_custom_model.py](scripts/dedicated-model-inference/upload_custom_model.py) | 145 | upload custom weights or a LoRA adapter, then deploy | serving your own weights |
+| [references/dedicated-model-inference/cli-reference.md](references/dedicated-model-inference/cli-reference.md) | 297 | every `tg beta endpoints` and `models` command and flag: deploy, get, update, rm, `ab`, `shadow`; what the CLI cannot do | a CLI flag or subcommand |
+| [references/dedicated-model-inference/api-reference.md](references/dedicated-model-inference/api-reference.md) | 478 | SDK and REST for endpoints and deployments: states, autoscaling and scaling metrics, stop/restart, routing, deletion, Prometheus monitoring, Events Feed | SDK calls, metrics, or the events feed |
+| [references/dedicated-model-inference/traffic-routing.md](references/dedicated-model-inference/traffic-routing.md) | 290 | how weights route, stickiness, observing routing via headers, gradual cutover, A/B tests, shadow experiments | traffic splits, A/B, or shadow |
+| [references/dedicated-model-inference/models-and-configs.md](references/dedicated-model-inference/models-and-configs.md) | 349 | choosing a model, deployment profiles, configs, hardware pricing, model and LoRA upload, upload troubleshooting | picking a profile or uploading weights |
 
 ## Docs
 

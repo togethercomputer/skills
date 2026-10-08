@@ -26,8 +26,8 @@ from together import Together
 
 client = Together()
 
-# No embedding or rerank model is served serverless today. Deploy one on a dedicated
-# endpoint (see domains/embeddings.md), then set EMBEDDING_MODEL (and optionally
+# Together does not currently offer embedding or rerank models (see domains/embeddings.md).
+# If you already have an embedding endpoint, set EMBEDDING_MODEL (and optionally
 # RERANK_MODEL) to its endpoint string, e.g. "my-project/my-embeddings".
 # Dedicated inference is served from its own base URL.
 EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "")
@@ -41,9 +41,9 @@ def require_embedding_model() -> str:
     """Exit with an actionable message instead of failing request by request."""
     if not EMBEDDING_MODEL:
         sys.exit(
-            "EMBEDDING_MODEL is not set. Together serves no embedding models serverless; "
-            "deploy one on a dedicated endpoint and export its endpoint string. "
-            "See domains/embeddings.md."
+            "EMBEDDING_MODEL is not set. Together does not currently offer embedding models "
+            "(serverless or in the dedicated catalog). If you already have an embedding "
+            "endpoint, export its endpoint string. See domains/embeddings.md."
         )
     return EMBEDDING_MODEL
 

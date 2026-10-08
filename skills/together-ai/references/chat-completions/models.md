@@ -1,12 +1,14 @@
 # Chat Model Catalog
 
 Snapshot of the serverless catalog as of 2026-10-07. Serverless availability changes often; a
-model that drops off returns `Unable to access non-serverless model`. Confirm before relying on an
-ID:
+model that drops off returns `Unable to access non-serverless model`. To confirm a chat model,
+send one request with `max_tokens=1`; check the
+[deprecations page](https://docs.together.ai/docs/deprecations) for retired models and their
+replacements. `client.models.list()` and `tg beta models public` cannot confirm serverless
+availability.
 
-```bash
-tg beta models public --product serverless --modality text --json
-```
+Qwen3.6 Plus, Qwen3.7 Plus, Qwen3.7 Max, and Qwen3.8 Flash return 403
+`third_party_data_sharing_blocked` unless the organization enables third-party data sharing.
 
 Source pages: [Serverless models](https://docs.together.ai/docs/serverless/models) and
 [Recommended models](https://docs.together.ai/docs/inference/recommended-models).
@@ -67,5 +69,5 @@ Start with `Qwen/Qwen3.5-9B` unless the task needs a larger model.
 
 ## Moderation Models
 
-No moderation model is served serverless. Deploy one on a dedicated endpoint (see
-`domains/dedicated-model-inference.md`).
+No moderation model is served serverless, and none is listed in the dedicated deployment catalog
+(checked 2026-10-07).

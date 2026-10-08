@@ -162,24 +162,24 @@ Example:
 together beta jig submit --payload '{"prompt": "A cat playing piano"}' --watch
 ```
 
-### jig job_status
+### jig job-status
 
 Get the status of a submitted job.
 
 ```shell
-together beta jig job_status --request-id <id>
+together beta jig job-status --request-id <id>
 ```
 
 | Flag | Description |
 |------|-------------|
 | `--request-id <id>` | The job's request ID (required) |
 
-### jig queue_status
+### jig queue-status
 
 Show queue backlog and worker status.
 
 ```shell
-together beta jig queue_status
+together beta jig queue-status
 ```
 
 ## Queue API
@@ -381,7 +381,7 @@ mount_path = "/models"
 Jig reads configuration from your `pyproject.toml` file or a standalone `jig.toml` file. You can also specify a custom config file explicitly:
 
 ```shell
-together beta jig --config staging_jig.toml deploy
+together beta jig deploy --config staging_jig.toml
 ```
 
 This is useful for managing multiple environments (e.g., `staging_jig.toml`, `production_jig.toml`).

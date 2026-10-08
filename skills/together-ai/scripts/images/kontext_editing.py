@@ -25,8 +25,8 @@ client = Together()
 def save_image_bytes(data: bytes, output_path: str) -> str:
     """Write image bytes under an extension that matches their real format.
 
-    Most models return JPEG unless you ask for another format (`output_format` is
-    FLUX.2-only), so "out.png" would otherwise hold JPEG bytes. Returns the path
+    Image models return JPEG by default (`output_format` defaults to "jpeg"), so
+    "out.png" would otherwise hold JPEG bytes. Returns the path
     actually written.
     """
     signatures = {b"\x89PNG\r\n\x1a\n": ".png", b"\xff\xd8\xff": ".jpg", b"RIFF": ".webp"}
@@ -46,8 +46,7 @@ def edit_image(
     prompt: str,
     image_url: str,
     model: str = KONTEXT_PRO,
-    width: int = 1024,
-    height: int = 1024,
+    aspect_ratio: str = "1:1",
     steps: int = 28,
     seed: int | None = None,
 ) -> str:
@@ -56,8 +55,9 @@ def edit_image(
         model=model,
         prompt=prompt,
         image_url=image_url,
-        width=width,
-        height=height,
+        # Kontext sizes output by aspect ratio. The SDK has no aspect_ratio argument,
+        # so it goes through extra_body.
+        extra_body={"aspect_ratio": aspect_ratio},
         steps=steps,
     )
     if seed is not None:
@@ -74,8 +74,7 @@ def edit_and_save(
     image_url: str,
     output_path: str = "edited.png",
     model: str = KONTEXT_PRO,
-    width: int = 1024,
-    height: int = 1024,
+    aspect_ratio: str = "1:1",
     steps: int = 28,
     seed: int | None = None,
 ) -> str:
@@ -84,8 +83,9 @@ def edit_and_save(
         model=model,
         prompt=prompt,
         image_url=image_url,
-        width=width,
-        height=height,
+        # Kontext sizes output by aspect ratio. The SDK has no aspect_ratio argument,
+        # so it goes through extra_body.
+        extra_body={"aspect_ratio": aspect_ratio},
         steps=steps,
         response_format="base64",
         n=1,
@@ -146,8 +146,7 @@ if __name__ == "__main__":
     edit_image(
         prompt="Place this cat in a snowy winter landscape",
         image_url=SOURCE_IMAGE,
-        width=1344,
-        height=768,
+        aspect_ratio="16:9",
     )
 
     # --- Example 4: Landscape aspect ratio ---
@@ -155,8 +154,7 @@ if __name__ == "__main__":
     edit_image(
         prompt="Transform this into a pencil sketch",
         image_url=SOURCE_IMAGE,
-        width=1536,
-        height=1024,
+        aspect_ratio="3:2",
     )
 
     # --- Example 5: Reproducible edit ---

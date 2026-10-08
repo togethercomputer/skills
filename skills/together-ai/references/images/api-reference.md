@@ -8,7 +8,6 @@
 - [FLUX.2 Generation](#flux2-generation)
 - [Image Editing (Kontext)](#image-editing)
 - [Reference Images (FLUX.2, Google)](#reference-images)
-- [LoRA Adapters](#lora-adapters)
 - [Response](#response)
 - [Steps Guide](#steps-guide)
 - [Dimensions Guide](#dimensions-guide)
@@ -35,12 +34,10 @@
 | `response_format` | string | No | `"url"` | `"base64"` for inline data, `"url"` for hosted |
 | `image_url` | string | No | - | Reference image URL (Kontext models) |
 | `reference_images` | array | No | - | Reference image URLs (FLUX.2, Google models) |
-| `image_loras` | array | No | - | LoRA adapters: `[{path, scale}]` (max 2) |
-| `guidance` | float | No | - | Guidance scale for FLUX.2 dev/flex |
-| `guidance_scale` | number | No | 3.5 | Prompt alignment (1-5 creative, 8-10 faithful) |
-| `prompt_upsampling` | bool | No | true | Auto-enhance prompts (FLUX.2) |
-| `output_format` | string | No | `"jpeg"` | `"jpeg"` or `"png"` (FLUX.2) |
-| `aspect_ratio` | string | No | - | For Schnell/Kontext: 1:1, 16:9, 9:16, 4:3, 3:2 |
+| `guidance_scale` | number | No | 3 | Prompt alignment (1-5 creative, 8-10 faithful); FLUX.2 dev/flex |
+| `prompt_upsampling` | bool | No | true | Auto-enhance prompts (FLUX.2 pro only; Python: pass via `extra_body`) |
+| `output_format` | string | No | `"jpeg"` | `"jpeg"` or `"png"`; FLUX models including Kontext |
+| `aspect_ratio` | string | No | - | Kontext output size: 1:1, 16:9, 9:16, 4:3, 3:2 (Python: pass via `extra_body`) |
 | `disable_safety_checker` | bool | No | false | Disable NSFW check |
 
 ## Text-to-Image
@@ -124,8 +121,9 @@ for (const image of response.data) {
 
 ## FLUX.2 Generation
 
-FLUX.2 models support `prompt_upsampling`, `output_format`, `guidance`, and
-`reference_images`.
+FLUX.2 adds `reference_images` (pro, dev, flex), `guidance_scale` (dev, flex), and
+`prompt_upsampling` (pro only). The Python SDK has no `prompt_upsampling` or `aspect_ratio`
+argument, so pass those in `extra_body`; passing them as keywords raises `TypeError`.
 
 ```python
 response = client.images.generate(
@@ -133,8 +131,8 @@ response = client.images.generate(
     prompt="A mountain landscape at sunset with golden light",
     width=1024,
     height=768,
-    prompt_upsampling=True,
     output_format="png",
+    extra_body={"prompt_upsampling": True},
 )
 ```
 
@@ -158,7 +156,7 @@ response = client.images.generate(
     width=1024,
     height=1024,
     steps=28,
-    guidance=7.5,
+    guidance_scale=7.5,
 )
 ```
 
@@ -171,9 +169,8 @@ response = client.images.generate(
     model="black-forest-labs/FLUX.1-kontext-pro",
     prompt="Make his shirt yellow",
     image_url="https://github.com/nutlope.png",
-    width=1536,
-    height=1024,
     steps=28,
+    extra_body={"aspect_ratio": "3:2"},  # Kontext sizes output by aspect ratio
 )
 ```
 
@@ -182,8 +179,7 @@ const response = await together.images.generate({
   model: "black-forest-labs/FLUX.1-kontext-pro",
   prompt: "Make his shirt yellow",
   image_url: "https://github.com/nutlope.png",
-  width: 1536,
-  height: 1024,
+  aspect_ratio: "3:2",
   steps: 28,
 });
 ```
@@ -230,66 +226,6 @@ const response = await together.images.generate({
 });
 ```
 
-## LoRA Adapters
-
-Apply up to 2 LoRA adapters per image. Compatible with FLUX.2 Dev and FLUX.1 Dev.
-
-```python
-response = client.images.generate(
-    model="black-forest-labs/FLUX.2-dev",
-    prompt="a man walking outside on a rainy day",
-    width=1024,
-    height=768,
-    steps=28,
-    image_loras=[
-        {"path": "https://huggingface.co/XLabs-AI/flux-RealismLora", "scale": 0.8},
-    ],
-)
-```
-
-```typescript
-const response = await together.images.generate({
-  model: "black-forest-labs/FLUX.2-dev",
-  prompt: "a man walking outside on a rainy day",
-  width: 1024,
-  height: 768,
-  steps: 28,
-  image_loras: [
-    { path: "https://huggingface.co/XLabs-AI/flux-RealismLora", scale: 0.8 },
-  ],
-});
-```
-
-```shell
-curl -X POST "https://api.together.xyz/v1/images/generations" \
-  -H "Authorization: Bearer $TOGETHER_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "black-forest-labs/FLUX.2-dev",
-    "prompt": "a man walking outside on a rainy day",
-    "width": 1024,
-    "height": 768,
-    "steps": 28,
-    "image_loras": [
-      {"path": "https://huggingface.co/XLabs-AI/flux-RealismLora", "scale": 0.8}
-    ]
-  }'
-```
-
-### LoRA Path Formats
-
-- Hugging Face repo: `https://huggingface.co/XLabs-AI/flux-RealismLora`
-- Hugging Face file: `https://huggingface.co/.../resolve/main/model.safetensors`
-- CivitAI: `https://civitai.com/api/download/models/...`
-- Replicate: `https://replicate.com/fofr/flux-black-light`
-- Direct `.safetensors` URL
-
-### LoRA Scale Guide
-
-- `0.3-0.5`: Subtle effect
-- `0.6-0.8`: Balanced (recommended)
-- `0.9-1.2`: Strong effect
-
 ## Response
 
 ```json
@@ -329,7 +265,7 @@ With `response_format="base64"`:
 
 | Steps | Effect |
 |-------|--------|
-| 1-4 | Fast, lower quality (FLUX.1 Schnell default: 4) |
+| 1-4 | Fast, lower quality |
 | 10-20 | Good balance of speed and quality |
 | 28 | High quality (Kontext, FLUX.1 Dev default) |
 | 30-50 | Maximum quality, slower |
@@ -346,15 +282,14 @@ With `response_format="base64"`:
 
 ## Model Feature Matrix
 
-| Feature | FLUX.2 | FLUX.1 Schnell | FLUX.1 Kontext | Google |
+| Feature | FLUX.2 | FLUX1.1 Pro | FLUX.1 Kontext | Google |
 |---------|--------|---------------|---------------|--------|
 | Text-to-image | Yes | Yes | Yes | Yes |
 | `image_url` | Pro/Flex | No | Yes | No |
 | `reference_images` | Yes | No | No | Yes |
-| `image_loras` | Dev | No | No | No |
-| `prompt_upsampling` | Yes | No | No | No |
-| `guidance` | Dev/Flex | No | No | No |
-| `output_format` | Yes | No | No | No |
+| `prompt_upsampling` | Pro only | No | No | No |
+| `guidance_scale` | Dev/Flex | No | No | No |
+| `output_format` | Yes | Yes | Yes | See API reference |
 | `negative_prompt` | No | Yes | No | No |
 
 ## Troubleshooting
@@ -365,4 +300,3 @@ With `response_format="base64"`:
 | Poor quality | Use 30-40 steps and add quality modifiers such as "highly detailed" |
 | Inconsistent results | Set `seed` for reproducibility |
 | Wrong dimensions | Ensure width and height are multiples of 8 and use standard aspect ratios |
-| LoRA not applying | Verify the `.safetensors` URL is accessible and adjust `scale` between 0.3 and 1.2 |

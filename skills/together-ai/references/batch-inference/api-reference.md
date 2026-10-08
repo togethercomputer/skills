@@ -239,17 +239,13 @@ curl -X GET "https://api.together.xyz/v1/batches" \
 ## Models with 50% Discount
 
 - `meta-llama/Llama-3.3-70B-Instruct-Turbo`
+- `openai/whisper-large-v3` (audio batches through `/v1/audio/transcriptions` and
+  `/v1/audio/translations`)
 
-Most serverless models support batch processing through the chat completions endpoint; models not listed above have no discount. The following serverless models are not currently available for batch and will fail if submitted:
-
-- `deepseek-ai/DeepSeek-R1`
-- `deepseek-ai/DeepSeek-V3.1`
-- `deepseek-ai/DeepSeek-V4-Pro`
-- `MiniMaxAI/MiniMax-M2.7`
-- `moonshotai/Kimi-K2.5`
-- `moonshotai/Kimi-K2.6`
-- `Qwen/Qwen3.5-397B-A17B`
-- `zai-org/GLM-5`
+Most serverless models support batch processing through `/v1/chat/completions`; models not
+listed above run at standard rates. Batches can also target a dedicated endpoint, but the
+discount does not apply to dedicated usage. Source:
+[Batch overview](https://docs.together.ai/docs/inference/batch/overview).
 
 ## Rate Limits
 
@@ -293,18 +289,19 @@ Per-request errors are recorded in a separate file accessible via `error_file_id
 ## CLI Commands
 
 ```shell
-# Upload file
-together files upload batch_input.jsonl --purpose batch-api
+# Upload and create in one step (a local JSONL path or an uploaded file ID both work)
+tg batches submit batch_input.jsonl --api chat.completions
 
-# Create batch
-together batches create --input-file file-abc123 --endpoint /v1/chat/completions
+# Audio transcription batches use a different API
+tg batches submit audio_batch.jsonl --api audio.transcriptions
 
 # Check status
-together batches retrieve batch-abc123
+tg batches get BATCH_ID
 
-# List batches
-together batches list
+# Download the output (and error) files
+tg batches download BATCH_ID --output batch_output.jsonl
 
-# Cancel
-together batches cancel batch-abc123
+# List and cancel
+tg batches list
+tg batches cancel BATCH_ID
 ```

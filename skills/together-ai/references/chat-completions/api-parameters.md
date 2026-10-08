@@ -220,7 +220,7 @@ const response = await together.chat.completions.create({
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `safety_model` | string | Moderation model on a dedicated endpoint (none is served serverless) |
+| `safety_model` | string | Moderation model used to validate tokens; no moderation model is currently served serverless |
 | `compliance` | string | Set to `"hipaa"` for HIPAA mode |
 
 ## Reasoning
@@ -244,6 +244,8 @@ stream = client.chat.completions.create(
 )
 
 for chunk in stream:
+    if not chunk.choices:  # final usage-only chunk
+        continue
     print(chunk.choices[0].delta.content or "", end="", flush=True)
 ```
 
@@ -276,9 +278,12 @@ stream = client.chat.completions.create(
 )
 
 for chunk in stream:
+    if not chunk.choices:  # final usage-only chunk
+        continue
     delta = chunk.choices[0].delta
-    if hasattr(delta, "reasoning") and delta.reasoning:
-        print(delta.reasoning, end="", flush=True)
+    trace = getattr(delta, "reasoning", None) or getattr(delta, "reasoning_content", None)
+    if trace:
+        print(trace, end="", flush=True)
     if hasattr(delta, "content") and delta.content:
         print(delta.content, end="", flush=True)
 ```
@@ -290,6 +295,7 @@ import type { ChatCompletionChunk } from "together-ai/resources/chat/completions
 
 type ReasoningDelta = ChatCompletionChunk.Choice.Delta & {
   reasoning?: string;
+  reasoning_content?: string;
 };
 
 const stream = await together.chat.completions.create({
@@ -302,7 +308,8 @@ const stream = await together.chat.completions.create({
 
 for await (const chunk of stream) {
   const delta = chunk.choices[0]?.delta as ReasoningDelta;
-  if (delta?.reasoning) process.stdout.write(delta.reasoning);
+  const trace = delta?.reasoning ?? delta?.reasoning_content;
+  if (trace) process.stdout.write(trace);
   if (delta?.content) process.stdout.write(delta.content);
 }
 ```

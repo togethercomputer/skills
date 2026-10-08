@@ -25,15 +25,15 @@ Each skill contains:
 | Domain guide | What it covers | Scripts |
 |--------------|----------------|---------|
 | **audio.md** | Text-to-speech (REST, streaming, realtime WebSocket) and speech-to-text (transcription, translation, diarization, tim... | `stt_realtime.py`, `stt_transcribe.py`, `stt_transcribe.ts`, `tts_generate.py`, `tts_generate.ts`, `tts_websocket.py` |
-| **batch-inference.md** | Asynchronous bulk inference over a JSONL file, up to 50% cheaper than real-time, completing within a 24-hour window (... | `batch_workflow.py`, `batch_workflow.ts` |
+| **batch-inference.md** | Asynchronous bulk inference over a JSONL file, up to 50% cheaper than real-time, with a 24-hour completion window (ba... | `batch_workflow.py`, `batch_workflow.ts` |
 | **chat-completions.md** | Serverless, OpenAI-compatible text generation: one call, billed per token. | `async_parallel.py`, `chat_basic.py`, `chat_basic.ts`, `debug_headers.py`, `debug_headers.ts`, `reasoning_models.py`, `reasoning_models.ts`, `structured_outputs.py`, `structured_outputs.ts`, `tool_call_loop.py`, `tool_call_loop.ts` |
 | **dedicated-containers.md** | Run your own Docker image as an inference worker on Together GPUs: Sprocket handles the request lifecycle, Jig builds... | `queue_client.py`, `queue_client.ts`, `sprocket_hello_world.py` |
 | **dedicated-model-inference.md** | Dedicated model inference (DMI) serves a model on reserved single-tenant GPUs. | `deploy_model.py`, `upload_custom_model.py` |
-| **embeddings.md** | Dense vectors for semantic search and RAG retrieval, plus reranking as a second-stage precision step. | `embed_and_rerank.py`, `embed_and_rerank.ts`, `rag_pipeline.py`, `semantic_search.py` |
+| **embeddings.md** | **Together does not currently offer embedding or rerank models.** Checked 2026-10-07. | `embed_and_rerank.py`, `embed_and_rerank.ts`, `rag_pipeline.py`, `semantic_search.py` |
 | **evaluations.md** | Managed LLM-as-a-judge jobs: **classify** outputs into labels, **score** them on a scale, or **compare** two responses. | `run_evaluation.py`, `run_evaluation.ts` |
 | **fine-tuning.md** | Adapt a model on your data: LoRA (default), full fine-tuning, DPO preference tuning, VLM, function-calling, and reaso... | `dpo_workflow.py`, `finetune_workflow.py`, `function_calling_finetune.py`, `reasoning_finetune.py`, `vlm_finetune.py` |
-| **gpu-clusters.md** | On-demand or reserved H100, H200, and B200 clusters with Kubernetes or Slurm, shared storage, and credentials, for di... | `manage_cluster.py`, `manage_cluster.ts`, `manage_storage.py` |
-| **images.md** | Text-to-image generation and image editing, billed per image (FLUX models also scale with megapixels and steps). | `generate_image.py`, `generate_image.ts`, `kontext_editing.py`, `lora_generation.py` |
+| **gpu-clusters.md** | GPU clusters (H100, H200, B200, B300, and other types; availability varies by region) with Kubernetes or Slurm, share... | `manage_cluster.py`, `manage_cluster.ts`, `manage_storage.py` |
+| **images.md** | Text-to-image generation and image editing. | `generate_image.py`, `generate_image.ts`, `kontext_editing.py` |
 | **kueue.md** | Kueue is a Kubernetes-native job queueing controller. | — |
 | **sandboxes.md** | Managed remote Python execution with stateful sessions, for running agent-written code, data analysis, and charts. | `execute_with_session.py`, `execute_with_session.ts` |
 | **video.md** | Text-to-video and image-to-video, billed per video. | `generate_video.py`, `generate_video.ts`, `image_to_video.py` |

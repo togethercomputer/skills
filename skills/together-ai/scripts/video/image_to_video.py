@@ -32,9 +32,9 @@ def wait_for_video(job_id: str, poll_interval: int = 5, timeout: int = 600) -> s
         if status.status == "completed":
             print(f"  Video URL: {status.outputs.video_url}")
             return status.outputs.video_url
-        elif status.status == "failed":
+        elif status.status in ("failed", "cancelled"):
             error = getattr(status, "error", None)
-            raise RuntimeError(f"Video generation failed: {error}")
+            raise RuntimeError(f"Video generation {status.status}: {error}")
 
         time.sleep(poll_interval)
         elapsed += poll_interval

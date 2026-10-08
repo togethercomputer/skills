@@ -8,10 +8,12 @@ repeatable. To change a model rather than measure it, go to `domains/fine-tuning
 
 1. Pick classify, score, or compare, and define the dataset columns before writing code.
 2. Upload the dataset as an eval file (`check=False`) and keep the file ID.
-3. Choose judge and target models explicitly. The evaluation service has its **own** serverless
-   allowlist, separate from the main catalog: `GET /evaluation/model-list?model_source=serverless`.
-   It includes `deepseek-ai/DeepSeek-V4-Pro-0813`, `meta-llama/Llama-3.3-70B-Instruct-Turbo`,
-   `openai/gpt-oss-120b`, and `Qwen/Qwen3.5-9B`.
+3. Choose judge and target models explicitly. The evaluation service keeps its **own** serverless
+   allowlist, separate from the main catalog; check it live (free):
+   `GET https://api.together.xyz/v1/evaluation/model-list?model_source=serverless`. On 2026-10-07
+   the live list and the docs table disagreed, so trust the endpoint. Models on both, and callable
+   serverless: `openai/gpt-oss-120b` (the docs' example judge),
+   `meta-llama/Llama-3.3-70B-Instruct-Turbo`, and `Qwen/Qwen3.5-9B`.
 4. `client.evals.create(...)`, poll status until it is terminal, then download the per-row results.
 
 ## Rules

@@ -61,6 +61,8 @@ stream = client.chat.completions.create(
 )
 
 for chunk in stream:
+    if not chunk.choices:  # final usage-only chunk
+        continue
     print(chunk.choices[0].delta.content or "", end="", flush=True)
 ```
 
@@ -130,9 +132,12 @@ stream = client.chat.completions.create(
 )
 
 for chunk in stream:
+    if not chunk.choices:  # final usage-only chunk
+        continue
     delta = chunk.choices[0].delta
-    if hasattr(delta, "reasoning") and delta.reasoning:
-        print(delta.reasoning, end="", flush=True)
+    trace = getattr(delta, "reasoning", None) or getattr(delta, "reasoning_content", None)
+    if trace:
+        print(trace, end="", flush=True)
     if hasattr(delta, "content") and delta.content:
         print(delta.content, end="", flush=True)
 ```
@@ -154,6 +159,7 @@ type ReasoningParams = CompletionCreateParamsStreaming & {
 
 type ReasoningDelta = ChatCompletionChunk.Choice.Delta & {
   reasoning?: string;
+  reasoning_content?: string;
 };
 
 const params: ReasoningParams = {
@@ -174,7 +180,8 @@ const stream = await together.chat.completions.create(params);
 
 for await (const chunk of stream) {
   const delta = chunk.choices[0]?.delta as ReasoningDelta;
-  if (delta?.reasoning) process.stdout.write(delta.reasoning);
+  const trace = delta?.reasoning ?? delta?.reasoning_content;
+  if (trace) process.stdout.write(trace);
   if (delta?.content) process.stdout.write(delta.content);
 }
 ```
@@ -241,13 +248,14 @@ response = client.chat.completions.create(
 
 ### Separate reasoning field (most models)
 
-Models like Kimi K3, GLM-5, DeepSeek-V4-Pro, GPT-OSS, and Qwen3.5 return reasoning in a dedicated
-`reasoning` field on the response message or streaming delta.
+Most reasoning models return the chain of thought in a dedicated field on the response message or
+streaming delta, but the field name depends on the model. Observed 2026-10-07: GPT-OSS and
+Qwen3.5 9B use `reasoning`; Kimi K3, DeepSeek V4 Pro 0813, GLM-5.2, and MiniMax M3 use
+`reasoning_content`. Read both.
 
-The field is symmetric: the model returns its chain of thought in `reasoning` (or `delta.reasoning`
-when streaming), and you pass it back under the same `reasoning` key when you send a prior assistant
-turn to the API for preserved thinking or multi-turn tool calling. The older `reasoning_content`
-key is still accepted on input for backward compatibility, but prefer `reasoning` for new code.
+Use the same key for input and output: when you send a prior assistant turn back for preserved
+thinking or multi-turn tool calling, return the trace unmodified under the key it arrived on
+([Reasoning docs](https://docs.together.ai/docs/inference/chat/reasoning)).
 
 **Non-streaming (Python):**
 
@@ -256,7 +264,8 @@ response = client.chat.completions.create(
     model="moonshotai/Kimi-K3",
     messages=[{"role": "user", "content": "Say test 10 times"}],
 )
-print("Reasoning:", response.choices[0].message.reasoning)
+message = response.choices[0].message
+print("Reasoning:", getattr(message, "reasoning", None) or getattr(message, "reasoning_content", None))
 print("Answer:", response.choices[0].message.content)
 ```
 
@@ -268,7 +277,8 @@ const response = await together.chat.completions.create({
   messages: [{ role: "user", content: "Say test 10 times" }],
 } as any);
 
-console.log("Reasoning:", (response.choices[0].message as any).reasoning);
+const message = response.choices[0].message as any;
+console.log("Reasoning:", message.reasoning ?? message.reasoning_content);
 console.log("Answer:", response.choices[0].message.content);
 ```
 
@@ -284,8 +294,9 @@ stream = client.chat.completions.create(
 for chunk in stream:
     if chunk.choices:
         delta = chunk.choices[0].delta
-        if hasattr(delta, "reasoning") and delta.reasoning:
-            print(delta.reasoning, end="", flush=True)
+        trace = getattr(delta, "reasoning", None) or getattr(delta, "reasoning_content", None)
+        if trace:
+            print(trace, end="", flush=True)
         if hasattr(delta, "content") and delta.content:
             print(delta.content, end="", flush=True)
 ```
@@ -305,8 +316,10 @@ const stream = await together.chat.completions.stream({
 for await (const chunk of stream) {
   const delta = chunk.choices[0]?.delta as ChatCompletionChunk.Choice.Delta & {
     reasoning?: string;
+    reasoning_content?: string;
   };
-  if (delta?.reasoning) process.stdout.write(delta.reasoning);
+  const trace = delta?.reasoning ?? delta?.reasoning_content;
+  if (trace) process.stdout.write(trace);
   if (delta?.content) process.stdout.write(delta.content);
 }
 ```

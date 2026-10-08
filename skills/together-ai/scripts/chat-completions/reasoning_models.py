@@ -2,7 +2,7 @@
 """
 Together AI Chat Completions — Reasoning Models (v2 SDK)
 
-Demonstrates reasoning with separate reasoning field, DeepSeek R1 <think> tags,
+Demonstrates reasoning with separate reasoning fields, parsing DeepSeek-R1 <think> tags,
 reasoning effort control, and enabling/disabling reasoning on hybrid models.
 
 Usage:
@@ -66,28 +66,26 @@ def reasoning_field_non_streaming() -> None:
     print()
 
 
-def deepseek_r1_think_tags() -> None:
-    """DeepSeek R1 outputs reasoning in <think> tags within content."""
-    print("=== DeepSeek R1 (<think> tags) ===")
-    stream = client.chat.completions.create(
-        model="deepseek-ai/DeepSeek-V4-Pro-0813",
-        messages=[
-            {"role": "user", "content": "Which number is bigger 9.9 or 9.11?"},
-        ],
-        stream=True,
-    )
+def split_think_tags(text: str) -> tuple[str, str]:
+    """Split DeepSeek-R1-style output into (thinking, answer).
 
-    full_content = ""
-    for chunk in stream:
-        content = chunk.choices[0].delta.content or ""
-        full_content += content
+    DeepSeek-R1 and its distillations put their reasoning inside <think> tags in
+    `content`. They are no longer served serverless on Together (dedicated
+    endpoints only), and the current serverless reasoning models use a separate
+    `reasoning` or `reasoning_content` field instead, so this runs offline.
+    """
+    match = re.search(r"<think>(.*?)</think>", text, re.DOTALL)
+    thinking = match.group(1).strip() if match else ""
+    answer = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
+    return thinking, answer
 
-    # Parse <think> tags
-    think_match = re.search(r"<think>(.*?)</think>", full_content, re.DOTALL)
-    thinking = think_match.group(1).strip() if think_match else ""
-    answer = re.sub(r"<think>.*?</think>", "", full_content, flags=re.DOTALL).strip()
 
-    print(f"Thinking: {thinking[:200]}...")
+def think_tags_example() -> None:
+    """Parse <think> tags from DeepSeek-R1 output (dedicated endpoints only)."""
+    print("=== <think> tags (DeepSeek-R1 on a dedicated endpoint) ===")
+    sample = "<think>9.9 is 9.90, and 9.90 > 9.11.</think>9.9 is bigger."
+    thinking, answer = split_think_tags(sample)
+    print(f"Thinking: {thinking}")
     print(f"Answer: {answer}")
     print()
 
@@ -107,6 +105,8 @@ def reasoning_effort_example() -> None:
 
         content = ""
         for chunk in stream:
+            if not chunk.choices:  # GPT-OSS ends every stream with a usage-only chunk
+                continue
             content += chunk.choices[0].delta.content or ""
 
         print(f"  effort={effort}: {content[:100]}...")
@@ -157,6 +157,6 @@ def toggle_reasoning() -> None:
 if __name__ == "__main__":
     reasoning_field_streaming()
     reasoning_field_non_streaming()
-    deepseek_r1_think_tags()
+    think_tags_example()
     reasoning_effort_example()
     toggle_reasoning()

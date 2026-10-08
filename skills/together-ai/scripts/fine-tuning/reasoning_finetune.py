@@ -244,8 +244,10 @@ def main() -> None:
     for chunk in stream:
         if chunk.choices:
             delta = chunk.choices[0].delta
-            if hasattr(delta, "reasoning") and delta.reasoning:
-                reasoning_text += delta.reasoning
+            # the trace field is `reasoning` or `reasoning_content`, depending on the model
+            trace = getattr(delta, "reasoning", None) or getattr(delta, "reasoning_content", None)
+            if trace:
+                reasoning_text += trace
             if hasattr(delta, "content") and delta.content:
                 content_text += delta.content
 

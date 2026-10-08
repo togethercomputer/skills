@@ -47,8 +47,7 @@ async function kontextEditing(): Promise<void> {
     model: "black-forest-labs/FLUX.1-kontext-pro",
     prompt: "Transform this into a watercolor painting",
     image_url: "https://cdn.pixabay.com/photo/2020/05/20/08/27/cat-5195431_1280.jpg",
-    width: 1024,
-    height: 768,
+    aspect_ratio: "4:3", // Kontext sizes output by aspect ratio, not width/height
     steps: 28,
   });
   console.log(`  Edited image: ${response.data[0].url}`);

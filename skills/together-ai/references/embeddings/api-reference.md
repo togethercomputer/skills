@@ -9,12 +9,16 @@
 
 Base URL: `https://api.together.xyz/v1`
 
+Together does not currently offer embedding or rerank models (checked 2026-10-07; see the
+[deprecations page](https://docs.together.ai/docs/deprecations)). These shapes apply to an
+existing embedding or rerank endpoint.
+
 ## Endpoints
 
 | Method | Path | Description |
 |--------|------|-------------|
 | `POST /embeddings` | Generate embeddings | Convert text to vector representations |
-| `POST /rerank` | Rerank documents | Reorder documents by relevance to a query (dedicated endpoint required) |
+| `POST /rerank` | Rerank documents | Reorder documents by relevance to a query (requires an existing rerank endpoint) |
 
 ## Create Embeddings
 
@@ -119,9 +123,8 @@ for start in range(0, len(texts), batch_size):
 
 ## Rerank Documents
 
-Reranking requires a dedicated endpoint. See the
-[Rerank Overview](https://docs.together.ai/docs/rerank-overview) for current models and
-setup instructions.
+No rerank model is currently offered (`mixedbread-ai/Mxbai-Rerank-Large-V2` was removed on
+2026-03-06). This section applies to an existing rerank endpoint.
 
 ### Request Parameters
 
