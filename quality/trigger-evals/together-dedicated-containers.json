@@ -22,5 +22,9 @@
   {
     "query": "Generate a single still image with FLUX.2 from a text prompt.",
     "should_trigger": false
+  },
+  {
+    "query": "My container deployment is already running. Route requests straight to the router hosts Together gave me, keeping each session on one host and failing over if a host is down.",
+    "should_trigger": false
   }
 ]
