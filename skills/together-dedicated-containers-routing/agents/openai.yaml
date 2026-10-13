@@ -1,0 +1,4 @@
+interface:
+  display_name: "Together Dedicated Containers Routing"
+  short_description: "Direct, sticky routing to a running Together AI container deployment"
+  default_prompt: "Use $together-dedicated-containers-routing to send requests for a running Together AI Dedicated Container Inference deployment directly to its router hosts, with sticky affinity-key routing, failover and streaming passthrough."

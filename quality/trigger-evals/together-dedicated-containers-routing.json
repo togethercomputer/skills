@@ -1,0 +1,38 @@
+[
+  {
+    "query": "Together gave us three router hosts for our Dedicated Container Inference deployment. Make our Python client send each user's requests to the same host using together-affinity-key.",
+    "should_trigger": true
+  },
+  {
+    "query": "Build a Go gateway that forwards to the router hosts Together gave us for our running container deployment and streams SSE responses through without buffering.",
+    "should_trigger": true
+  },
+  {
+    "query": "If one of the router hosts for my Together DCI deployment is down, how should my client fail over to the next one without sending a request twice?",
+    "should_trigger": true
+  },
+  {
+    "query": "Pin requests to a specific replica of my already-deployed Together container with the together-replica header from a TypeScript service.",
+    "should_trigger": true
+  },
+  {
+    "query": "Deploy my custom Dockerized inference worker to Together AI with Jig and Sprocket.",
+    "should_trigger": false
+  },
+  {
+    "query": "Submit async jobs to my Together container deployment through the queue API and poll for results.",
+    "should_trigger": false
+  },
+  {
+    "query": "Set up sticky routing by user id on my Together dedicated model endpoint so each user stays on one deployment.",
+    "should_trigger": false
+  },
+  {
+    "query": "Stream chat completions from a serverless Llama model on Together AI.",
+    "should_trigger": false
+  },
+  {
+    "query": "Stream SSE from my running Together container deployment through api.together.ai in my Python app.",
+    "should_trigger": false
+  }
+]

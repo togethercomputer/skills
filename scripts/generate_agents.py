@@ -35,6 +35,7 @@ SKILL_ORDER = [
     "together-sandboxes",
     "together-dedicated-model-inference",
     "together-dedicated-containers",
+    "together-dedicated-containers-routing",
     "together-gpu-clusters",
     "together-volcano",
     "together-kueue",

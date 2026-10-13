@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "notes": [
+    "Hex values are unsigned 64-bit. scores are s(h) after >> 11; order lists normalized hosts. An empty key is random and has no case.",
+    "normalize_errors fail at load; key_errors fail locally with nothing hashed or sent. error names are descriptive; tests assert failure only."
+  ],
+  "xxh64": [
+    {"input": "router-a.example.com", "seed": "0x0000000000000000", "hash": "0x4a7015f20f177ad5"},
+    {"input": "router-a.example.com", "seed": "0xffffffffffffffff", "hash": "0xe89ed5083861edbb"}
+  ],
+  "normalize": [
+    {"input": "\t HTTPS://Router-E.Example.com:443/v1/deployment-request/x \n", "output": "router-e.example.com"},
+    {"input": "router-d.example.com.:443", "output": "router-d.example.com"}
+  ],
+  "normalize_errors": [
+    {"hosts": ["https://router-a.example.com", "ROUTER-A.example.com:443"], "error": "duplicate"},
+    {"hosts": ["https://"], "error": "empty"},
+    {"hosts": ["user@router-a.example.com"], "error": "character"},
+    {"hosts": ["router-a.example.com?x=1"], "error": "character"},
+    {"hosts": ["router-c.example.com:8443"], "error": "port"}
+  ],
+  "key_errors": [
+    {"key": " user-42", "error": "leading space"},
+    {"key": "user-42 ", "error": "trailing space"},
+    {"key": "user\t42", "error": "byte outside 0x20-0x7E"},
+    {"key": "caf\u00e9-42", "error": "byte outside 0x20-0x7E"}
+  ],
+  "ranking": [
+    {"name": "2 hosts", "key": "user-42", "hosts": ["router-a.example.com", "router-b.example.com"], "seed": "0x397e9d3a76af7c81", "scores": {"router-a.example.com": "0x0014f329b0f3d1aa", "router-b.example.com": "0x00178f6db4cd00d7"}, "order": ["router-b.example.com", "router-a.example.com"]},
+    {"name": "2 hosts, unnormalized spellings", "key": "user-42", "hosts": ["HTTPS://Router-B.example.com:443/", "router-a.example.com."], "seed": "0x397e9d3a76af7c81", "scores": {"router-a.example.com": "0x0014f329b0f3d1aa", "router-b.example.com": "0x00178f6db4cd00d7"}, "order": ["router-b.example.com", "router-a.example.com"]},
+    {"name": "5 hosts, permuted list, 36-byte key", "key": "3f2b8c1e-9d4a-4e7b-8f61-2c5d0a9e7b13", "hosts": ["router-d.example.com", "router-a.example.com", "router-e.example.com", "router-c.example.com", "router-b.example.com"], "seed": "0xcdadd578141b2dc0", "scores": {"router-d.example.com": "0x000ac4dfd9627907", "router-a.example.com": "0x00184e798a055260", "router-e.example.com": "0x0000751022dc0efa", "router-c.example.com": "0x0005c1d2ddd0f473", "router-b.example.com": "0x000ab86e594d6dac"}, "order": ["router-a.example.com", "router-d.example.com", "router-b.example.com", "router-c.example.com", "router-e.example.com"]},
+    {"name": "8 hosts, key with spaces and punctuation", "key": "session: alice@example.com / chat #7 (v1)?", "hosts": ["router-a.example.com", "router-b.example.com", "router-c.example.com", "router-d.example.com", "router-e.example.com", "router-f.example.com", "router-g.example.com", "router-h.example.com"], "seed": "0x4ab305c72b808787", "scores": {"router-a.example.com": "0x001a8227e50b1a86", "router-b.example.com": "0x0016d4a35b662fb8", "router-c.example.com": "0x001bdff3c1fd86e8", "router-d.example.com": "0x001e33e439cdb332", "router-e.example.com": "0x001f478869a8016f", "router-f.example.com": "0x0005165da81b3724", "router-g.example.com": "0x000ceec50e3e1d1e", "router-h.example.com": "0x0014e036e5390cf6"}, "order": ["router-e.example.com", "router-d.example.com", "router-c.example.com", "router-a.example.com", "router-b.example.com", "router-h.example.com", "router-g.example.com", "router-f.example.com"]}
+  ]
+}
