@@ -34,7 +34,7 @@ Leaving the block closes HTTP connections and does not terminate sandboxes.
 ## Snapshots
 
 A snapshot is an immutable disk image that sandboxes boot from. Build one from a public image or a
-Docker build context; Together's remote builder does the work, so no local Docker is needed.
+Docker build context. Together's remote builder does the work, so no local Docker is needed.
 Address it by ID or by a mutable alias, `tag` or `namespace@tag`.
 
 ```python
@@ -67,10 +67,12 @@ console.log(result.snapshotId, result.alias);
 | `ttl` | context | Seconds before the snapshot retires itself. |
 | `on_progress` / `onProgress` | both | Callback receiving `step` (`prepare`, `build`, `auth`, `push`, `register`, `alias`) and `output`. |
 
-Other calls (Python names; TypeScript uses camelCase): `get_by_alias(alias)` and `get_by_id(id)`
-return metadata or raise `HttpError` 404; `alias(snapshot_id, alias)` points an alias at a snapshot;
-`list(limit=, cursor=, exclude_retired=, tags=)` returns an async-iterable `Page`;
-`retire_by_id(id)` (TypeScript `retire(id)`) stops new sandboxes from using it.
+Other calls, with Python names (TypeScript uses camelCase):
+
+- `get_by_alias(alias)` and `get_by_id(id)`: metadata, or `HttpError` 404 when missing.
+- `alias(snapshot_id, alias)`: point an alias at a snapshot.
+- `list(limit=, cursor=, exclude_retired=, tags=)`: an async-iterable `Page`.
+- `retire_by_id(id)` (TypeScript `retire(id)`): stop new sandboxes from using it.
 
 `snapshots.create` is not idempotent. Look the alias up before building, and exclude it from custom
 retry rules.
@@ -101,7 +103,7 @@ await sandbox.terminate();
 `create` starts the VM and returns a connected sandbox. Other calls on `sdk.sandboxes`:
 
 - `connect(sandbox_id)`: reattach to a running sandbox and get `.files`, `.execs`, and the rest.
-- `get(sandbox_id)`: metadata only (`status`, `status_reason`); no in-VM namespaces.
+- `get(sandbox_id)`: metadata only (`status`, `status_reason`), with no in-VM namespaces.
 - `list(limit=, cursor=, statuses=, snapshot_id=, tags=)`: async-iterable `Page`.
 - `terminate(sandbox_id, snapshot=...)`: terminate by ID without a connected sandbox.
 
@@ -114,7 +116,7 @@ terminated sandbox cannot restart: create a new one from the snapshot it produce
 ## Run commands
 
 `execs.exec(command, args, cwd=, env=, user=, pty=)` runs to completion. Python returns a dict with
-`exit_code` and `output`; TypeScript returns `{ exitCode, output }`. `output` is stdout and stderr
+`exit_code` and `output`, and TypeScript returns `{ exitCode, output }`. `output` is stdout and stderr
 joined in arrival order. It raises if the stream ends without an exit code, for example when the
 sandbox shuts down mid-run. Commands run as `1000:1000` unless `user` is set.
 
@@ -182,7 +184,7 @@ SANDBOX_ID=$(together-sandbox sandboxes create @my-python@v1 --ttl 600 | awk '{p
 together-sandbox sandbox exec run "$SANDBOX_ID" -- python3 -c "print(6 * 7)"
 together-sandbox sandboxes terminate "$SANDBOX_ID"
 
-together-sandbox sandboxes list          # running only; --all for every status
+together-sandbox sandboxes list          # running only (--all for every status)
 ```
 
 `sandboxes create` takes `--cpu`, `--memory-bytes`, `--ttl`, `--tag`, and `--snapshot-on-terminate`

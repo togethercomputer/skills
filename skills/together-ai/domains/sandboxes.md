@@ -10,7 +10,7 @@ services or GPU workloads go to `domains/dedicated-containers.md` or `domains/gp
 > **Code Interpreter is retired.** `POST /tci/execute` and `GET /tci/sessions` return HTTP 404, so
 > `client.code_interpreter.execute()` and `client.code_interpreter.sessions.list()`
 > (`client.codeInterpreter` in TypeScript) fail, and the next major SDK release removes them. Do not
-> use or retry them. Rewrite the code with `together-sandbox` as below; the mapping is in
+> use or retry them. Rewrite the code with `together-sandbox` as below. The mapping is in
 > [api-reference.md](references/sandboxes/api-reference.md#migrating-from-code-interpreter).
 
 ## Workflow
@@ -18,11 +18,11 @@ services or GPU workloads go to `domains/dedicated-containers.md` or `domains/gp
 1. Confirm the task needs code *executed*, not only written.
 2. Install the package: `pip install together-sandbox` (Python 3.10+) or
    `npm install together-sandbox` (Node.js 18+). It reads `TOGETHER_API_KEY`.
-3. Get a snapshot. Reuse one by alias (`snapshots.get_by_alias("my-python@v1")`) before building;
-   otherwise create one from a public image or a Dockerfile context with an alias (`namespace@tag`).
+3. Get a snapshot. Reuse one by alias (`snapshots.get_by_alias("my-python@v1")`) before building.
+   Otherwise, create one from a public image or a Dockerfile context with an alias (`namespace@tag`).
    Together builds it remotely, so no local Docker is needed.
 4. `sandbox = await sdk.sandboxes.create(snapshot_alias="my-python@v1", ttl=600)`. Creation starts
-   the VM and returns a connected sandbox; there is no start step.
+   the VM and returns a connected sandbox, so there is no start step.
 5. Write inputs with `sandbox.files.create(path, content)`, run with
    `sandbox.execs.exec("python3", ["/work/main.py"])`, and read `exit_code` and `output` from the
    result. Read result files back with `sandbox.files.read(path)`.
@@ -32,13 +32,13 @@ services or GPU workloads go to `domains/dedicated-containers.md` or `domains/gp
 ## Rules
 
 - **Terminate explicitly.** A sandbox runs until it is terminated or its `ttl` (seconds) elapses.
-  `async with` closes the HTTP connection only; it does not terminate the VM. Set a `ttl` as a
+  `async with` closes the HTTP connection only and does not terminate the VM. Set a `ttl` as a
   backstop. `together-sandbox sandboxes list` shows what is still running.
 - **Termination is permanent.** A sandbox is ephemeral by default, so its filesystem is discarded.
   To keep state, terminate with `snapshot={"aliases": ["my-app@v2"]}` and create a new sandbox from
   that snapshot. The produced snapshot is also aliased `sandbox:<sandbox_id>`.
-- **Each exec is a new process.** Files persist across execs in the same sandbox; Python variables
-  do not. Code Interpreter's `session_id` reuse becomes one running sandbox plus state in files.
+- **Each exec is a new process.** Files persist across execs in the same sandbox, but Python
+  variables do not. Code Interpreter's `session_id` reuse becomes one running sandbox plus state in files.
 - **Check `exit_code`, not output text.** `output` is stdout and stderr joined in arrival order.
   A nonzero `exit_code` is a failure, and `exec` raises if the stream ends without one.
 - **`files.read` returns text.** For a chart or other binary output, base64-encode it in the sandbox,
@@ -55,8 +55,8 @@ services or GPU workloads go to `domains/dedicated-containers.md` or `domains/gp
 
 | File | Lines | Contains | Open when |
 |---|---|---|---|
-| [scripts/sandboxes/run_in_sandbox.py](scripts/sandboxes/run_in_sandbox.py) (.ts) | 117 | reuse or build a snapshot, create a sandbox with a TTL, write a file, run Python, read the result, terminate | running code remotely |
-| [references/sandboxes/api-reference.md](references/sandboxes/api-reference.md) | 215 | install, env vars, snapshots, sandbox create/connect/list/terminate, execs, files, states, errors, CLI, Code Interpreter migration | a parameter, state, error, or CLI question, or porting Code Interpreter code |
+| [scripts/sandboxes/run_in_sandbox.py](scripts/sandboxes/run_in_sandbox.py) (.ts) | 118 | reuse or build a snapshot, create a sandbox with a TTL, write a file, run Python, read the result, terminate | running code remotely |
+| [references/sandboxes/api-reference.md](references/sandboxes/api-reference.md) | 218 | install, env vars, snapshots, sandbox create/connect/list/terminate, execs, files, states, errors, CLI, Code Interpreter migration | a parameter, state, error, or CLI question, or porting Code Interpreter code |
 
 ## Docs
 
