@@ -132,7 +132,11 @@
     "expected_domain": "domains/sandboxes.md"
   },
   {
-    "query": "Show me how to upload a file to Together Sandboxes and inspect the returned display outputs.",
+    "query": "Build a sandbox snapshot from a Docker image on Together AI and run model-generated code in it.",
+    "expected_domain": "domains/sandboxes.md"
+  },
+  {
+    "query": "My client.code_interpreter.execute call to Together now returns a 404. What replaced it?",
     "expected_domain": "domains/sandboxes.md"
   },
   {
