@@ -156,7 +156,7 @@ All code examples and scripts target the **Together Python v2 SDK** (`together>=
 
 - Keyword-only arguments (not positional)
 - `client.batches.create()` / `client.batches.retrieve()` (not `create_batch()` / `get_batch()`)
-- `client.endpoints.retrieve()` (not `get()`)
+- `client.beta.endpoints.retrieve()` for dedicated endpoints (not `client.endpoints.get()`; the v1 endpoints API no longer creates endpoints)
 - `client.evals.create()` (not `client.evaluation.create()`)
 - File objects via context managers (`with open(..., "rb") as f:`)
 - Typed parameter classes for evaluations
