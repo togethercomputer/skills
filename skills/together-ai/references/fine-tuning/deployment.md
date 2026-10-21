@@ -127,39 +127,41 @@ client.beta.endpoints.delete(endpoint.id, project_id=project_id)
 
 ### Option 2: Download Weights
 
-Download and run locally or on your infrastructure.
+Download the weights to run them locally or on your own infrastructure.
+
+```shell
+tg fine-tuning download ft-abc123                              # final weights
+tg fine-tuning download ft-abc123 --output-dir ./my-model
+tg fine-tuning download ft-abc123 --checkpoint-step 48         # an intermediate checkpoint
+tg fine-tuning download ft-abc123 --checkpoint-type adapter    # LoRA jobs: adapter weights only
+```
+
+| Option | Description |
+|---|---|
+| `--output-dir`, `-o` | Directory to save the archive in. |
+| `--checkpoint-step`, `-s` | Checkpoint step to download, from `tg fine-tuning list-checkpoints`. Defaults to the final weights. `ft-abc123:48` is shorthand. |
+| `--checkpoint-type`, `-c` | `default`, `merged`, or `adapter`. `default` resolves to `merged` for LoRA jobs and to the full weights for full fine-tunes. `merged` and `adapter` apply to LoRA jobs only. |
+
+The Python SDK call is `fine_tuning.content`, which returns the archive as a binary response. Pass
+`checkpoint` explicitly unless you set `checkpoint_step`, which overrides it:
 
 ```python
-client.fine_tuning.download(
-    id="ft-abc123",
-    output="my-model/model.tar.zst",
-)
+response = client.fine_tuning.content(ft_id="ft-abc123", checkpoint="merged")
+response.write_to_file("my-model/model.tar.zst")
 ```
+
+| Job type | `checkpoint` values | What you get |
+|---|---|---|
+| LoRA | `merged`, `adapter`, `model_output_path` | `merged`: base model plus adapter as self-contained weights. `adapter`: the LoRA adapter only, to load on the base model yourself (for example, with PEFT or vLLM). |
+| Full | `model_output_path` only | The full trained weights. `adapter` returns an error. |
+
+`model_output_path` is the raw training output before any merging. The archive is a `.tar.zst`
+([Zstandard](https://github.com/facebook/zstd)), so decompress it before extracting:
 
 ```shell
-# CLI: download model weights
-together fine-tuning download ft-abc123
-
-# Download to a specific directory
-together fine-tuning download ft-abc123 --output_dir ./my-model
-
-# Download a specific checkpoint step
-together fine-tuning download ft-abc123 --checkpoint-step 48
-
-# Download merged or adapter-only weights (LoRA jobs)
-together fine-tuning download ft-abc123 --checkpoint-type merged
-together fine-tuning download ft-abc123 --checkpoint-type adapter
+zstd -d model.tar.zst      # macOS: brew install zstd
+tar -xvf model.tar
 ```
-
-```shell
-# Extract the downloaded archive
-tar -xf model-name.tar.zst
-```
-
-Options:
-- `--output_dir`, `-o` -- Specify the output directory
-- `--checkpoint-step`, `-s` -- Download a specific checkpoint's weights (default: latest)
-- `--checkpoint-type` -- `default`, `merged`, or `adapter` (merged/adapter only for LoRA jobs)
 
 ## Training Parameters
 
