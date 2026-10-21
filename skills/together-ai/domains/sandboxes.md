@@ -24,7 +24,7 @@ services or GPU workloads go to `domains/dedicated-containers.md` or `domains/gp
 4. `sandbox = await sdk.sandboxes.create(snapshot_alias="my-python@v1", ttl=600)`. Creation starts
    the VM and returns a connected sandbox, so there is no start step.
 5. Write inputs with `sandbox.files.create(path, content)`, run with
-   `sandbox.execs.exec("python3", ["/work/main.py"])`, and read `exit_code` and `output` from the
+   `sandbox.execs.exec("python3", ["/tmp/main.py"])`, and read `exit_code` and `output` from the
    result. Read result files back with `sandbox.files.read(path)`.
 6. `await sandbox.terminate()` in a `finally` block, then confirm nothing you created is still
    running.
@@ -38,7 +38,8 @@ services or GPU workloads go to `domains/dedicated-containers.md` or `domains/gp
   To keep state, terminate with `snapshot={"aliases": ["my-app@v2"]}` and create a new sandbox from
   that snapshot. The produced snapshot is also aliased `sandbox:<sandbox_id>`.
 - **Each exec is a new process.** Files persist across execs in the same sandbox, but Python
-  variables do not. Code Interpreter's `session_id` reuse becomes one running sandbox plus state in files.
+  variables do not. Code Interpreter's `session_id` reuse becomes one running sandbox plus state
+  in files.
 - **Check `exit_code`, not output text.** `output` is stdout and stderr joined in arrival order.
   A nonzero `exit_code` is a failure, and `exec` raises if the stream ends without one.
 - **`files.read` returns text.** For a chart or other binary output, base64-encode it in the sandbox,
