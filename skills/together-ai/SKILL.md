@@ -33,7 +33,7 @@ only when it holds a detail you need. Paths are relative to this skill's directo
 | `domains/batch-inference.md` | large offline jobs at lower cost (JSONL, `batches.create`) |
 | `domains/evaluations.md` | LLM-as-a-judge: classify, score, or compare outputs |
 | `domains/fine-tuning.md` | LoRA, full, DPO, VLM, function-calling, and reasoning tuning; BYOM upload |
-| `domains/sandboxes.md` | remote stateful Python execution, data analysis, charts |
+| `domains/sandboxes.md` | run code in isolated sandboxes (`together-sandbox`); replaces the retired Code Interpreter (`code_interpreter`) |
 | `domains/dedicated-model-inference.md` | dedicated endpoints (`tg beta endpoints`, `client.beta.endpoints`): deploy, autoscale, traffic split, A/B, shadow, metrics, model/LoRA upload, v1 migration (HTTP 403 `endpoints_v1_create_access_disabled`) |
 | `domains/dedicated-containers.md` | your own Docker inference worker: Sprocket, Jig, queue jobs |
 | `domains/gpu-clusters.md` | H100/H200/B200 clusters, Kubernetes or Slurm, shared storage, credentials |
@@ -65,8 +65,7 @@ calling the API from the user's own code is `chat-completions` or `images`. A ta
   only 429 and 5xx, with backoff, a few times, then report.
 - **v2 SDK only.** v1 names raise `AttributeError`: `create_batch` is `batches.create`, `get_batch`
   is `batches.retrieve`, `files.retrieve_content` is `files.content`, `evaluation.create` is
-  `evals.create`, `code_interpreter.run` is `code_interpreter.execute`, `file_id=` is
-  `input_file_id=`.
+  `evals.create`, `file_id=` is `input_file_id=`.
 - **Finish what you start.** Video, batch, evaluations, fine-tuning, queue jobs, and deployments
   are submit, poll to a terminal state, fetch. Do not end your turn while something you started is
   still provisioning, running, or being torn down: wait for the terminal state, or state exactly

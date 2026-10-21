@@ -10,82 +10,158 @@
 
 ## Deployment Options
 
-### Option 1: Dedicated Endpoint
+### Option 1: Dedicated Model Inference
 
-Deploy your fine-tuned model on a dedicated endpoint for production use.
+A completed job is already a private model in your project, so it deploys on dedicated model
+inference (DMI) with no upload step. Deploy it by its model object ID (`ml_...`): `model_object_id`
+in `tg fine-tuning retrieve`, or `job.api_model_object_id` in the Python SDK. `model_output_name`
+(`x_model_output_name` in the SDK) is not a deployable identifier. The legacy v1 API
+(`client.endpoints.create` with `hardware=`, or `tg endpoints create`) returns HTTP 403
+`endpoints_v1_create_access_disabled`. Scaling, traffic splits, and teardown details are in
+`domains/dedicated-model-inference.md`.
+
+The CLI creates the endpoint, attaches a deployment, and routes all traffic to it in one step:
+
+```shell
+tg fine-tuning retrieve ft-abc123                     # copy model_object_id (ml_...)
+tg beta endpoints deploy ml_abc123 --endpoint my-finetuned-endpoint
+tg beta endpoints get dep_abc123 --json | jq -r '.status.state'   # until DEPLOYMENT_STATE_READY
+tg beta endpoints rm ep_abc123 --force                # tear down: scales to zero, then deletes
+```
+
+`deploy` also accepts the full `model_object_name` (`<project_slug>/<model_name>`). If it reports
+more than one config, rerun it with `--config cr_...` (list them with `tg beta models configs
+ml_abc123`).
+
+The SDK has no single deploy call, so it runs the same steps. Every `client.beta.*` call takes
+`project_id`, and models and configs are passed as resource names:
 
 ```python
-endpoint = client.endpoints.create(
-    display_name="Fine-tuned Model",
-    model="your-username/Model-Name-your-suffix",
-    hardware="4x_nvidia_h100_80gb_sxm",
+import time
+
+from together import Together
+
+client = Together()
+project_id = client.whoami().project_id
+
+job = client.fine_tuning.retrieve(id="ft-abc123")
+if not job.api_model_object_id:
+    raise SystemExit("No model_object_id: the job is not completed or its upload failed")
+model = client.beta.models.retrieve(job.api_model_object_id, project_id=project_id)
+
+# Configs are published for the base model. If there is more than one, choose by
+# config.selectors (accelerator_type, accelerator_count, optimization).
+configs = list(
+    client.beta.models.configs.list(
+        project_id=project_id,
+        reference_model=model.base_model or f"projects/{model.project_id}/models/{model.id}",
+    )
+)
+config = configs[0]
+
+endpoint = client.beta.endpoints.create(project_id=project_id, name="my-finetuned-endpoint")
+deployment = client.beta.endpoints.deployments.create(
+    endpoint.id,
+    project_id=project_id,
+    name="my-finetuned-deployment",
+    model=f"projects/{model.project_id}/models/{model.id}",
+    # Use the config's own project: public configs can belong to another project.
+    config=f"projects/{config.project_id}/configs/{config.id}",
     autoscaling={"min_replicas": 1, "max_replicas": 1},
 )
-print(f"Endpoint ID: {endpoint.id}")
+# A READY deployment serves nothing until it is in the endpoint's traffic split.
+client.beta.endpoints.update(
+    endpoint.id,
+    project_id=project_id,
+    traffic_split=[{"deployment_id": deployment.id, "weight": 1}],
+)
 
-# Wait for the endpoint to be ready
-import time
 while True:
-    ep = client.endpoints.retrieve(endpoint.id)
-    print(f"  State: {ep.state}")
-    if ep.state == "STARTED":
+    current = client.beta.endpoints.deployments.retrieve(
+        deployment.id, project_id=project_id, endpoint_id=endpoint.id
+    )
+    print(f"  State: {current.status.state}")
+    if current.status.state == "DEPLOYMENT_STATE_READY":
         break
-    if ep.state in ("FAILED", "STOPPED"):
-        raise SystemExit(1)
+    if current.status.state == "DEPLOYMENT_STATE_FAILED":
+        raise SystemExit(current.status.message)
     time.sleep(15)
 
-# Query via endpoint.name (not the model ID)
-response = client.chat.completions.create(
+# Inference takes the endpoint string (endpoint.name, "<project_slug>/<endpoint_name>")
+# on the inference base URL, not the model ID.
+inference_client = Together(base_url="https://api-inference.together.ai/v1")
+response = inference_client.chat.completions.create(
     model=endpoint.name,
     messages=[{"role": "user", "content": "Hello!"}],
     max_tokens=128,
 )
 print(response.choices[0].message.content)
-
-# Delete the endpoint when done to stop charges
-client.endpoints.delete(endpoint.id)
 ```
 
-- Per-minute hosting charges while running
-- Guaranteed capacity and latency
-- No rate limits, high max load
-- Supports both LoRA and Full fine-tuned models
+To stop billing, scale the deployment to zero. To delete it, wait for `DEPLOYMENT_STATE_STOPPED`,
+drop its traffic weight, then delete the deployment and the endpoint:
+
+```python
+client.beta.endpoints.deployments.update(
+    deployment.id,
+    project_id=project_id,
+    endpoint_id=endpoint.id,
+    autoscaling={"min_replicas": 0, "max_replicas": 0},
+)
+# Once the deployment is DEPLOYMENT_STATE_STOPPED:
+client.beta.endpoints.update(
+    endpoint.id,
+    project_id=project_id,
+    traffic_split=[{"deployment_id": deployment.id, "weight": 0}],
+)
+client.beta.endpoints.deployments.delete(
+    deployment.id, project_id=project_id, endpoint_id=endpoint.id
+)
+client.beta.endpoints.delete(endpoint.id, project_id=project_id)
+```
+
+- Bills per minute per running replica, even when idle. Scale to zero or delete when done.
+- Reserved single-tenant GPUs with no hard rate limits.
+- Deploys only if the base model is supported for dedicated inference. Check the
+  [supported models](https://docs.together.ai/docs/dedicated-endpoints/models) before training.
 
 ### Option 2: Download Weights
 
-Download and run locally or on your infrastructure.
+Download the weights to run them locally or on your own infrastructure.
+
+```shell
+tg fine-tuning download ft-abc123                              # final weights
+tg fine-tuning download ft-abc123 --output-dir ./my-model
+tg fine-tuning download ft-abc123 --checkpoint-step 48         # an intermediate checkpoint
+tg fine-tuning download ft-abc123 --checkpoint-type adapter    # LoRA jobs: adapter weights only
+```
+
+| Option | Description |
+|---|---|
+| `--output-dir`, `-o` | Directory to save the archive in. |
+| `--checkpoint-step`, `-s` | Checkpoint step to download, from `tg fine-tuning list-checkpoints`. Defaults to the final weights. `ft-abc123:48` is shorthand. |
+| `--checkpoint-type`, `-c` | `default`, `merged`, or `adapter`. `default` resolves to `merged` for LoRA jobs and to the full weights for full fine-tunes. `merged` and `adapter` apply to LoRA jobs only. |
+
+The Python SDK call is `fine_tuning.content`, which returns the archive as a binary response. Pass
+`checkpoint` explicitly unless you set `checkpoint_step`, which overrides it:
 
 ```python
-client.fine_tuning.download(
-    id="ft-abc123",
-    output="my-model/model.tar.zst",
-)
+response = client.fine_tuning.content(ft_id="ft-abc123", checkpoint="merged")
+response.write_to_file("my-model/model.tar.zst")
 ```
+
+| Job type | `checkpoint` values | What you get |
+|---|---|---|
+| LoRA | `merged`, `adapter`, `model_output_path` | `merged`: base model plus adapter as self-contained weights. `adapter`: the LoRA adapter only, to load on the base model yourself (for example, with PEFT or vLLM). |
+| Full | `model_output_path` only | The full trained weights. `adapter` returns an error. |
+
+`model_output_path` is the raw training output before any merging. The archive is a `.tar.zst`
+([Zstandard](https://github.com/facebook/zstd)), so decompress it before extracting:
 
 ```shell
-# CLI: download model weights
-together fine-tuning download ft-abc123
-
-# Download to a specific directory
-together fine-tuning download ft-abc123 --output_dir ./my-model
-
-# Download a specific checkpoint step
-together fine-tuning download ft-abc123 --checkpoint-step 48
-
-# Download merged or adapter-only weights (LoRA jobs)
-together fine-tuning download ft-abc123 --checkpoint-type merged
-together fine-tuning download ft-abc123 --checkpoint-type adapter
+zstd -d model.tar.zst      # macOS: brew install zstd
+tar -xvf model.tar
 ```
-
-```shell
-# Extract the downloaded archive
-tar -xf model-name.tar.zst
-```
-
-Options:
-- `--output_dir`, `-o` -- Specify the output directory
-- `--checkpoint-step`, `-s` -- Download a specific checkpoint's weights (default: latest)
-- `--checkpoint-type` -- `default`, `merged`, or `adapter` (merged/adapter only for LoRA jobs)
 
 ## Training Parameters
 
