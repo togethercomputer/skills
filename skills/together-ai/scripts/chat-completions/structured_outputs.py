@@ -8,7 +8,7 @@ Usage:
     python structured_outputs.py
 
 Requires:
-    uv pip install "together>=2.0.0" pydantic
+    uv pip install "together>=2.0.0,<3" pydantic
     export TOGETHER_API_KEY=your_key
 """
 

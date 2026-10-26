@@ -12,7 +12,7 @@
  *   npx tsx embed_and_rerank.ts
  *
  * Requires:
- *   npm install together-ai
+ *   npm install "together-ai@<1"
  *   export TOGETHER_API_KEY=your_key
  *   export EMBEDDING_MODEL=your-project/your-embedding-endpoint  # dedicated endpoint string
  */

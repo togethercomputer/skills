@@ -15,7 +15,7 @@ Usage:
     python stt_transcribe.py timestamps audio.mp3 --granularity word
 
 Requirements:
-    uv pip install "together>=2.0.0"
+    uv pip install "together>=2.0.0,<3"
     export TOGETHER_API_KEY=your_key
 """
 
@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+from typing import Any
 
 from together import Together
 
@@ -112,14 +113,18 @@ def timestamps(audio_path: Path, model: str, granularity: str) -> None:
     print(f"Language: {response.language}")
     print(f"Duration: {response.duration}s")
 
+    # The SDK returns words as plain dicts and segments as objects; read either.
+    def field(item: Any, key: str) -> Any:
+        return item[key] if isinstance(item, dict) else getattr(item, key)
+
     if granularity == "word" and response.words:
         for word in response.words:
-            print(f"'{word.word}' [{word.start:.2f}s - {word.end:.2f}s]")
+            print(f"'{field(word, 'word')}' [{field(word, 'start'):.2f}s - {field(word, 'end'):.2f}s]")
         return
 
     if response.segments:
         for segment in response.segments:
-            print(f"[{segment.start:.2f}s - {segment.end:.2f}s] {segment.text}")
+            print(f"[{field(segment, 'start'):.2f}s - {field(segment, 'end'):.2f}s] {field(segment, 'text')}")
 
 
 def parse_args() -> argparse.Namespace:

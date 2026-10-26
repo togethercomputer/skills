@@ -9,7 +9,7 @@ Usage:
     python generate_video.py
 
 Requires:
-    uv pip install "together>=2.0.0" requests
+    uv pip install "together>=2.0.0,<3" requests
     export TOGETHER_API_KEY=your_key
 """
 
@@ -30,8 +30,7 @@ def wait_for_video(job_id: str, poll_interval: int = 5, timeout: int = 600) -> s
 
         if status.status == "completed":
             video_url = status.outputs.video_url
-            cost = status.outputs.cost
-            print(f"  Video ready! Cost: ${cost}")
+            print("  Video ready!")
             print(f"  URL: {video_url}")
             return video_url
         elif status.status in ("failed", "cancelled"):

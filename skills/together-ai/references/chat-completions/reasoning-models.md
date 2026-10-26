@@ -14,8 +14,9 @@
 ## Full Model Table
 
 Serverless reasoning models as of 2026-10-07 (source:
-[Reasoning](https://docs.together.ai/docs/inference/chat/reasoning)). Kimi K3, GLM-5, DeepSeek-R1
-and its distillations, QwQ-32B, and DeepSeek V3.1 are now dedicated-only. The trace arrives on
+[Reasoning](https://docs.together.ai/docs/inference/chat/reasoning)). Kimi K2.x, GLM-5, DeepSeek-R1
+and its distillations, QwQ-32B, and DeepSeek V3.1 are no longer serverless; only some of them can
+run on dedicated endpoints (see the deprecations page). The trace arrives on
 `reasoning` or `reasoning_content` depending on the model (Kimi K3 uses `reasoning_content`), so
 read both.
 
@@ -474,8 +475,3 @@ if (completion?.choices?.[0]?.message?.content) {
 - Use `reasoning_effort` to control depth
 - Set `max_tokens` to ~30,000 with `reasoning_effort="high"`
 - Build Tier 1+ required
-
-### Nemotron 3 Ultra 550B A55B
-- Hybrid reasoning model with 512K context
-- Defaults to high reasoning effort
-- To switch to medium effort, pass `chat_template_kwargs={"medium_effort": True}` instead of `reasoning_effort`

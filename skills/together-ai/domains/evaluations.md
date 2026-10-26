@@ -23,6 +23,11 @@ repeatable. To change a model rather than measure it, go to `domains/fine-tuning
 - Vision evals need an `image_data_urls` column of base64 data URLs, and a vision-capable model
   and judge.
 - Keep judge configuration explicit; hidden defaults make results hard to interpret.
+- Give model-generated targets room to think. When a thinking model runs out of `max_tokens`, its
+  cut-off reasoning becomes the output the judge scores: a score job on `Qwen/Qwen3.5-9B` averaged
+  3.2/10 at 512 tokens and 9.3/10 at 4096 (2026-10-26). The scripts default to 4096.
+- TypeScript: `client.files.upload` in `together-ai` 0.58 and 1.0 fails on Node 22 and 25 ("duplex
+  option is required"). Upload with the Python SDK or `tg files upload`, then pass the file ID.
 
 ## Open next
 

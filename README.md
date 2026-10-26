@@ -35,7 +35,7 @@ Each skill contains:
 | **gpu-clusters.md** | GPU clusters (H100, H200, B200, B300, and other types; availability varies by region) with Kubernetes or Slurm, share... | `manage_cluster.py`, `manage_cluster.ts`, `manage_storage.py` |
 | **images.md** | Text-to-image generation and image editing. | `generate_image.py`, `generate_image.ts`, `kontext_editing.py` |
 | **kueue.md** | Kueue is a Kubernetes-native job queueing controller. | — |
-| **sandboxes.md** | Managed remote Python execution with stateful sessions, for running agent-written code, data analysis, and charts. | `execute_with_session.py`, `execute_with_session.ts` |
+| **sandboxes.md** | Run commands and code in isolated remote sandboxes built from Docker-image snapshots, through the separate `together-... | — |
 | **togetherlink.md** | TogetherLink (`togetherlink`, alias `tlink`; beta) runs coding agents and desktop apps you already have on models hos... | — |
 | **video.md** | Text-to-video and image-to-video, billed per video. | `generate_video.py`, `generate_video.ts`, `image_to_video.py` |
 | **volcano.md** | Volcano is a Kubernetes-native batch scheduler. | — |
@@ -137,7 +137,7 @@ The agent routes to the `fine-tuning` domain guide for data format requirements,
 Each script is a standalone, runnable example. They require the Together Python SDK and an API key:
 
 ```bash
-uv pip install "together>=2.0.0"
+uv pip install "together>=2.0.0,<3"
 export TOGETHER_API_KEY=your_key
 
 # Run any script directly
@@ -146,18 +146,17 @@ python skills/together-ai/scripts/audio/tts_generate.py
 python skills/together-ai/scripts/batch-inference/batch_workflow.py
 ```
 
-Scripts are grouped by product area under `skills/together-ai/scripts/AREA/`. Python scripts use the **Together Python v2 SDK** (`together>=2.0.0`) with keyword-only arguments, updated method names, and current response shapes; several areas also ship TypeScript equivalents.
+Scripts are grouped by product area under `skills/together-ai/scripts/AREA/`. Python scripts use the **Together Python v2 SDK** (`together>=2.0.0,<3`) with keyword-only arguments, updated method names, and current response shapes; several areas also ship TypeScript equivalents.
 
 ## SDK Compatibility
 
-> **Version bump:** This repo now requires `together>=2.0.0`. If you are upgrading from v1, see the [migration guide](https://docs.together.ai/docs/v2-migration-guide) for breaking changes in method names, argument styles, and response shapes.
+> **Version bump:** This repo now requires `together>=2.0.0,<3`. If you are upgrading from v1, see the [migration guide](https://docs.together.ai/docs/v2-migration-guide) for breaking changes in method names, argument styles, and response shapes.
 
-All code examples and scripts target the **Together Python v2 SDK** (`together>=2.0.0`), which uses:
+All code examples and scripts target the **Together Python v2 SDK** (`together>=2.0.0,<3`), which uses:
 
 - Keyword-only arguments (not positional)
 - `client.batches.create()` / `client.batches.retrieve()` (not `create_batch()` / `get_batch()`)
 - `client.endpoints.retrieve()` (not `get()`)
-- `client.code_interpreter.execute()` (not `run()`)
 - `client.evals.create()` (not `client.evaluation.create()`)
 - File objects via context managers (`with open(..., "rb") as f:`)
 - Typed parameter classes for evaluations
@@ -169,7 +168,7 @@ If you're using the v1 SDK, see the [migration guide](https://docs.together.ai/d
 - A supported AI coding agent: [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [Cursor](https://www.cursor.com), [Codex](https://openai.com/index/introducing-codex/), or [Gemini CLI](https://github.com/google-gemini/gemini-cli)
 - [Together AI API key](https://api.together.ai/settings/api-keys)
 - Python 3.10+ (for scripts)
-- `uv pip install "together>=2.0.0"` (v2 SDK)
+- `uv pip install "together>=2.0.0,<3"` (v2 SDK)
 
 ## License
 

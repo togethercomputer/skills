@@ -15,7 +15,7 @@ Usage:
         --eval-model-source external --eval-external-api-token "$OPENAI_API_KEY"
 
 Requires:
-    uv pip install "together>=2.0.0"
+    uv pip install "together>=2.0.0,<3"
     export TOGETHER_API_KEY=your_key
 """
 
@@ -385,7 +385,12 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_INPUT_TEMPLATE,
         help="Jinja2 input template for model-based evaluation targets",
     )
-    parser.add_argument("--max-tokens", type=int, default=512, help="Maximum generation tokens")
+    parser.add_argument(
+        "--max-tokens",
+        type=int,
+        default=4096,
+        help="Maximum generation tokens for model-generated targets (thinking models need room)",
+    )
     parser.add_argument("--temperature", type=float, default=0.7, help="Generation temperature")
     parser.add_argument("--eval-external-api-token", help="API key for an external evaluation target")
     parser.add_argument("--eval-external-base-url", help="Custom OpenAI-compatible base URL for the target")

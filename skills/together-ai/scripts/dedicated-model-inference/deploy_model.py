@@ -17,7 +17,7 @@ Usage:
     python deploy_model.py rm --endpoint ep_abc123 --deployment dep_abc123
 
 Requires:
-    uv pip install --upgrade together   # a release with the beta DMI surface (client.beta.*)
+    uv pip install --upgrade "together>=2.0.0,<3"   # 2.x keeps the beta DMI surface (client.beta.*)
     export TOGETHER_API_KEY=your_key
 
 Billing note: replicas bill per minute while running and there is NO automatic

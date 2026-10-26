@@ -134,7 +134,7 @@ For reference files over ~100 lines, include a short `## Contents` section near 
 
 ### Scripts
 
-Files in `scripts/AREA/` are runnable examples demonstrating complete workflows. Python scripts use the **Together Python v2 SDK** (`together>=2.0.0`); several areas also ship TypeScript (`.ts`) equivalents using the `together-ai` npm package.
+Files in `scripts/AREA/` are runnable examples demonstrating complete workflows. Python scripts use the **Together Python v2 SDK** (`together>=2.0.0,<3`); several areas also ship TypeScript (`.ts`) equivalents using the `together-ai` npm package.
 
 ## Code conventions
 
@@ -159,7 +159,6 @@ These are the correct v2 SDK method names. Do NOT use v1 patterns:
 | Create batch | `client.batches.create()` | `client.create_batch()` |
 | Get batch | `client.batches.retrieve()` | `client.get_batch()` |
 | Get endpoint | `client.endpoints.retrieve()` | `client.endpoints.get()` |
-| Run code | `client.code_interpreter.execute()` | `client.code_interpreter.run()` |
 | File content | `client.files.content()` | `client.files.retrieve_content()` |
 | Evaluations | `client.evals.create()` | `client.evaluation.create()` |
 | Batch input | `input_file_id=` | `file_id=` |

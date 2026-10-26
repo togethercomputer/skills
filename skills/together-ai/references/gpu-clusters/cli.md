@@ -18,20 +18,20 @@ The Together CLI (`tg`) is the supported command-line interface for managing GPU
 Install the CLI as a `uv` tool. The `[cli]` extra pulls in CLI-only dependencies without bloating the Python SDK:
 
 ```shell
-uv tool install "together[cli]"
+uv tool install "together[cli]<3"
 tg --help
 ```
 
 Upgrade with:
 
 ```shell
-uv tool upgrade "together[cli]"
+uv tool upgrade "together[cli]<3"
 ```
 
 For CI/CD, invoke the CLI directly with `uvx` to avoid a separate install step:
 
 ```shell
-uvx "together[cli]" beta clusters list
+uvx "together[cli]<3" beta clusters list
 ```
 
 ## Authentication

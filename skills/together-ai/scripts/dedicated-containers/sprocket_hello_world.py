@@ -16,7 +16,7 @@ Usage:
 
 Requires:
     pip install sprocket --extra-index-url https://pypi.together.ai/
-    # For deployment: uv pip install "together>=2.0.0"
+    # For deployment: uv pip install "together>=2.0.0,<3"
 
 Example pyproject.toml:
     [project]

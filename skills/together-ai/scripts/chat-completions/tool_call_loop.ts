@@ -12,7 +12,7 @@
  *   npx tsx tool_call_loop.ts
  *
  * Requires:
- *   npm install together-ai
+ *   npm install "together-ai@<1"
  *   export TOGETHER_API_KEY=your_key
  */
 

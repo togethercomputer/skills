@@ -15,7 +15,7 @@
  *   npx tsx stt_transcribe.ts timestamps audio.mp3 --granularity word
  *
  * Requirements:
- *   npm install together-ai
+ *   npm install "together-ai@<1"
  *   export TOGETHER_API_KEY=your_key
  */
 

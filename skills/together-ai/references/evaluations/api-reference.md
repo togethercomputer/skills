@@ -97,7 +97,7 @@ When both `model_a` and `model_b` are model configuration objects (not pre-gener
 | `model_source` | string | Yes | `serverless`, `dedicated`, or `external` |
 | `system_template` | string | Yes | System prompt for generation |
 | `input_template` | string | Yes | Jinja2 input template (e.g., `{{prompt}}`) |
-| `max_tokens` | integer | Yes | Maximum generation tokens |
+| `max_tokens` | integer | Yes | Maximum generation tokens. Thinking models such as Qwen3.5 9B need about 4096, or the cut-off reasoning becomes the output |
 | `temperature` | float | Yes | Generation temperature (0 to 2) |
 | `num_workers` | integer | No | Concurrent workers for target inference. Defaults: `serverless` → 25, `dedicated` → 5 (minimum), `external` → 2 for first-party APIs or 20 for proxy endpoints. Override to tune throughput. |
 | `external_api_token` | string | No | API key for external providers |
@@ -184,7 +184,7 @@ evaluation = client.evals.create(
             "model_source": "serverless",
             "system_template": "You are a helpful assistant.",
             "input_template": "{{prompt}}",
-            "max_tokens": 512,
+            "max_tokens": 4096,
             "temperature": 0.7,
         },
     },
@@ -212,7 +212,7 @@ const evaluation = await client.evals.create({
       model_source: "serverless",
       system_template: "You are a helpful assistant.",
       input_template: "{{prompt}}",
-      max_tokens: 512,
+      max_tokens: 4096,
       temperature: 0.7,
     },
   },
@@ -239,7 +239,7 @@ curl -X POST "https://api.together.xyz/v1/evaluation" \
         "model_source": "serverless",
         "system_template": "You are a helpful assistant.",
         "input_template": "{{prompt}}",
-        "max_tokens": 512,
+        "max_tokens": 4096,
         "temperature": 0.7
       },
       "input_data_file_path": "file-abc123"
@@ -267,7 +267,7 @@ evaluation = client.evals.create(
             "model_source": "serverless",
             "system_template": "You are a helpful assistant.",
             "input_template": "{{prompt}}",
-            "max_tokens": 512,
+            "max_tokens": 4096,
             "temperature": 0.7,
         },
     },
@@ -292,7 +292,7 @@ const evaluation = await client.evals.create({
       model_source: "serverless",
       system_template: "You are a helpful assistant.",
       input_template: "{{prompt}}",
-      max_tokens: 512,
+      max_tokens: 4096,
       temperature: 0.7,
     },
   },
@@ -319,7 +319,7 @@ curl -X POST "https://api.together.xyz/v1/evaluation" \
         "model_source": "serverless",
         "system_template": "You are a helpful assistant.",
         "input_template": "{{prompt}}",
-        "max_tokens": 512,
+        "max_tokens": 4096,
         "temperature": 0.7
       },
       "input_data_file_path": "file-abc123"
@@ -344,7 +344,7 @@ evaluation = client.evals.create(
             "model_source": "serverless",
             "system_template": "You are a helpful assistant.",
             "input_template": "{{prompt}}",
-            "max_tokens": 512,
+            "max_tokens": 4096,
             "temperature": 0.7,
         },
         "model_b": {
@@ -352,7 +352,7 @@ evaluation = client.evals.create(
             "model_source": "serverless",
             "system_template": "You are a helpful assistant.",
             "input_template": "{{prompt}}",
-            "max_tokens": 512,
+            "max_tokens": 4096,
             "temperature": 0.7,
         },
     },
@@ -375,7 +375,7 @@ const evaluation = await client.evals.create({
       model_source: "serverless",
       system_template: "You are a helpful assistant.",
       input_template: "{{prompt}}",
-      max_tokens: 512,
+      max_tokens: 4096,
       temperature: 0.7,
     },
     model_b: {
@@ -383,7 +383,7 @@ const evaluation = await client.evals.create({
       model_source: "serverless",
       system_template: "You are a helpful assistant.",
       input_template: "{{prompt}}",
-      max_tokens: 512,
+      max_tokens: 4096,
       temperature: 0.7,
     },
   },
@@ -407,7 +407,7 @@ curl -X POST "https://api.together.xyz/v1/evaluation" \
         "model_source": "serverless",
         "system_template": "You are a helpful assistant.",
         "input_template": "{{prompt}}",
-        "max_tokens": 512,
+        "max_tokens": 4096,
         "temperature": 0.7
       },
       "model_b": {
@@ -415,7 +415,7 @@ curl -X POST "https://api.together.xyz/v1/evaluation" \
         "model_source": "serverless",
         "system_template": "You are a helpful assistant.",
         "input_template": "{{prompt}}",
-        "max_tokens": 512,
+        "max_tokens": 4096,
         "temperature": 0.7
       },
       "input_data_file_path": "file-abc123"
@@ -528,7 +528,7 @@ evaluation = client.evals.create(
             "external_api_token": "sk-...",
             "system_template": "You are a helpful assistant.",
             "input_template": "{{prompt}}",
-            "max_tokens": 512,
+            "max_tokens": 4096,
             "temperature": 0.7,
         },
     },

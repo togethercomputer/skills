@@ -8,7 +8,7 @@
  *     npx tsx queue_client.ts
  *
  * Requires:
- *     npm install together-ai
+ *     npm install "together-ai@<1"
  *     export TOGETHER_API_KEY=your_key
  *     export TOGETHER_DEPLOYMENT_NAME=your-deployment-name
  */

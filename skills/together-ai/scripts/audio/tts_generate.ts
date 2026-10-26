@@ -13,7 +13,7 @@
  *   npx tsx tts_generate.ts --mode voices
  *
  * Requirements:
- *   npm install together-ai
+ *   npm install "together-ai@<1"
  *   export TOGETHER_API_KEY=your_key
  */
 

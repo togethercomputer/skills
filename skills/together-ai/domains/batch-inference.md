@@ -9,7 +9,9 @@ waiting on, use `domains/chat-completions.md` instead.
 
 1. Write a JSONL file; each line is `{"custom_id": ..., "body": {chat request}}`.
 2. Upload it: `client.files.upload(file=path, purpose="batch-api", check=False)`; the server
-   validates during `VALIDATING`.
+   validates during `VALIDATING`. In TypeScript, `client.files.upload` (`together-ai` 0.58 and
+   1.0) fails on Node 22 and 25 ("duplex option is required"); upload with the Python SDK or
+   `tg files upload` and pass the file ID.
 3. `client.batches.create(input_file_id=..., endpoint="/v1/chat/completions")`.
 4. Poll `client.batches.retrieve(batch_id)` until `COMPLETED`, `FAILED`, `EXPIRED`, or
    `CANCELLED`.

@@ -9,7 +9,7 @@ Usage:
     python kontext_editing.py
 
 Requires:
-    uv pip install "together>=2.0.0" requests
+    uv pip install "together>=2.0.0,<3" requests
     export TOGETHER_API_KEY=your_key
 """
 

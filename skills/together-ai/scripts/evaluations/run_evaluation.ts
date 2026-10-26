@@ -15,7 +15,7 @@
  *     --eval-model-source external --eval-external-api-token "$OPENAI_API_KEY"
  *
  * Requires:
- *   npm install together-ai
+ *   npm install "together-ai@<1"
  *   export TOGETHER_API_KEY=your_key
  */
 
@@ -189,7 +189,7 @@ function parseScriptArgs(): ScriptArgs {
     evalColumn: flags["eval-column"],
     evalSystemTemplate: flags["eval-system-template"] ?? DEFAULT_EVAL_SYSTEM_TEMPLATE,
     inputTemplate: flags["input-template"] ?? DEFAULT_INPUT_TEMPLATE,
-    maxTokens: parseNumber(flags["max-tokens"], 512, "--max-tokens"),
+    maxTokens: parseNumber(flags["max-tokens"], 4096, "--max-tokens"), // thinking models need room
     temperature: parseNumber(flags.temperature, 0.7, "--temperature"),
     evalExternalApiToken: flags["eval-external-api-token"],
     evalExternalBaseUrl: flags["eval-external-base-url"],

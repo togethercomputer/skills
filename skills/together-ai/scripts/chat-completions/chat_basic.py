@@ -8,7 +8,7 @@ Usage:
     python chat_basic.py
 
 Requires:
-    uv pip install "together>=2.0.0"
+    uv pip install "together>=2.0.0,<3"
     export TOGETHER_API_KEY=your_key
 """
 

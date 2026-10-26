@@ -15,7 +15,7 @@ The resource model has six parts: **Project → Model → Config → Endpoint �
 
 Inference goes to `https://api-inference.together.ai/v1` with the **endpoint string**
 (`<project_slug>/<endpoint_name>`) as the `model` parameter. Management goes through the
-Together CLI (`tg beta ...` — install with `uv tool install "together[cli]"`; `tg` and
+Together CLI (`tg beta ...` — install with `uv tool install "together[cli]<3"`; `tg` and
 `together` are interchangeable), the `client.beta.*` SDK namespaces, or the `/v2` REST API at
 `https://api.together.ai`.
 

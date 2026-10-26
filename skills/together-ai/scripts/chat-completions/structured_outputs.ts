@@ -8,7 +8,7 @@
  *   npx tsx structured_outputs.ts
  *
  * Requires:
- *   npm install together-ai zod
+ *   npm install "together-ai@<1" zod
  *   export TOGETHER_API_KEY=your_key
  */
 

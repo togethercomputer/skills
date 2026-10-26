@@ -9,7 +9,7 @@
  *   npx tsx generate_video.ts
  *
  * Requires:
- *   npm install together-ai
+ *   npm install "together-ai@<1"
  *   export TOGETHER_API_KEY=your_key
  */
 
@@ -33,7 +33,7 @@ async function waitForVideo(
 
     if (status.status === "completed") {
       const url = status.outputs.video_url;
-      console.log(`  Video ready! Cost: $${status.outputs.cost}`);
+      console.log("  Video ready!");
       console.log(`  URL: ${url}`);
       return url;
     }

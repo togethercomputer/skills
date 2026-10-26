@@ -15,7 +15,7 @@ Usage:
     python rag_pipeline.py
 
 Requires:
-    uv pip install "together>=2.0.0"
+    uv pip install "together>=2.0.0,<3"
     export TOGETHER_API_KEY=your_key
     export EMBEDDING_MODEL=your-project/your-embedding-endpoint  # dedicated endpoint string
 """

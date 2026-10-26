@@ -43,7 +43,7 @@ There are 15 domain guides under `skills/together-ai/domains/`:
 - **gpu-clusters.md** (GPU Clusters): GPU clusters (H100, H200, B200, B300, and other types; availability varies by region) with Kubernetes or Slurm, shared storage, and credentials, for distributed training, multi-node inference, and HPC.
 - **images.md** (Images): Text-to-image generation and image editing.
 - **kueue.md** (Kueue on Together GPU clusters): Kueue is a Kubernetes-native job queueing controller.
-- **sandboxes.md** (Sandboxes): Managed remote Python execution with stateful sessions, for running agent-written code, data analysis, and charts.
+- **sandboxes.md** (Sandboxes): Run commands and code in isolated remote sandboxes built from Docker-image snapshots, through the separate `together-sandbox` SDK and CLI, which must be enabled for the organization first.
 - **togetherlink.md** (TogetherLink): TogetherLink (`togetherlink`, alias `tlink`; beta) runs coding agents and desktop apps you already have on models hosted by Together AI: Claude Code, Codex, OpenCode, Pi Code, Claude Desktop and Cowork, and ChatGPT Desktop.
 - **video.md** (Video): Text-to-video and image-to-video, billed per video.
 - **volcano.md** (Volcano on Together GPU clusters): Volcano is a Kubernetes-native batch scheduler.
@@ -146,7 +146,7 @@ For reference files over ~100 lines, include a short `## Contents` section near 
 
 ### Scripts
 
-Files in `scripts/AREA/` are runnable examples demonstrating complete workflows. Python scripts use the **Together Python v2 SDK** (`together>=2.0.0`); several areas also ship TypeScript (`.ts`) equivalents using the `together-ai` npm package.
+Files in `scripts/AREA/` are runnable examples demonstrating complete workflows. Python scripts use the **Together Python v2 SDK** (`together>=2.0.0,<3`); several areas also ship TypeScript (`.ts`) equivalents using the `together-ai` npm package.
 
 ## Code conventions
 
@@ -171,7 +171,6 @@ These are the correct v2 SDK method names. Do NOT use v1 patterns:
 | Create batch | `client.batches.create()` | `client.create_batch()` |
 | Get batch | `client.batches.retrieve()` | `client.get_batch()` |
 | Get endpoint | `client.endpoints.retrieve()` | `client.endpoints.get()` |
-| Run code | `client.code_interpreter.execute()` | `client.code_interpreter.run()` |
 | File content | `client.files.content()` | `client.files.retrieve_content()` |
 | Evaluations | `client.evals.create()` | `client.evaluation.create()` |
 | Batch input | `input_file_id=` | `file_id=` |

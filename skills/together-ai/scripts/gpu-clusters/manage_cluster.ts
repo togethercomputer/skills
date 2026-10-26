@@ -6,10 +6,11 @@
  * check status, scale, then delete.
  *
  * Usage:
- *   npx tsx manage_cluster.ts
+ *   npx tsx manage_cluster.ts            # list regions and clusters only
+ *   npx tsx manage_cluster.ts --create   # create an 8x H100 cluster (billed hourly) and scale it to 16
  *
  * Requires:
- *   npm install together-ai
+ *   npm install "together-ai@<1"
  *   export TOGETHER_API_KEY=your_key
  */
 
@@ -118,6 +119,12 @@ async function main(): Promise<void> {
 
   // 2. List existing clusters
   await listClusters();
+
+  // Creating a cluster starts hourly GPU billing, so only continue when asked.
+  if (!process.argv.includes("--create")) {
+    console.log("\nListed only. Pass --create to create, scale, and keep a cluster (billed hourly).");
+    return;
+  }
 
   // 3. Create a cluster
   const cluster = await createCluster(

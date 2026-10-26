@@ -11,14 +11,17 @@ only when it holds a detail you need. Paths are relative to this skill's directo
 
 ## Setup
 
-- Auth: `TOGETHER_API_KEY` in the environment. Python: `uv pip install --upgrade "together>=2.0.0"`,
-  then `client = Together()`. TypeScript: `npm install together-ai`, then `new Together()`. The
+- Auth: `TOGETHER_API_KEY` in the environment. Python: `uv pip install --upgrade "together>=2.0.0,<3"`,
+  then `client = Together()`. TypeScript: `npm install "together-ai@<1"`, then `new Together()`. The
   Python SDK and this skill's scripts use only the API key. From CLI 2.41, `tg login` signs in
   through a browser device flow (`--no-browser` prints the URL) and `tg switch` picks a project;
   it is interactive, so ask the user to run it. The CLI also accepts `TOGETHER_API_KEY`.
-- CLI: `uv tool install "together[cli]"` gives `tg` (alias `together`), used for dedicated
-  inference, clusters, and fine-tuning. If `tg beta endpoints` or `tg beta models` is missing, the
-  CLI is outdated: `uv tool upgrade together`. From 2.40, `tg` prints JSON by default when an AI
+- CLI: `uv tool install "together[cli]<3"` gives `tg` (alias `together`), used for dedicated
+  inference, clusters, and fine-tuning. This skill targets 2.x: release 3.0.0 (2026-10-22) moved
+  `tg beta models`, `endpoints`, and `clusters` to top-level `tg models` and so on, and removed
+  `client.beta.clusters`, `client.code_interpreter`, and `videos.create(frame_images=...)` from the
+  Python SDK; `together-ai` 1.0.0 made the same moves in TypeScript. If `tg beta endpoints` is missing, reinstall with
+  `uv tool install --force "together[cli]<3"`. From 2.40, `tg` prints JSON by default when an AI
   agent runs it; pass `--no-json` for tables.
 
 ## Guides
@@ -33,7 +36,7 @@ only when it holds a detail you need. Paths are relative to this skill's directo
 | `domains/batch-inference.md` | large offline jobs at lower cost (JSONL, `batches.create`) |
 | `domains/evaluations.md` | LLM-as-a-judge: classify, score, or compare outputs |
 | `domains/fine-tuning.md` | LoRA, full, DPO, VLM, function-calling, and reasoning tuning; BYOM upload |
-| `domains/sandboxes.md` | remote stateful Python execution, data analysis, charts |
+| `domains/sandboxes.md` | running code in isolated remote sandboxes (`together-sandbox`; the old `code_interpreter` API is gone) |
 | `domains/dedicated-model-inference.md` | dedicated endpoints (`tg beta endpoints`, `client.beta.endpoints`): deploy, autoscale, traffic split, A/B, shadow, metrics, model/LoRA upload, v1 migration (HTTP 403 `endpoints_v1_create_access_disabled`) |
 | `domains/dedicated-containers.md` | your own Docker inference worker: Sprocket, Jig, queue jobs |
 | `domains/gpu-clusters.md` | H100/H200/B200 clusters, Kubernetes or Slurm, shared storage, credentials |
@@ -65,8 +68,7 @@ calling the API from the user's own code is `chat-completions` or `images`. A ta
   only 429 and 5xx, with backoff, a few times, then report.
 - **v2 SDK only.** v1 names raise `AttributeError`: `create_batch` is `batches.create`, `get_batch`
   is `batches.retrieve`, `files.retrieve_content` is `files.content`, `evaluation.create` is
-  `evals.create`, `code_interpreter.run` is `code_interpreter.execute`, `file_id=` is
-  `input_file_id=`.
+  `evals.create`, `file_id=` is `input_file_id=`.
 - **Finish what you start.** Video, batch, evaluations, fine-tuning, queue jobs, and deployments
   are submit, poll to a terminal state, fetch. Do not end your turn while something you started is
   still provisioning, running, or being torn down: wait for the terminal state, or state exactly
