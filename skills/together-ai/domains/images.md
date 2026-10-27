@@ -29,8 +29,10 @@ FLUX.2 models reject `image_loras`. A LoRA-adapted image model needs a dedicated
 - Kontext and FLUX.2 [pro]/[flex] take one source image via `image_url`; `reference_images`
   (several images) works on FLUX.2 pro/dev/flex, Gemini 3 Pro Image, and Flash Image 2.5.
 - Generate-then-edit: generate an image, pass its URL as `image_url` to Kontext, save both.
-- A 403 `third_party_data_sharing_blocked` (seen on FLUX.2) means the organization must enable
-  third-party data sharing; try a model hosted without that requirement or ask the user.
+- A 403 `third_party_data_sharing_blocked` means the organization must enable third-party data
+  sharing. On 2026-10-26 every serverless image model tried (FLUX.2 and FLUX.1.1, Qwen Image, SDXL,
+  Juggernaut, Flash Image, GPT Image, Seedream) returned it with sharing off, so ask the user to
+  enable it rather than switching models.
 - Set `seed` when the user needs reproducible output.
 
 ## Open next

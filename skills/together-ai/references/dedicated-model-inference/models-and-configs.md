@@ -16,16 +16,16 @@
 List the platform-supported catalog (public base models deployable for DMI):
 
 ```bash
-tg beta models public --product DEDICATED
-tg beta models public --modality TEXT --search qwen
+tg models public --product DEDICATED
+tg models public --modality TEXT --search qwen
 ```
 
 ```python
-models = client.beta.models.list_supported(product="PRODUCT_DEDICATED")
+models = client.models.list_supported(product="PRODUCT_DEDICATED")
 for m in models.data:
     print(m.id, m.name)
 
-model = client.beta.models.retrieve_supported("arch_abc123")
+model = client.models.retrieve_supported("arch_abc123")
 ```
 
 Catalog entries are architectures (`arch_...`) with a catalog-controlled Hugging Face `name`
@@ -36,20 +36,21 @@ Catalog entries are architectures (`arch_...`) with a catalog-controlled Hugging
 Models in **your project** (uploads, fine-tunes) are listed separately:
 
 ```bash
-tg beta models list
+tg models list
 ```
 
 ```python
-models = client.beta.models.list(project_id=project_id)
+models = client.models.list(project_id=project_id)
 ```
 
 A **completed fine-tune is already a private model in your project — no upload step.** Deploy
 it directly by its model object ID (the `ml_...` value: `model_object_id` from `tg fine-tuning
 retrieve`, or `status.api_model_object_id` in the Python SDK — *not* the old
 `x_model_output_name`, which isn't a deployable identifier):
-`tg beta endpoints deploy <ml_id> --endpoint <name>`. Deploying a fine-tune on the legacy v1
-API is retired — `client.endpoints.create` / `tg endpoints create` now return
-`endpoints_v1_create_access_disabled` (HTTP 403); use this v2 path instead.
+`tg endpoints deploy <ml_id> --endpoint <name>`. Deploying a fine-tune on the legacy v1
+API is retired — in SDK/CLI 2.x, `client.endpoints.create(model=..., hardware=...)` /
+`tg endpoints create` return `endpoints_v1_create_access_disabled` (HTTP 403), and 3.x removed
+them; use this v2 path instead.
 
 Not every model is deployable, and a fine-tuned model deploys only if its base architecture is
 supported. Don't hardcode model names — list the catalog and use real IDs.
@@ -79,14 +80,14 @@ verbatim rather than substituting your own project ID.
 **A model usually has more than one profile** — the same weights published at different
 `quantization` (e.g. `BF16` vs `FP8`), `gpuCount`, or `parallelism`. `deploymentProfiles` is
 the authoritative list of what's deployable and the **only** place `quantization` is exposed;
-`tg beta models configs <arch_id>` frequently returns an empty list for catalog architectures,
+`tg models configs <arch_id>` frequently returns an empty list for catalog architectures,
 so don't rely on it to enumerate a public model's options — read the profiles instead. Filter
 the profiles to the precision/hardware you want, then take that profile's `model` and `config`
 strings.
 
 ### Deploying a specific profile (precision matters)
 
-When a model has exactly one profile, `tg beta endpoints deploy <model-name> --endpoint <name>`
+When a model has exactly one profile, `tg endpoints deploy <model-name> --endpoint <name>`
 resolves it automatically. When it has several, a bare-name deploy **fails** rather than
 guessing:
 
@@ -101,7 +102,7 @@ with its `--config`:
 
 ```bash
 # Deploy the BF16 profile specifically
-tg beta endpoints deploy \
+tg endpoints deploy \
   "projects/proj_weights/models/ml_weight/revisions/rv_snap" \
   --endpoint my-endpoint \
   --config cr_certified
@@ -120,15 +121,15 @@ disambiguate when there are several (see [Deploying a specific
 profile](#deploying-a-specific-profile-precision-matters)).
 
 ```bash
-tg beta models configs ml_CbJNwQC2ZqCU2iFT3mrCh
+tg models configs ml_CbJNwQC2ZqCU2iFT3mrCh
 ```
 
 For a **public catalog architecture** this list is often empty — its deployable configs live in
-the model's `deploymentProfiles` instead (above). `tg beta models configs` is most useful for
+the model's `deploymentProfiles` instead (above). `tg models configs` is most useful for
 models in your own project (uploads, fine-tunes).
 
 ```python
-configs = client.beta.models.configs.list(
+configs = client.models.configs.list(
     project_id=project_id,
     reference_model=f"projects/{project_id}/models/{model_id}",
 )
@@ -234,11 +235,11 @@ project slug, an org prefix produces a doubled slug, and a doubled name can't be
 (delete and re-upload is the only fix).
 
 ```bash
-tg beta models create gemma-4-31b-it --base-model ml_CbJNwQC2ZqCU2iFT3mrCh
+tg models create gemma-4-31b-it --base-model ml_CbJNwQC2ZqCU2iFT3mrCh
 ```
 
 ```python
-model = client.beta.models.create(
+model = client.models.create(
     project_id=project_id,
     name="gemma-4-31b-it",
     base_model_id="ml_CbJNwQC2ZqCU2iFT3mrCh",
@@ -253,19 +254,19 @@ Save the returned `id` (`ml_...`).
 Local directory (CLI handles the multipart upload):
 
 ```bash
-tg beta models upload ml_abc123 ./path/to/model-dir
+tg models upload ml_abc123 ./path/to/model-dir
 ```
 
 Remote (server-side streaming from Hugging Face or presigned S3 URL; `--token` for gated or
 private HF repos):
 
 ```bash
-tg beta models remote-uploads create ml_abc123 \
+tg models remote-uploads create ml_abc123 \
   --from https://huggingface.co/your-org/your-repo --token hf_your_token
 ```
 
 ```python
-job = client.beta.models.remote_uploads.create(
+job = client.models.remote_uploads.create(
     project_id=project_id,
     model_id="ml_abc123",
     remote_url="https://huggingface.co/your-org/your-repo",
@@ -276,8 +277,8 @@ job = client.beta.models.remote_uploads.create(
 ### Step 3 — Poll until succeeded
 
 ```bash
-tg beta models remote-uploads retrieve job_abc123
-tg beta models ls-files ml_abc123     # confirm files landed
+tg models remote-uploads retrieve job_abc123
+tg models ls-files ml_abc123     # confirm files landed
 ```
 
 Poll `status` until `REMOTE_UPLOAD_STATUS_SUCCEEDED`.
@@ -287,7 +288,7 @@ Poll `status` until `REMOTE_UPLOAD_STATUS_SUCCEEDED`.
 Same as any model — list your project's configs for it and deploy:
 
 ```bash
-tg beta endpoints deploy ml_abc123 --endpoint my-custom-model --config cr_abc123
+tg endpoints deploy ml_abc123 --endpoint my-custom-model --config cr_abc123
 ```
 
 ## Upload a LoRA adapter
@@ -301,27 +302,27 @@ Adapter-specific requirements:
 - Adapter versioning isn't supported — re-upload under a new name.
 
 ```bash
-tg beta models create my-stsb-lora --type adapter --base-model ml_CbJNwQC2ZqCU2iFT3mrCh
+tg models create my-stsb-lora --type adapter --base-model ml_CbJNwQC2ZqCU2iFT3mrCh
 
 # Local
-tg beta models upload ml_abc123 ./path/to/adapter-dir
+tg models upload ml_abc123 ./path/to/adapter-dir
 
 # Remote
-tg beta models remote-uploads create ml_abc123 \
+tg models remote-uploads create ml_abc123 \
   --from https://huggingface.co/your-org/your-adapter --token hf_your_token
 
 # Poll / verify
-tg beta models remote-uploads retrieve job_abc123
-tg beta models ls-files ml_abc123
+tg models remote-uploads retrieve job_abc123
+tg models ls-files ml_abc123
 ```
 
 Deploy the adapter's `ml_...` ID like a base model, using a config for its base model
 ([Upload a LoRA adapter](https://docs.together.ai/docs/dedicated-endpoints/adapter)).
 
 To attach an adapter to a running deployment instead, use the SDK or API (there is no CLI
-command): `client.beta.endpoints.adapters.create(project_id=..., endpoint_id=...,
+command): `client.endpoints.adapters.create(project_id=..., endpoint_id=...,
 deployment_id=..., adapter_model_id=...)`, with `list`, `retrieve`, `update` (pin a revision),
-and `delete` alongside. Pass `force=True` to evict the oldest adapter when the deployment is at
+and `delete` alongside; those three take the attachment ID (`dad_...`) alone. Pass `force=True` to evict the oldest adapter when the deployment is at
 adapter capacity. Deployment profiles report an `adapter_mode` (`ADAPTER_MODE_FIXED`,
 `ADAPTER_MODE_DYNAMIC`, or `ADAPTER_MODE_DISABLED`), and `list_supported(adapter_mode=...)`
 filters on it; check it before attaching. Attachment status reports `adapter_valid` and
@@ -333,10 +334,10 @@ Download a model's or adapter's files back to your machine, or delete the record
 
 ```bash
 # Download files (--format hf lays them out as a HuggingFace snapshot)
-tg beta models download ml_abc123 ./local-dir [--revision rv_...] [--format hf]
+tg models download ml_abc123 ./local-dir [--revision rv_...] [--format hf]
 
 # Delete the model record (does not delete uploaded files)
-tg beta models rm ml_abc123
+tg models rm ml_abc123
 ```
 
 Note the delete command is `rm` (the earlier `delete` name is gone), and `update` can no
@@ -347,7 +348,7 @@ longer change a record's base model.
 - **"Model not found" during upload** — create the record first (`models create`) and pass
   the returned `ml_...` ID to the upload.
 - **`base_model_id is required`** — every custom model/adapter must reference a supported
-  base model; get the ID from `tg beta models public`.
+  base model; get the ID from `tg models public`.
 - **"Model name already exists"** — names are unique; pick a new one (no versioning).
 - **Missing required files** — adapters need both `adapter_config.json` and
   `adapter_model.safetensors` at the source root.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Together AI RAG Pipeline -- Embed, Retrieve, Generate (v2 SDK)
+Together AI RAG Pipeline -- Embed, Retrieve, Generate (SDK 3.x)
 
 Demonstrates a complete Retrieval-Augmented Generation pipeline using
 Together AI embeddings and chat completions.
@@ -15,7 +15,7 @@ Usage:
     python rag_pipeline.py
 
 Requires:
-    uv pip install "together>=2.0.0"
+    uv pip install "together>=3"
     export TOGETHER_API_KEY=your_key
     export EMBEDDING_MODEL=your-project/your-embedding-endpoint  # dedicated endpoint string
 """
@@ -35,7 +35,7 @@ client = Together()
 EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "")
 RERANK_MODEL: str | None = os.environ.get("RERANK_MODEL") or None
 dedicated_client = Together(
-    base_url=os.environ.get("DEDICATED_BASE_URL", "https://api-inference.together.ai/v1")
+    base_url=os.environ.get("DEDICATED_BASE_URL", "https://api-inference.together.ai")
 )
 
 

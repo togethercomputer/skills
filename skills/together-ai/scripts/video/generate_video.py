@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Together AI Video Generation -- Text-to-Video with Polling (v2 SDK)
+Together AI Video Generation -- Text-to-Video with Polling (SDK 3.x)
 
 Submit a video job, poll for completion, and download the result.
 Demonstrates text-to-video, advanced parameters, and reference images.
@@ -9,7 +9,7 @@ Usage:
     python generate_video.py
 
 Requires:
-    uv pip install "together>=2.0.0" requests
+    uv pip install "together>=3" requests
     export TOGETHER_API_KEY=your_key
 """
 
@@ -30,8 +30,7 @@ def wait_for_video(job_id: str, poll_interval: int = 5, timeout: int = 600) -> s
 
         if status.status == "completed":
             video_url = status.outputs.video_url
-            cost = status.outputs.cost
-            print(f"  Video ready! Cost: ${cost}")
+            print("  Video ready!")
             print(f"  URL: {video_url}")
             return video_url
         elif status.status in ("failed", "cancelled"):
@@ -97,7 +96,7 @@ def video_with_reference(
         model=model,
         width=1366,
         height=768,
-        reference_images=reference_images,
+        media={"reference_images": reference_images},
     )
     print(f"Submitted job: {job.id}")
     return wait_for_video(job.id)

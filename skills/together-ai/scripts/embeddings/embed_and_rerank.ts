@@ -12,7 +12,7 @@
  *   npx tsx embed_and_rerank.ts
  *
  * Requires:
- *   npm install together-ai
+ *   npm install "together-ai@>=1"
  *   export TOGETHER_API_KEY=your_key
  *   export EMBEDDING_MODEL=your-project/your-embedding-endpoint  # dedicated endpoint string
  */
@@ -25,7 +25,7 @@ import Together from "together-ai";
 const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL ?? "";
 const dedicatedClient = new Together({
   apiKey: process.env.TOGETHER_API_KEY,
-  baseURL: process.env.DEDICATED_BASE_URL ?? "https://api-inference.together.ai/v1",
+  baseURL: process.env.DEDICATED_BASE_URL ?? "https://api-inference.together.ai",
 });
 
 function requireEmbeddingModel(): string {

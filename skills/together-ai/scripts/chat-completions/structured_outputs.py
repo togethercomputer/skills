@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Together AI Chat Completions — Structured Outputs (v2 SDK)
+Together AI Chat Completions — Structured Outputs (SDK 3.x)
 
 Demonstrates json_schema, json_object, and regex response formats.
 
@@ -8,7 +8,7 @@ Usage:
     python structured_outputs.py
 
 Requires:
-    uv pip install "together>=2.0.0" pydantic
+    uv pip install "together>=3" pydantic
     export TOGETHER_API_KEY=your_key
 """
 

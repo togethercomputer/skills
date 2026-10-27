@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Together AI text-to-speech examples with the Python v2 SDK.
+Together AI text-to-speech examples with the Python SDK 3.x.
 
 Demonstrates:
 - REST file generation
@@ -15,7 +15,7 @@ Usage:
     python tts_generate.py --mode voices
 
 Requirements:
-    uv pip install "together>=2.0.0"
+    uv pip install "together>=3"
     export TOGETHER_API_KEY=your_key
 """
 

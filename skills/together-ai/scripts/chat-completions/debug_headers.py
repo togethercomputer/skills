@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Together AI Chat Completions — Debug Headers and Raw Responses (v2 SDK)
+Together AI Chat Completions — Debug Headers and Raw Responses (SDK 3.x)
 
 Inspect parsed chat output together with raw response headers for latency, routing,
 and rate-limit debugging.
@@ -9,7 +9,7 @@ Usage:
     python debug_headers.py
 
 Requires:
-    uv pip install "together>=2.0.0"
+    uv pip install "together>=3"
     export TOGETHER_API_KEY=your_key
 """
 

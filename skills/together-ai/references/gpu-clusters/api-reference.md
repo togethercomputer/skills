@@ -46,27 +46,25 @@ Base URL: `https://api.together.xyz/v1`
 
 ## Create Cluster
 
-The API requires `cuda_version` and `nvidia_driver_version` as separate fields. The SDK
-also accepts a combined `driver_version` string, but the two split fields must be present
-for the request to succeed. Pass them via `extra_body` in the SDK or directly in REST.
+Pick the driver with either `cuda_version` plus `nvidia_driver_version` (a pair from
+`list_regions()`), or `nvidia_version_id`. Both SDKs take these as ordinary arguments. There is
+no `driver_version` argument: the SDKs reject it before sending, and the CLI has no
+`--driver-version` flag.
 
 ```python
 from together import Together
 client = Together()
 
-cluster = client.beta.clusters.create(
+cluster = client.clusters.create(
     cluster_name="my-gpu-cluster",
     region="us-central-8",
     gpu_type="H100_SXM",
     num_gpus=8,
-    driver_version="CUDA_12_6_560",
+    cuda_version="12.6",
+    nvidia_driver_version="560",
     billing_type="ON_DEMAND",
     cluster_type="KUBERNETES",
     # volume_id="existing-volume-id",  # optional: attach existing volume
-    extra_body={
-        "cuda_version": "12.6",
-        "nvidia_driver_version": "560",
-    },
 )
 print(cluster.cluster_id)
 ```
@@ -75,17 +73,15 @@ print(cluster.cluster_id)
 import Together from "together-ai";
 const client = new Together();
 
-const cluster = await client.beta.clusters.create({
+const cluster = await client.clusters.create({
   cluster_name: "my-gpu-cluster",
   region: "us-central-8",
   gpu_type: "H100_SXM",
   num_gpus: 8,
-  driver_version: "CUDA_12_6_560",
-  billing_type: "ON_DEMAND",
-  cluster_type: "KUBERNETES",
-  // @ts-expect-error -- required by API but not yet in SDK types
   cuda_version: "12.6",
   nvidia_driver_version: "560",
+  billing_type: "ON_DEMAND",
+  cluster_type: "KUBERNETES",
 });
 console.log(cluster.cluster_id);
 ```
@@ -99,7 +95,6 @@ curl -X POST \
     "region": "us-central-8",
     "gpu_type": "H100_SXM",
     "num_gpus": 8,
-    "driver_version": "CUDA_12_6_560",
     "cuda_version": "12.6",
     "nvidia_driver_version": "560",
     "billing_type": "ON_DEMAND",
@@ -109,12 +104,13 @@ curl -X POST \
 ```
 
 ```shell
-together beta clusters create \
+together clusters create \
   --name my-gpu-cluster \
   --num-gpus 8 \
   --gpu-type H100_SXM \
   --region us-central-8 \
-  --driver-version CUDA_12_6_560 \
+  --cuda-version 12.6 \
+  --nvidia-driver-version 560 \
   --billing-type ON_DEMAND \
   --cluster-type KUBERNETES
 ```
@@ -127,25 +123,27 @@ together beta clusters create \
 | `region` | string | Yes | Region (use `list_regions()` in Python or `listRegions()` in TypeScript to find valid regions) |
 | `gpu_type` | string | Yes | GPU type (see Instance Types below) |
 | `num_gpus` | integer | Yes | Number of GPUs (must be a multiple of 8) |
-| `driver_version` | string | Yes | Combined driver string, e.g. `CUDA_12_6_560` (see Driver Versions below) |
-| `cuda_version` | string | Yes | CUDA version, e.g. `"12.6"` |
-| `nvidia_driver_version` | string | Yes | NVIDIA driver version, e.g. `"560"` |
+| `cuda_version` | string | Yes* | CUDA version, e.g. `"12.6"` |
+| `nvidia_driver_version` | string | Yes* | NVIDIA driver version, e.g. `"560"` |
+| `nvidia_version_id` | string | Yes* | Catalog NVIDIA version ID, instead of the pair above |
 | `billing_type` | string | Yes | `ON_DEMAND` or `RESERVED` |
 | `cluster_type` | string | No | `KUBERNETES` (default) or `SLURM` |
 | `duration_days` | integer | No | Reservation length in days (only with `RESERVED`) |
 | `volume_id` | string | No | Existing shared volume ID to attach |
 | `shared_volume` | object | No | Inline volume: `{volume_name, size_tib, region}` |
 
+*Pass either `cuda_version` with `nvidia_driver_version`, or `nvidia_version_id`.
+
 ## List Clusters
 
 ```python
-response = client.beta.clusters.list()
+response = client.clusters.list()
 for c in response.clusters:
     print(f"{c.cluster_id}: {c.cluster_name} ({c.status}, {c.num_gpus} GPUs)")
 ```
 
 ```typescript
-const response = await client.beta.clusters.list();
+const response = await client.clusters.list();
 for (const c of response.clusters) {
   console.log(`${c.cluster_id}: ${c.cluster_name} (${c.status})`);
 }
@@ -158,18 +156,18 @@ curl -X GET \
 ```
 
 ```shell
-together beta clusters list
+together clusters list
 ```
 
 ## Get Cluster
 
 ```python
-cluster = client.beta.clusters.retrieve("cluster-id")
+cluster = client.clusters.retrieve("cluster-id")
 print(f"Status: {cluster.status}, GPUs: {cluster.num_gpus}")
 ```
 
 ```typescript
-const cluster = await client.beta.clusters.retrieve("cluster-id");
+const cluster = await client.clusters.retrieve("cluster-id");
 console.log(cluster);
 ```
 
@@ -180,13 +178,13 @@ curl -X GET \
 ```
 
 ```shell
-together beta clusters retrieve <CLUSTER_ID>
+together clusters retrieve <CLUSTER_ID>
 ```
 
 ## Update / Scale Cluster
 
 ```python
-cluster = client.beta.clusters.update(
+cluster = client.clusters.update(
     "cluster-id",
     num_gpus=16,
     cluster_type="KUBERNETES",
@@ -194,7 +192,7 @@ cluster = client.beta.clusters.update(
 ```
 
 ```typescript
-const cluster = await client.beta.clusters.update("cluster-id", {
+const cluster = await client.clusters.update("cluster-id", {
   num_gpus: 16,
   cluster_type: "KUBERNETES",
 });
@@ -209,8 +207,8 @@ curl -X PUT \
 ```
 
 ```shell
-together beta clusters update <CLUSTER_ID> --num-gpus 16
-together beta clusters update <CLUSTER_ID> --num-gpus 16 --cluster-type KUBERNETES
+together clusters update <CLUSTER_ID> --num-gpus 16
+together clusters update <CLUSTER_ID> --num-gpus 16 --cluster-type KUBERNETES
 ```
 
 ### Update Request Body
@@ -223,11 +221,11 @@ together beta clusters update <CLUSTER_ID> --num-gpus 16 --cluster-type KUBERNET
 ## Delete Cluster
 
 ```python
-client.beta.clusters.delete("cluster-id")
+client.clusters.delete("cluster-id")
 ```
 
 ```typescript
-await client.beta.clusters.delete("cluster-id");
+await client.clusters.delete("cluster-id");
 ```
 
 ```shell
@@ -237,19 +235,19 @@ curl -X DELETE \
 ```
 
 ```shell
-together beta clusters delete <CLUSTER_ID>
+together clusters delete <CLUSTER_ID>
 ```
 
 ## List Regions
 
 ```python
-regions = client.beta.clusters.list_regions()
+regions = client.clusters.list_regions()
 for r in regions.regions:
     print(f"{r.name}: {r.supported_instance_types}, drivers: {r.driver_versions}")
 ```
 
 ```typescript
-const regions = await client.beta.clusters.listRegions();
+const regions = await client.clusters.listRegions();
 console.log(regions);
 ```
 
@@ -260,13 +258,13 @@ curl -X GET \
 ```
 
 ```shell
-together beta clusters list-regions
+together clusters list-regions
 ```
 
 ## Create Shared Volume
 
 ```python
-volume = client.beta.clusters.storage.create(
+volume = client.clusters.storage.create(
     volume_name="my-shared-volume",
     size_tib=2,
     region="us-central-8",
@@ -275,7 +273,7 @@ print(volume.volume_id)
 ```
 
 ```typescript
-const volume = await client.beta.clusters.storage.create({
+const volume = await client.clusters.storage.create({
   volume_name: "my-shared-volume",
   size_tib: 2,
   region: "us-central-8",
@@ -292,7 +290,7 @@ curl -X POST \
 ```
 
 ```shell
-together beta clusters storage create \
+together clusters storage create \
   --volume-name my-shared-volume \
   --size-tib 2 \
   --region us-central-8
@@ -309,13 +307,13 @@ together beta clusters storage create \
 ## List Shared Volumes
 
 ```python
-volumes = client.beta.clusters.storage.list()
+volumes = client.clusters.storage.list()
 for v in volumes.volumes:
     print(f"{v.volume_id}: {v.volume_name} ({v.size_tib} TiB, {v.status})")
 ```
 
 ```typescript
-const volumes = await client.beta.clusters.storage.list();
+const volumes = await client.clusters.storage.list();
 console.log(volumes);
 ```
 
@@ -326,18 +324,18 @@ curl -X GET \
 ```
 
 ```shell
-together beta clusters storage list
+together clusters storage list
 ```
 
 ## Get Shared Volume
 
 ```python
-volume = client.beta.clusters.storage.retrieve("volume-id")
+volume = client.clusters.storage.retrieve("volume-id")
 print(f"{volume.volume_name}: {volume.size_tib} TiB ({volume.status})")
 ```
 
 ```typescript
-const volume = await client.beta.clusters.storage.retrieve("volume-id");
+const volume = await client.clusters.storage.retrieve("volume-id");
 console.log(volume);
 ```
 
@@ -348,20 +346,20 @@ curl -X GET \
 ```
 
 ```shell
-together beta clusters storage retrieve <VOLUME_ID>
+together clusters storage retrieve <VOLUME_ID>
 ```
 
 ## Update (Resize) Shared Volume
 
 ```python
-volume = client.beta.clusters.storage.update(
+volume = client.clusters.storage.update(
     volume_id="volume-id",
     size_tib=5,
 )
 ```
 
 ```typescript
-const volume = await client.beta.clusters.storage.update({
+const volume = await client.clusters.storage.update({
   volume_id: "volume-id",
   size_tib: 5,
 });
@@ -380,11 +378,11 @@ curl -X PUT \
 Volume must not be attached to any cluster.
 
 ```python
-client.beta.clusters.storage.delete("volume-id")
+client.clusters.storage.delete("volume-id")
 ```
 
 ```typescript
-await client.beta.clusters.storage.delete("volume-id");
+await client.clusters.storage.delete("volume-id");
 ```
 
 ```shell
@@ -394,7 +392,7 @@ curl -X DELETE \
 ```
 
 ```shell
-together beta clusters storage delete <VOLUME_ID>
+together clusters storage delete <VOLUME_ID>
 ```
 
 ## Instance Types
@@ -421,7 +419,8 @@ The `list_regions()` response returns driver versions as a list of objects:
 ]
 ```
 
-The combined `driver_version` string follows the pattern `CUDA_{major}_{minor}_{nvidia}`:
+Some tools write the pair as one string, `CUDA_{major}_{minor}_{nvidia}` (the scripts'
+`--driver-version` flag takes this form and splits it). The API takes only the split fields:
 
 | `driver_version` | `cuda_version` | `nvidia_driver_version` |
 |-------------------|----------------|--------------------------|

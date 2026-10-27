@@ -9,7 +9,7 @@
  *   npx tsx generate_video.ts
  *
  * Requires:
- *   npm install together-ai
+ *   npm install "together-ai@>=1"
  *   export TOGETHER_API_KEY=your_key
  */
 
@@ -33,7 +33,7 @@ async function waitForVideo(
 
     if (status.status === "completed") {
       const url = status.outputs.video_url;
-      console.log(`  Video ready! Cost: $${status.outputs.cost}`);
+      console.log("  Video ready!");
       console.log(`  URL: ${url}`);
       return url;
     }
@@ -94,13 +94,15 @@ async function imageToVideo(): Promise<void> {
     model: "minimax/video-01-director",
     width: 1366,
     height: 768,
-    frame_images: [
-      {
-        input_image:
-          "https://cdn.pixabay.com/photo/2020/05/20/08/27/cat-5195431_1280.jpg",
-        frame: "first",
-      },
-    ],
+    media: {
+      frame_images: [
+        {
+          input_image:
+            "https://cdn.pixabay.com/photo/2020/05/20/08/27/cat-5195431_1280.jpg",
+          frame: "first",
+        },
+      ],
+    },
   });
   console.log(`Job ID: ${job.id}`);
   await waitForVideo(job.id);

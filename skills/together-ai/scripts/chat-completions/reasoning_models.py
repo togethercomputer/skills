@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Together AI Chat Completions — Reasoning Models (v2 SDK)
+Together AI Chat Completions — Reasoning Models (SDK 3.x)
 
 Demonstrates reasoning with separate reasoning fields, parsing DeepSeek-R1 <think> tags,
 reasoning effort control, and enabling/disabling reasoning on hybrid models.
@@ -9,7 +9,7 @@ Usage:
     python reasoning_models.py
 
 Requires:
-    uv pip install "together>=2.0.0"
+    uv pip install "together>=3"
     export TOGETHER_API_KEY=your_key
 """
 

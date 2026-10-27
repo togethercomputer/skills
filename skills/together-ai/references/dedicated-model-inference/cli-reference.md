@@ -19,8 +19,8 @@ and wires up the underlying resources.
 ## Installation and invocation
 
 ```bash
-uv tool install "together[cli]"
-tg --version                      # check; upgrade with: uv tool upgrade together
+uv tool install "together[cli]>=3"
+tg --version                      # check (this skill targets 2.x); upgrade with: uv tool upgrade together
 ```
 
 `tg` and `together` are interchangeable entry points (docs use `tg`). Project scoping: the CLI
@@ -32,21 +32,21 @@ var or `--project` on any command. Every command accepts `--json` for machine-re
 prompt and fail. Pass `--non-interactive` to skip the prompt. In that mode project inference
 from the API key is *not* applied — `deploy` errors with `Project argument is required` unless
 you also pass `--project <proj_...>` (or set `TOGETHER_PROJECT_ID`). A reliable scripted deploy
-is therefore `tg beta endpoints deploy ... --project <proj_id> --non-interactive --json`.
+is therefore `tg endpoints deploy ... --project <proj_id> --non-interactive --json`.
 
 ## Command tree
 
 ```text
-tg beta endpoints
+tg endpoints
   deploy     Deploy a model: create endpoint + deployment + route traffic in one step
   ls         List endpoints in the project
-  get        Get endpoint details (also the default command: tg beta endpoints ep_abc123)
+  get        Get endpoint details (also the default command: tg endpoints ep_abc123)
   update     Update a deployment: replica bounds, scaling metrics, traffic weight
   rm         Smart-delete any endpoint/deployment/experiment by ID prefix
   ab         Start an A/B test (creates the variant deployment)
   shadow     Start a shadow experiment (creates the shadow deployment)
 
-tg beta models
+tg models
   public          List platform-supported public models (the deployable catalog)
   list | ls       List models in your project (uploaded/fine-tuned)
   get <id>        Get a model
@@ -66,7 +66,7 @@ Creates (or reuses) an endpoint, attaches a new deployment, and routes 100% of t
 Returns as soon as resources are created; the deployment provisions in the background.
 
 ```bash
-tg beta endpoints deploy <model> --endpoint <name-or-id> [flags]
+tg endpoints deploy <model> --endpoint <name-or-id> [flags]
 ```
 
 `<model>` (positional) accepts a model ID (`ml_...`) or a model name (public catalog name or a
@@ -75,7 +75,7 @@ name/ID (adds a deployment to it).
 
 | Flag | Default | Description |
 | --- | --- | --- |
-| `--config` | auto | Config ID (`cr_...`). Auto-selected when the model has exactly one; use `tg beta models configs <model_id>` to list. |
+| `--config` | auto | Config ID (`cr_...`). Auto-selected when the model has exactly one; use `tg models configs <model_id>` to list. |
 | `--deployment-name` | derived | Deployment name; defaults to model name + short suffix. |
 | `--min-replicas` / `--max-replicas` | 1 / 1 | Replica bounds. Pass a range (e.g. 1/10) to autoscale. |
 | `--scale-up-window` | — | Seconds the metric must stay above target before adding replicas. |
@@ -93,10 +93,10 @@ window is an SDK/API autoscaling field (`scale_to_zero_window`), not a CLI flag.
 
 ```bash
 # Deploy a public model, single replica
-tg beta endpoints deploy ml_CbJNwQC2ZqCU2iFT3mrCh --endpoint my-endpoint
+tg endpoints deploy ml_CbJNwQC2ZqCU2iFT3mrCh --endpoint my-endpoint
 
 # Explicit config, autoscaling 1-10
-tg beta endpoints deploy ml_CbJNwQC2ZqCU2iFT3mrCh \
+tg endpoints deploy ml_CbJNwQC2ZqCU2iFT3mrCh \
   --endpoint my-endpoint \
   --config cr_CbzGdmn14t3HYrXXitmKa \
   --min-replicas 1 --max-replicas 10
@@ -110,16 +110,16 @@ weights download and hardware is allocated.
 ## endpoints ls / get
 
 ```bash
-tg beta endpoints ls [--limit N] [--after CURSOR] [--org]
-tg beta endpoints get ep_abc123    # endpoint detail: split + each deployment's state/replicas
-tg beta endpoints get dep_abc123   # deployment detail (parent endpoint resolved automatically)
+tg endpoints ls [--limit N] [--after CURSOR] [--org]
+tg endpoints get ep_abc123    # endpoint detail: split + each deployment's state/replicas
+tg endpoints get dep_abc123   # deployment detail (parent endpoint resolved automatically)
 
 # Machine-readable deployment state for polling loops
-tg beta endpoints get dep_abc123 --json | jq -r '.status.state'
+tg endpoints get dep_abc123 --json | jq -r '.status.state'
 ```
 
 `get` accepts an endpoint **or** deployment ID. Re-running it is a quick way to poll a
-deployment as it comes up. Passing an ID with no subcommand (`tg beta endpoints ep_abc123`)
+deployment as it comes up. Passing an ID with no subcommand (`tg endpoints ep_abc123`)
 runs `get`. For deployment lists with `filter`/`order_by`, use the SDK/API — see
 [api-reference.md](api-reference.md).
 
@@ -130,21 +130,21 @@ its parent endpoint automatically. At least one option is required.
 
 ```bash
 # Scale replica bounds
-tg beta endpoints update dep_abc123 --min-replicas 2 --max-replicas 4
+tg endpoints update dep_abc123 --min-replicas 2 --max-replicas 4
 
 # Stop (scale to zero; billing stops) / restart
-tg beta endpoints update dep_abc123 --min-replicas 0 --max-replicas 0
-tg beta endpoints update dep_abc123 --min-replicas 1 --max-replicas 2
+tg endpoints update dep_abc123 --min-replicas 0 --max-replicas 0
+tg endpoints update dep_abc123 --min-replicas 1 --max-replicas 2
 
 # Scale on a specific metric (one metric, flat flags — not the SDK/API JSON array)
-tg beta endpoints update dep_abc123 --min-replicas 1 --max-replicas 4 \
+tg endpoints update dep_abc123 --min-replicas 1 --max-replicas 4 \
   --scaling-metric gpu_utilization --scaling-target 70
 
 # Set this deployment's traffic weight (preserves the other deployments' weights)
-tg beta endpoints update dep_abc123 --traffic-weight 30
+tg endpoints update dep_abc123 --traffic-weight 30
 
 # Take it out of rotation without scaling it down
-tg beta endpoints update dep_abc123 --traffic-weight 0
+tg endpoints update dep_abc123 --traffic-weight 0
 ```
 
 | Flag | Description |
@@ -170,11 +170,11 @@ Resolves the resource by ID prefix and deletes it: endpoint (`ep_`), deployment 
 experiment (`abx_`), shadow experiment (`exp_`).
 
 ```bash
-tg beta endpoints rm dep_abc123          # delete a deployment (must be STOPPED)
-tg beta endpoints rm ep_abc123           # delete an endpoint with no deployments
-tg beta endpoints rm ep_abc123 --force   # scale deployments to 0/0 and tear everything down
-tg beta endpoints rm abx_abc123          # end an A/B test (traffic returns to control)
-tg beta endpoints rm exp_abc123          # stop a shadow experiment
+tg endpoints rm dep_abc123          # delete a deployment (must be STOPPED)
+tg endpoints rm ep_abc123           # delete an endpoint with no deployments
+tg endpoints rm ep_abc123 --force   # scale deployments to 0/0 and tear everything down
+tg endpoints rm abx_abc123          # end an A/B test (traffic returns to control)
+tg endpoints rm exp_abc123          # stop a shadow experiment
 ```
 
 Deleting a deployment auto-detaches it from the traffic split and any experiments. Running
@@ -189,7 +189,7 @@ Creates a variant deployment for a model and starts an A/B experiment against a 
 deployment that's already serving traffic. The CLI assigns the remainder to the control.
 
 ```bash
-tg beta endpoints ab Qwen/Qwen2.5-7B-Instruct \
+tg endpoints ab Qwen/Qwen2.5-7B-Instruct \
   --control dep_control123 \
   --percent 5 \
   --name sampling-tweak-v1
@@ -218,15 +218,15 @@ traffic to it. Responses from the shadow are measured and discarded — callers 
 
 ```bash
 # Uniform 10% mirror
-tg beta endpoints shadow --endpoint ep_abc123 \
+tg endpoints shadow --endpoint ep_abc123 \
   --model ml_CbJNwQC2ZqCU2iFT3mrCh --rate 0.1 --name candidate-v2
 
 # Sticky per-user sampling
-tg beta endpoints shadow --endpoint ep_abc123 \
+tg endpoints shadow --endpoint ep_abc123 \
   --model ml_CbJNwQC2ZqCU2iFT3mrCh --rate 0.05 --key body.user --name candidate-v2
 
 # Adaptive: throttle toward ~5 QPS
-tg beta endpoints shadow --endpoint ep_abc123 \
+tg endpoints shadow --endpoint ep_abc123 \
   --model ml_CbJNwQC2ZqCU2iFT3mrCh --target-qps 5.0 --name candidate-v2
 ```
 
@@ -246,35 +246,35 @@ Pass `--rate` or `--target-qps` (one is required). Stop with `rm exp_...`.
 
 ```bash
 # Browse the deployable public catalog
-tg beta models public --product DEDICATED
-tg beta models public --modality TEXT --search qwen
+tg models public --product DEDICATED
+tg models public --modality TEXT --search qwen
 
 # List configs published for a model (hardware, GPU count, optimization)
-tg beta models configs ml_CbJNwQC2ZqCU2iFT3mrCh
+tg models configs ml_CbJNwQC2ZqCU2iFT3mrCh
 
 # Register a custom model or adapter record (name it bare, no org prefix)
-tg beta models create gemma-4-31b-it --base-model ml_CbJNwQC2ZqCU2iFT3mrCh
+tg models create gemma-4-31b-it --base-model ml_CbJNwQC2ZqCU2iFT3mrCh
 
 # Upload local weights (use --type adapter for a LoRA adapter)
-tg beta models upload ml_abc123 ./path/to/model-dir
-tg beta models upload ml_abc123 ./path/to/adapter-dir --type adapter
+tg models upload ml_abc123 ./path/to/model-dir
+tg models upload ml_abc123 ./path/to/adapter-dir --type adapter
 
 # Import from Hugging Face or a presigned S3 URL (server-side streaming)
-tg beta models remote-uploads create ml_abc123 \
+tg models remote-uploads create ml_abc123 \
   --from https://huggingface.co/your-org/your-repo --token hf_your_token
-tg beta models remote-uploads retrieve job_abc123
-tg beta models remote-uploads list
+tg models remote-uploads retrieve job_abc123
+tg models remote-uploads list
 
 # Inspect your project's models
-tg beta models list
-tg beta models ls-files ml_abc123
-tg beta models ls-revisions ml_abc123
+tg models list
+tg models ls-files ml_abc123
+tg models ls-revisions ml_abc123
 
 # Download files back to your machine (--format hf = HuggingFace snapshot layout)
-tg beta models download ml_abc123 ./local-dir [--revision rv_...] [--format hf]
+tg models download ml_abc123 ./local-dir [--revision rv_...] [--format hf]
 
 # Delete a model record (metadata only; renamed from `delete`)
-tg beta models rm ml_abc123
+tg models rm ml_abc123
 ```
 
 `--type` values are asymmetric: **write** commands (`upload`, `remote-uploads create`) take
@@ -294,4 +294,5 @@ These are SDK/API-only operations; don't hunt for CLI flags:
   shows every deployment's state on the endpoint view).
 - Ramp/edit an existing A/B experiment, or update a shadow experiment's sampling.
 - Read the events feed.
-- Inference itself — point the SDK or curl at `https://api-inference.together.ai/v1`.
+- Inference itself — point curl or an OpenAI client at `https://api-inference.together.ai/v1`, or
+  the Together SDK 3.x at `https://api-inference.together.ai` (its default for chat completions).

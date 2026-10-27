@@ -8,7 +8,7 @@ command they can inspect without creating a cluster.
 The two required surfaces answer different questions:
 
 1. Query `GET https://api.together.ai/v1/compute/regions` or run
-   `tg beta clusters list-regions --json` for the live region inventory,
+   `tg clusters list-regions --json` for the live region inventory,
    supported instance types, and compatible CUDA/driver pairs.
 2. Open the [GPU Cluster pricing table](https://www.together.ai/pricing#gpu-clusters)
    for current on-demand and reserved rates. Prices are per GPU per hour.
@@ -20,7 +20,7 @@ instance-type list. A create request can still return `409 Out of stock`.
 ## Read-only inventory
 
 ```shell
-tg beta clusters list-regions --json
+tg clusters list-regions --json
 ```
 
 Or use REST:
@@ -62,7 +62,7 @@ If the user asks only to show the command, fill the placeholders below from the
 live inventory and print the commands without executing them:
 
 ```shell
-tg beta clusters create \
+tg clusters create \
   --name one-hour-gpu-cluster \
   --num-gpus 8 \
   --gpu-type <CHEAPEST_LIVE_GPU_TYPE> \
@@ -75,7 +75,7 @@ tg beta clusters create \
   --json
 
 # After approximately one hour, delete the ID returned by create:
-tg beta clusters delete <CLUSTER_ID> --non-interactive
+tg clusters delete <CLUSTER_ID> --non-interactive
 ```
 
 There is no cluster-create dry-run flag. A “dry run” in this context means

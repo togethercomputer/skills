@@ -76,7 +76,7 @@ a parsed body with no headers), and `prompt_cache_key` is not a top-level argume
 from collections import Counter
 from together import Together
 
-client = Together(base_url="https://api-inference.together.ai/v1")
+client = Together(base_url="https://api-inference.together.ai")   # SDK 3.x: no /v1
 counts = Counter()
 for i in range(200):  # a few hundred varied requests → stable share estimate
     raw = client.chat.completions.with_raw_response.create(
@@ -99,17 +99,17 @@ Set one deployment's weight from the CLI — it resolves the parent endpoint and
 other deployments' weights, so run it once per deployment:
 
 ```bash
-tg beta endpoints update dep_abc123 --traffic-weight 70
-tg beta endpoints update dep_def456 --traffic-weight 30
+tg endpoints update dep_abc123 --traffic-weight 70
+tg endpoints update dep_def456 --traffic-weight 30
 
 # Take a deployment out of rotation without scaling it down
-tg beta endpoints update dep_abc123 --traffic-weight 0
+tg endpoints update dep_abc123 --traffic-weight 0
 ```
 
 Or replace the whole split at once from the SDK/API:
 
 ```python
-client.beta.endpoints.update(
+client.endpoints.update(
     "ep_abc123",
     project_id=project_id,
     traffic_split=[
@@ -139,12 +139,12 @@ deployments side by side and shift traffic with weights and replica counts:
 
 1. Create the new deployment on the **same endpoint**, sized for its eventual share, and wait
    for `READY`. It receives no traffic yet (weight unset).
-2. Give it a small share: `tg beta endpoints update dep_new --traffic-weight 10` (with the old
+2. Give it a small share: `tg endpoints update dep_new --traffic-weight 10` (with the old
    deployment holding e.g. weight 90 — remember share is weight x ready replicas, so match
    replica counts or account for them).
 3. Watch the dashboard (and the [Observing routing](#observing-routing) probe) between steps;
    raise the new deployment's weight stepwise (25 -> 50 -> 100-equivalent) as confidence grows.
-4. Cut over: `tg beta endpoints update dep_old --traffic-weight 0` takes the old deployment
+4. Cut over: `tg endpoints update dep_old --traffic-weight 0` takes the old deployment
    out of rotation without scaling it down — instant rollback is just restoring its weight.
 5. Once stable, scale the old deployment to `0/0`, wait for `STOPPED`, and `rm` it.
 
@@ -177,13 +177,13 @@ CLI (creates the variant deployment too — pass the model **name** for a public
 `Model ml_… not found` here):
 
 ```bash
-tg beta endpoints ab Qwen/Qwen2.5-7B-Instruct --control dep_control123 --percent 5 --name candidate-v1
+tg endpoints ab Qwen/Qwen2.5-7B-Instruct --control dep_control123 --percent 5 --name candidate-v1
 ```
 
 SDK (create the variant deployment first):
 
 ```python
-experiment = client.beta.endpoints.ab_experiments.create(
+experiment = client.endpoints.ab_experiments.create(
     "ep_abc123",
     project_id=project_id,
     name="sampling-tweak-v1",
@@ -201,9 +201,9 @@ enough) fails with a bare `400 Invalid Argument` that names no field; adding the
 fixes it (not isolated which of the two the server requires, so send both):
 
 ```python
-cur = client.beta.endpoints.ab_experiments.retrieve(
+cur = client.endpoints.ab_experiments.retrieve(
     "abx_abc123", project_id=project_id, endpoint_id="ep_abc123")
-client.beta.endpoints.ab_experiments.update(
+client.endpoints.ab_experiments.update(
     "abx_abc123", project_id=project_id, endpoint_id="ep_abc123",
     update_mask="members", etag=cur.etag,
     members=[
@@ -246,7 +246,7 @@ nested path. `target_qps` is an approximate throttle that can run higher and gro
 endpoint scales; use `uniform` when you need a predictable fraction.
 
 ```python
-experiment = client.beta.endpoints.shadow_experiments.create(
+experiment = client.endpoints.shadow_experiments.create(
     "ep_abc123",
     project_id=project_id,
     name="candidate-shadow",          # immutable, unique in project, <= 256 chars

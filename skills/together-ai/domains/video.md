@@ -25,9 +25,9 @@ poll to a terminal state, then download. Still images go to `domains/images.md`.
 | File | Lines | Contains | Open when |
 |---|---|---|---|
 | [scripts/video/generate_video.py](scripts/video/generate_video.py) (.ts) | 130 | text-to-video, polling loop, reference images, download | generating from a prompt |
-| [scripts/video/image_to_video.py](scripts/video/image_to_video.py) | 160 | first/last keyframe control | animating an image |
+| [scripts/video/image_to_video.py](scripts/video/image_to_video.py) | 162 | first/last keyframe control | animating an image |
 | [references/video/models.md](references/video/models.md) | 59 | model table, per-model dimensions, feature support, prompt limits | choosing a model or size |
-| [references/video/api-reference.md](references/video/api-reference.md) | 312 | create and status fields, job statuses, polling pattern, guidance and steps, troubleshooting | a parameter or failure not covered above |
+| [references/video/api-reference.md](references/video/api-reference.md) | 328 | create and status fields, job statuses, polling pattern, guidance and steps, troubleshooting | a parameter or failure not covered above |
 
 ## Docs
 

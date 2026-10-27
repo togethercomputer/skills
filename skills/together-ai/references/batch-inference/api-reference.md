@@ -113,7 +113,7 @@ print(file_resp.id)  # file-abc123
 import Together from "together-ai";
 
 const client = new Together();
-const fileResp = await client.files.upload("batch_input.jsonl", "batch-api", false);
+const fileResp = await client.files.upload("batch_input.jsonl", "batch-api"); // TS SDK 1.x has no check argument
 console.log(fileResp.id);
 ```
 

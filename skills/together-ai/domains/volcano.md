@@ -11,7 +11,7 @@ Hand-offs: creating the cluster and getting `kubectl` credentials is `domains/gp
 
 ## Setup delta
 
-- A Together Kubernetes GPU cluster in the `Ready` state, with `kubectl` pointed at it (`tg beta clusters get-credentials <cluster_id> --set-default-context`).
+- A Together Kubernetes GPU cluster in the `Ready` state, with `kubectl` pointed at it (`tg clusters get-credentials <cluster_id> --set-default-context`).
 - GPU nodes expose `nvidia.com/gpu`; the NVIDIA device plugin is preinstalled on Together clusters. Confirm with:
 
 ```bash

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Together AI Dedicated Containers — Queue Client (v2 SDK)
+Together AI Dedicated Containers — Queue Client (SDK 3.x)
 
 Submit jobs, poll for results, and manage queue operations.
 
@@ -8,7 +8,7 @@ Usage:
     python queue_client.py
 
 Requires:
-    uv pip install "together>=2.0.0"
+    uv pip install "together>=3"
     export TOGETHER_API_KEY=your_key
     export TOGETHER_DEPLOYMENT_NAME=your-deployment-name
 """

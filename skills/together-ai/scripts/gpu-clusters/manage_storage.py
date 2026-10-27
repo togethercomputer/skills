@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Together AI GPU Clusters -- Shared Storage Management (v2 SDK)
+Together AI GPU Clusters -- Shared Storage Management (SDK 3.x)
 
 Create, list, resize, and delete shared storage volumes for GPU clusters.
 
@@ -10,7 +10,7 @@ Usage:
     python manage_storage.py demo
 
 Requires:
-    uv pip install "together>=2.0.0"
+    uv pip install "together>=3"
     export TOGETHER_API_KEY=your_key
 """
 
@@ -23,7 +23,7 @@ client = Together()
 
 def create_volume(name: str, size_tib: int, region: str):
     """Create a new shared storage volume."""
-    volume = client.beta.clusters.storage.create(
+    volume = client.clusters.storage.create(
         volume_name=name,
         size_tib=size_tib,
         region=region,
@@ -34,7 +34,7 @@ def create_volume(name: str, size_tib: int, region: str):
 
 def list_volumes() -> list:
     """List all shared storage volumes."""
-    response = client.beta.clusters.storage.list()
+    response = client.clusters.storage.list()
     for volume in response.volumes:
         print(f"  {volume.volume_id}: {volume.volume_name} ({volume.size_tib} TiB, {volume.status})")
     return response.volumes
@@ -42,7 +42,7 @@ def list_volumes() -> list:
 
 def retrieve_volume(volume_id: str):
     """Get details for a specific volume."""
-    volume = client.beta.clusters.storage.retrieve(volume_id)
+    volume = client.clusters.storage.retrieve(volume_id)
     print(f"Volume: {volume.volume_name}")
     print(f"  ID: {volume.volume_id}")
     print(f"  Size: {volume.size_tib} TiB")
@@ -52,7 +52,7 @@ def retrieve_volume(volume_id: str):
 
 def resize_volume(volume_id: str, new_size_tib: int):
     """Resize a shared storage volume."""
-    volume = client.beta.clusters.storage.update(
+    volume = client.clusters.storage.update(
         volume_id=volume_id,
         size_tib=new_size_tib,
     )
@@ -62,7 +62,7 @@ def resize_volume(volume_id: str, new_size_tib: int):
 
 def delete_volume(volume_id: str) -> None:
     """Delete a shared storage volume."""
-    client.beta.clusters.storage.delete(volume_id)
+    client.clusters.storage.delete(volume_id)
     print(f"Deleted volume: {volume_id}")
 
 

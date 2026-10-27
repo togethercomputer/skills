@@ -6,28 +6,30 @@
  * check status, scale, then delete.
  *
  * Usage:
- *   npx tsx manage_cluster.ts
+ *   npx tsx manage_cluster.ts            # list regions and clusters only
+ *   npx tsx manage_cluster.ts --create   # create an 8x H100 cluster (billed hourly) and scale it to 16
  *
  * Requires:
- *   npm install together-ai
+ *   npm install "together-ai@>=1"
  *   export TOGETHER_API_KEY=your_key
  */
 
 import Together from "together-ai";
-import type { ClusterCreateParams } from "together-ai/resources/beta/clusters/clusters";
+import type { ClusterCreateParams } from "together-ai/resources/clusters/clusters";
 
 const client = new Together({
   apiKey: process.env.TOGETHER_API_KEY,
 });
 
 type GPUType = ClusterCreateParams["gpu_type"];
-type DriverVersion = ClusterCreateParams["driver_version"];
+// Combined form such as "CUDA_12_6_560"; the API takes cuda_version and nvidia_driver_version.
+type DriverVersion = string;
 type BillingType = ClusterCreateParams["billing_type"];
 type ClusterType = NonNullable<ClusterCreateParams["cluster_type"]>;
 
 async function listRegions(): Promise<void> {
   console.log("=== Available Regions ===");
-  const regions = await client.beta.clusters.listRegions();
+  const regions = await client.clusters.listRegions();
   for (const r of regions.regions) {
     console.log(`  ${r.name}: GPUs=${JSON.stringify(r.supported_instance_types)}`);
   }
@@ -35,7 +37,7 @@ async function listRegions(): Promise<void> {
 
 async function listClusters(): Promise<void> {
   console.log("\n=== Existing Clusters ===");
-  const response = await client.beta.clusters.list();
+  const response = await client.clusters.list();
   for (const c of response.clusters) {
     console.log(`  ${c.cluster_id}: ${c.cluster_name} (${c.status}, ${c.num_gpus} GPUs)`);
   }
@@ -56,17 +58,15 @@ async function createCluster(
   clusterType: ClusterType = "KUBERNETES",
 ): Promise<any> {
   const { cudaVersion, nvidiaDriver } = parseDriverVersion(driverVersion);
-  const cluster = await client.beta.clusters.create({
+  const cluster = await client.clusters.create({
     cluster_name: name,
     region,
     gpu_type: gpuType,
     num_gpus: numGpus,
-    driver_version: driverVersion,
-    billing_type: billingType,
-    cluster_type: clusterType,
-    // @ts-expect-error -- required by API but not yet in SDK types
     cuda_version: cudaVersion,
     nvidia_driver_version: nvidiaDriver,
+    billing_type: billingType,
+    cluster_type: clusterType,
   });
   console.log(`Created cluster: ${cluster.cluster_id}  (status: ${cluster.status})`);
   return cluster;
@@ -79,7 +79,7 @@ async function waitForReady(
 ): Promise<any> {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
-    const cluster = await client.beta.clusters.retrieve(clusterId);
+    const cluster = await client.clusters.retrieve(clusterId);
     const elapsed = Math.round((Date.now() - start) / 1000);
     console.log(`  Status: ${cluster.status}  (${elapsed}s)`);
 
@@ -94,7 +94,7 @@ async function waitForReady(
 }
 
 async function scaleCluster(clusterId: string, numGpus: number): Promise<any> {
-  const cluster = await client.beta.clusters.update(clusterId, {
+  const cluster = await client.clusters.update(clusterId, {
     num_gpus: numGpus,
   });
   console.log(`Scaled to ${numGpus} GPUs (status: ${cluster.status})`);
@@ -102,7 +102,7 @@ async function scaleCluster(clusterId: string, numGpus: number): Promise<any> {
 }
 
 async function deleteCluster(clusterId: string): Promise<void> {
-  await client.beta.clusters.delete(clusterId);
+  await client.clusters.delete(clusterId);
   console.log(`Deleted cluster: ${clusterId}`);
 }
 
@@ -118,6 +118,12 @@ async function main(): Promise<void> {
 
   // 2. List existing clusters
   await listClusters();
+
+  // Creating a cluster starts hourly GPU billing, so only continue when asked.
+  if (!process.argv.includes("--create")) {
+    console.log("\nListed only. Pass --create to create, scale, and keep a cluster (billed hourly).");
+    return;
+  }
 
   // 3. Create a cluster
   const cluster = await createCluster(

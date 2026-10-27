@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Together AI Kontext -- Image Editing with Text+Image Prompts (v2 SDK)
+Together AI Kontext -- Image Editing with Text+Image Prompts (SDK 3.x)
 
 Edit existing images using FLUX.1 Kontext models: style transfer,
 object modification, scene transformation, and character creation.
@@ -9,7 +9,7 @@ Usage:
     python kontext_editing.py
 
 Requires:
-    uv pip install "together>=2.0.0" requests
+    uv pip install "together>=3" requests
     export TOGETHER_API_KEY=your_key
 """
 

@@ -134,14 +134,14 @@ For reference files over ~100 lines, include a short `## Contents` section near 
 
 ### Scripts
 
-Files in `scripts/AREA/` are runnable examples demonstrating complete workflows. Python scripts use the **Together Python v2 SDK** (`together>=2.0.0`); several areas also ship TypeScript (`.ts`) equivalents using the `together-ai` npm package.
+Files in `scripts/AREA/` are runnable examples demonstrating complete workflows. Python scripts use the **Together Python SDK 3.x** (`together>=3`); several areas also ship TypeScript (`.ts`) equivalents using the `together-ai` npm package (1.x).
 
 ## Code conventions
 
 ### Python scripts
 
 - Target Python 3.10+
-- Use `together` v2 SDK with keyword-only arguments
+- Use the `together` 3.x SDK with keyword-only arguments
 - Every script must have a module docstring with: description, usage command, and requirements
 - Include `if __name__ == "__main__":` block with working examples
 - Use type hints (`list[str]`, `str | None`)
@@ -150,21 +150,24 @@ Files in `scripts/AREA/` are runnable examples demonstrating complete workflows.
 - Prefer reusable CLIs over hard-coded one-off demos for multi-step or billable workflows
 - No third-party dependencies beyond `together` unless absolutely necessary (note it in the docstring if so)
 
-### v2 SDK patterns
+### SDK patterns
 
-These are the correct v2 SDK method names. Do NOT use v1 patterns:
+These are the correct SDK 3.x method names. Do NOT use v1 or 2.x patterns (see the [v3 migration guide](https://docs.together.ai/docs/sdk-v3-migration-guide)):
 
-| Operation | v2 (correct) | v1 (wrong) |
+| Operation | 3.x (correct) | v1 or 2.x (wrong) |
 |-----------|-------------|------------|
 | Create batch | `client.batches.create()` | `client.create_batch()` |
 | Get batch | `client.batches.retrieve()` | `client.get_batch()` |
 | Get endpoint | `client.endpoints.retrieve()` | `client.endpoints.get()` |
-| Run code | `client.code_interpreter.execute()` | `client.code_interpreter.run()` |
 | File content | `client.files.content()` | `client.files.retrieve_content()` |
 | Evaluations | `client.evals.create()` | `client.evaluation.create()` |
 | Batch input | `input_file_id=` | `file_id=` |
 | Audio files | `with open(path, "rb") as f:` then pass `f` | pass file path string |
 | Autoscaling | `autoscaling={"min_replicas": N, "max_replicas": M}` | `min_replicas=N, max_replicas=M` |
+| Dedicated inference, clusters | `client.endpoints`, `client.models`, `client.clusters` | `client.beta.endpoints`, `client.beta.models`, `client.beta.clusters` |
+| Project ID | `client.whoami().project.id` | `client.whoami().project_id` |
+| Custom base URL | `base_url="https://api-inference.together.ai"` | `base_url="https://api-inference.together.ai/v1"` |
+| Video keyframes | `media={"frame_images": [...]}` | `frame_images=[...]` |
 
 ### Quality expectations
 
