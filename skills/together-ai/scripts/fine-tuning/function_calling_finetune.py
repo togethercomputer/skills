@@ -6,11 +6,11 @@ Prepare function calling training data, upload, fine-tune, and test.
 
 Usage:
     python function_calling_finetune.py
-    python function_calling_finetune.py --training-file tools.jsonl --model Qwen/Qwen3-8B
+    python function_calling_finetune.py --training-file tools.jsonl --model Qwen/Qwen3.5-9B
     python function_calling_finetune.py --suffix fc-bot-v2
 
 Requires:
-    uv pip install "together>=2.0.0"
+    uv pip install "together>=2.0.0,<3"
     export TOGETHER_API_KEY=your_key
 """
 
@@ -207,7 +207,7 @@ def create_temp_dataset(rows: list[dict]) -> Path:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Together AI function-calling fine-tuning workflow")
     parser.add_argument("--training-file", help="Path to a training JSONL file")
-    parser.add_argument("--model", default="Qwen/Qwen3-8B", help="Base model to fine-tune")
+    parser.add_argument("--model", default="Qwen/Qwen3.5-9B", help="Base model to fine-tune")
     parser.add_argument("--suffix", default="fc-bot-v1", help="Suffix for the fine-tuned model")
     parser.add_argument("--n-epochs", type=int, default=3, help="Number of training epochs")
     parser.add_argument("--learning-rate", type=float, default=1e-5, help="Training learning rate")

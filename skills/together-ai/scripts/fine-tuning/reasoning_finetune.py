@@ -9,16 +9,17 @@ Reasoning datasets use conversational format where assistant messages
 include a `reasoning` (or `reasoning_content`) field containing the
 model's chain of thought, and a `content` field for the final answer.
 
-Supported models: Qwen3.5 family (0.8B-397B), Qwen3 family (0.6B-235B),
-GLM-5.1, GLM-5, GLM-4.7, GLM-4.6, Qwen3-Next-80B-A3B-Thinking.
+Supported models: Qwen3.5 (4B-397B), Qwen3.6, Qwen3.8 27B, GLM-5.1 to GLM-5.3,
+DeepSeek V4 Flash, Gemma 4, and GPT-OSS. Exact IDs are in
+references/fine-tuning/supported-models.md.
 
 Usage:
     python reasoning_finetune.py
-    python reasoning_finetune.py --training-file reasoning.jsonl --model Qwen/Qwen3-8B
+    python reasoning_finetune.py --training-file reasoning.jsonl --model Qwen/Qwen3.5-9B
     python reasoning_finetune.py --test-prompt "What is 30% of 250?"
 
 Requires:
-    uv pip install "together>=2.0.0"
+    uv pip install "together>=2.0.0,<3"
     export TOGETHER_API_KEY=your_key
 """
 
@@ -152,7 +153,7 @@ def create_temp_dataset(rows: list[dict]) -> Path:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Together AI reasoning fine-tuning workflow")
     parser.add_argument("--training-file", help="Path to a reasoning training JSONL file")
-    parser.add_argument("--model", default="Qwen/Qwen3-8B", help="Reasoning-capable base model")
+    parser.add_argument("--model", default="Qwen/Qwen3.5-9B", help="Reasoning-capable base model")
     parser.add_argument("--suffix", default="reasoning-math-v1", help="Suffix for the fine-tuned model")
     parser.add_argument("--n-epochs", type=int, default=3, help="Number of training epochs")
     parser.add_argument("--learning-rate", type=float, default=1e-5, help="Training learning rate")

@@ -101,8 +101,8 @@ Options:
 | `learning_rate` | float | ~1e-5 | Learning rate |
 | `warmup_ratio` | float | 0 | Warmup step ratio |
 | `lora` | bool | true | Use LoRA method |
-| `lora_r` | int | 64 | LoRA rank. Per-model max -- 64 for most models; 16 for Moonshot Kimi-K2 family, Z.ai GLM-5/5.1, and DeepSeek R1/V3 (non-distill) families. See [supported-models.md](supported-models.md). |
-| `lora_alpha` | int | 16 | LoRA scaling factor |
+| `lora_r` | int | per model | LoRA rank. Default 64, max 128 for most models; default and max 16 for Z.ai GLM 5.x, Moonshot Kimi K2.6/K2.7 Code, and DeepSeek V3.1. See [supported-models.md](supported-models.md#lora-rank). |
+| `lora_alpha` | int | 2 x `lora_r` | LoRA scaling factor |
 | `train_on_inputs` | bool/str | "auto" | Train on prompts/user msgs |
 | `n_evals` | int | 0 | Validation evaluations (>0 to use validation set) |
 | `wandb_api_key` | string | - | W&B integration |
@@ -218,7 +218,7 @@ Resume from a previous job's checkpoint:
 ```python
 response = client.fine_tuning.create(
     training_file=new_file_id,
-    model="Qwen/Qwen3-8B",
+    model="Qwen/Qwen3.5-9B",
     from_checkpoint=previous_job_id,
 )
 ```

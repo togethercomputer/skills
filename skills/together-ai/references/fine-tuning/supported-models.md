@@ -6,174 +6,171 @@
 - [Full Fine-tuning](#full-fine-tuning)
 - [VLM Fine-tuning](#vlm-fine-tuning)
 - [Reasoning Fine-tuning](#reasoning-fine-tuning)
+- [Function-calling Fine-tuning](#function-calling-fine-tuning)
 - [DPO/Preference Training](#dpopreference-training)
+- [Removed Models](#removed-models)
 - [BYOM (Bring Your Own Model)](#byom)
 
+Snapshot of the 29 base models in `GET /v1/fine-tunes/models/supported`, checked 2026-10-26. The
+catalog changes: `tg fine-tuning model-limits MODEL` confirms a model and returns its limits. To
+serve the result on a dedicated endpoint, the base model must also be deployable there
+(`tg models configs MODEL`).
 
 ## Recommended Starting Models
 
 | Task | Model | API String |
 |------|-------|-----------|
-| Simple tasks | Qwen3 8B | `Qwen/Qwen3-8B` |
-| Complex domains | Qwen3 32B | `Qwen/Qwen3-32B` |
+| Simple tasks | Qwen3.5 9B | `Qwen/Qwen3.5-9B` |
+| Complex domains | Qwen3.5 27B | `Qwen/Qwen3.5-27B` |
 | General (English) | Llama 3.1 8B | `meta-llama/Meta-Llama-3.1-8B-Instruct-Reference` |
-| Reasoning | Qwen3 8B+ | `Qwen/Qwen3-8B` (or larger) |
-| Vision | Qwen3-VL-8B | `Qwen/Qwen3-VL-8B-Instruct` |
+| Reasoning | Qwen3.5 9B+ | `Qwen/Qwen3.5-9B` (or larger) |
+| Vision | Qwen3.5 9B | `Qwen/Qwen3.5-9B` (the same ID takes image data) |
 
 ## LoRA Fine-tuning Models
 
-### Large Models (MoE / 70B+)
+Every model supports LoRA. Context is the maximum sequence length per training example.
 
-| Organization | Model | API String | Context (SFT) |
-|-------------|-------|-----------|---------------|
-| Qwen | Qwen3.5 397B A17B | `Qwen/Qwen3.5-397B-A17B` | 32K |
-| Qwen | Qwen3.5 122B A10B | `Qwen/Qwen3.5-122B-A10B` | 65K |
-| Moonshot | Kimi K2.5 | `moonshotai/Kimi-K2.5` | 32K |
-| Moonshot | Kimi K2 Thinking | `moonshotai/Kimi-K2-Thinking` | 32K |
-| Moonshot | Kimi K2 Instruct 0905 | `moonshotai/Kimi-K2-Instruct-0905` | 32K |
-| Moonshot | Kimi K2 Base | `moonshotai/Kimi-K2-Base` | 32K |
-| Z.ai | GLM-5.1 | `zai-org/GLM-5.1` | 50K |
-| Z.ai | GLM-5 | `zai-org/GLM-5` | 50K |
-| Z.ai | GLM-4.7 | `zai-org/GLM-4.7` | 128K |
-| Z.ai | GLM-4.6 | `zai-org/GLM-4.6` | 128K |
-| OpenAI | GPT-OSS 120B | `openai/gpt-oss-120b` | 16K |
-| OpenAI | GPT-OSS 20B | `openai/gpt-oss-20b` | 24K |
-| DeepSeek | DeepSeek-R1-0528 | `deepseek-ai/DeepSeek-R1-0528` | 131K |
-| DeepSeek | DeepSeek-R1 | `deepseek-ai/DeepSeek-R1` | 131K |
-| DeepSeek | DeepSeek-V3.1 | `deepseek-ai/DeepSeek-V3.1` | 131K |
-| DeepSeek | DeepSeek-V3-0324 | `deepseek-ai/DeepSeek-V3-0324` | 131K |
-| DeepSeek | DeepSeek-V3 | `deepseek-ai/DeepSeek-V3` | 131K |
-| Qwen | Qwen3 235B A22B | `Qwen/Qwen3-235B-A22B` | 41K |
-| Qwen | Qwen3 235B Instruct | `Qwen/Qwen3-235B-A22B-Instruct-2507` | 49K |
-| Qwen | Qwen3-Coder 480B | `Qwen/Qwen3-Coder-480B-A35B-Instruct` | 262K |
-| Qwen | Qwen3-Coder 30B A3B | `Qwen/Qwen3-Coder-30B-A3B-Instruct` | 262K |
-| Meta | Llama 4 Maverick | `meta-llama/Llama-4-Maverick-17B-128E-Instruct` | 16K |
-| Meta | Llama 4 Scout | `meta-llama/Llama-4-Scout-17B-16E-Instruct` | 65K |
-| Meta | Llama 3.3 70B | `meta-llama/Llama-3.3-70B-Instruct-Reference` | 24K |
-| Meta | Llama 3.1 70B | `meta-llama/Meta-Llama-3.1-70B-Instruct-Reference` | 24K |
-| DeepSeek | R1 Distill Llama 70B | `deepseek-ai/DeepSeek-R1-Distill-Llama-70B` | 24K |
-| Qwen | Qwen2.5 72B | `Qwen/Qwen2.5-72B-Instruct` | 24K |
+### Large Models (70B+ total parameters)
 
-### Medium Models (7B-32B)
+| Organization | Model | API String | Context (SFT) | Context (DPO) |
+|-------------|-------|-----------|---------------|---------------|
+| DeepSeek | DeepSeek V4 Flash | `deepseek-ai/DeepSeek-V4-Flash` | 131K | 32K |
+| DeepSeek | DeepSeek V4 Flash 0731 | `deepseek-ai/DeepSeek-V4-Flash-0731` | 131K | 32K |
+| DeepSeek | DeepSeek V3.1 | `deepseek-ai/DeepSeek-V3.1` | 65K | 32K |
+| Z.ai | GLM 5.3 | `zai-org/GLM-5.3` | 50K | 25K |
+| Z.ai | GLM 5.2 | `zai-org/GLM-5.2` | 50K | 25K |
+| Z.ai | GLM 5.1 | `zai-org/GLM-5.1` | 50K | 25K |
+| Moonshot | Kimi K2.7 Code | `moonshotai/Kimi-K2.7-Code` | 32K | 16K |
+| Moonshot | Kimi K2.6 | `moonshotai/Kimi-K2.6` | 32K | 16K |
+| Qwen | Qwen3.5 397B A17B | `Qwen/Qwen3.5-397B-A17B` | 32K | 16K |
+| Qwen | Qwen3.5 122B A10B | `Qwen/Qwen3.5-122B-A10B` | 65K | 32K |
+| OpenAI | GPT-OSS 120B | `openai/gpt-oss-120b` | 65K | 32K |
+| Meta | Llama 4 Maverick | `meta-llama/Llama-4-Maverick-17B-128E-Instruct` | 16K | 24K |
+| Meta | Llama 4 Scout | `meta-llama/Llama-4-Scout-17B-16E-Instruct` | 65K | 12K |
+| Meta | Llama 3.3 70B | `meta-llama/Llama-3.3-70B-Instruct-Reference` | 24K | 12K |
 
-| Organization | Model | API String | Context (SFT) |
-|-------------|-------|-----------|---------------|
-| Qwen | Qwen3.5 27B | `Qwen/Qwen3.5-27B` | 32K |
-| Qwen | Qwen3.5 9B | `Qwen/Qwen3.5-9B` | 65K |
-| Qwen | Qwen3.5 35B A3B | `Qwen/Qwen3.5-35B-A3B` | 65K |
-| Qwen | Qwen3.6 35B A3B | `Qwen/Qwen3.6-35B-A3B` | 65K |
-| Qwen | Qwen3 32B | `Qwen/Qwen3-32B` | 41K |
-| Qwen | Qwen3 14B | `Qwen/Qwen3-14B` | 41K |
-| Qwen | Qwen3 8B | `Qwen/Qwen3-8B` | 41K |
-| Qwen | Qwen3-Next 80B A3B | `Qwen/Qwen3-Next-80B-A3B-Instruct` | 16K |
-| Qwen | Qwen3 30B A3B | `Qwen/Qwen3-30B-A3B` | 8K |
-| Qwen | Qwen2.5 32B Instruct | `Qwen/Qwen2.5-32B-Instruct` | 32K |
-| Qwen | Qwen2.5 14B Instruct | `Qwen/Qwen2.5-14B-Instruct` | 32K |
-| Qwen | Qwen2.5 7B Instruct | `Qwen/Qwen2.5-7B-Instruct` | 32K |
-| Meta | Llama 3.1 8B | `meta-llama/Meta-Llama-3.1-8B-Instruct-Reference` | 131K |
-| DeepSeek | R1 Distill Qwen 14B | `deepseek-ai/DeepSeek-R1-Distill-Qwen-14B` | 65K |
-| NVIDIA | Nemotron Nano 9B v2 | `nvidia/NVIDIA-Nemotron-Nano-9B-v2` | 32K |
-| Google | Gemma 4 31B IT | `google/gemma-4-31B-it` | 49K |
-| Google | Gemma 4 26B A4B IT | `google/gemma-4-26B-A4B-it` | 49K |
-| Google | Gemma 3 27B | `google/gemma-3-27b-it` | 49K |
-| Google | Gemma 3 12B | `google/gemma-3-12b-it` | 65K |
-| Mistral | Mixtral 8x7B | `mistralai/Mixtral-8x7B-Instruct-v0.1` | 32K |
-| Mistral | Mistral 7B v0.2 | `mistralai/Mistral-7B-Instruct-v0.2` | 32K |
+### Small and Medium Models (under 70B)
 
-### Small Models (<7B)
+| Organization | Model | API String | Context (SFT) | Context (DPO) |
+|-------------|-------|-----------|---------------|---------------|
+| Qwen | Qwen3.8 27B | `Qwen/Qwen3.8-27B` | 131K | 65K |
+| Qwen | Qwen3.6 35B A3B | `Qwen/Qwen3.6-35B-A3B` | 65K | 32K |
+| Qwen | Qwen3.6 27B | `Qwen/Qwen3.6-27B` | 131K | 65K |
+| Qwen | Qwen3.5 35B A3B | `Qwen/Qwen3.5-35B-A3B` | 65K | 32K |
+| Qwen | Qwen3.5 27B | `Qwen/Qwen3.5-27B` | 131K | 65K |
+| Qwen | Qwen3.5 9B | `Qwen/Qwen3.5-9B` | 65K | 49K |
+| Qwen | Qwen3.5 4B | `Qwen/Qwen3.5-4B` | 131K | 65K |
+| Google | Gemma 4 31B IT | `google/gemma-4-31B-it` | 49K | 24K |
+| Google | Gemma 4 26B A4B IT | `google/gemma-4-26B-A4B-it` | 49K | 24K |
+| OpenAI | GPT-OSS 20B | `openai/gpt-oss-20b` | 131K | 65K |
+| Meta | Llama 3.1 8B | `meta-llama/Meta-Llama-3.1-8B-Instruct-Reference` | 131K | 65K |
+| Mistral | Mixtral 8x7B | `mistralai/Mixtral-8x7B-Instruct-v0.1` | 32K | 16K |
 
-| Organization | Model | API String | Context (SFT) |
-|-------------|-------|-----------|---------------|
-| Qwen | Qwen3.5 4B | `Qwen/Qwen3.5-4B` | 131K |
-| Qwen | Qwen3.5 2B | `Qwen/Qwen3.5-2B` | 131K |
-| Qwen | Qwen3.5 0.8B | `Qwen/Qwen3.5-0.8B` | 131K |
-| Qwen | Qwen3 4B | `Qwen/Qwen3-4B` | 41K |
-| Qwen | Qwen3 1.7B | `Qwen/Qwen3-1.7B` | 41K |
-| Qwen | Qwen3 0.6B | `Qwen/Qwen3-0.6B` | 41K |
-| Meta | Llama 3.2 3B | `meta-llama/Llama-3.2-3B-Instruct` | 131K |
-| Meta | Llama 3.2 1B | `meta-llama/Llama-3.2-1B-Instruct` | 131K |
-| Google | Gemma 3 4B | `google/gemma-3-4b-it` | 131K |
-| Google | Gemma 3 1B | `google/gemma-3-1b-it` | 32K |
-| Google | Gemma 3 270M | `google/gemma-3-270m-it` | 32K |
-| Qwen | Qwen2.5 3B | `Qwen/Qwen2.5-3B-Instruct` | 32K |
-| Qwen | Qwen2.5 1.5B | `Qwen/Qwen2.5-1.5B-Instruct` | 32K |
-| DeepSeek | R1 Distill Qwen 1.5B | `deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B` | 131K |
+The `-VLM` IDs for Gemma 4 and Llama 4 are listed under [VLM Fine-tuning](#vlm-fine-tuning).
+There are no separate long-context (`-32k`, `-131k`) variants any more; use the base ID.
 
-### Long-context LoRA (32K-131K)
+### LoRA rank
 
-| Model | API String | Max Context |
-|-------|-----------|-------------|
-| DeepSeek R1 | `deepseek-ai/DeepSeek-R1` | 131K |
-| Llama 3.3 70B 131K | `meta-llama/Llama-3.3-70B-131k-Instruct-Reference` | 131K |
-| Llama 3.1 8B 131K | `meta-llama/Meta-Llama-3.1-8B-131k-Instruct-Reference` | 131K |
-| Llama 3.1 70B 131K | `meta-llama/Meta-Llama-3.1-70B-131k-Instruct-Reference` | 131K |
+If `lora_r` is not set, the job uses the model's default rank, and `lora_alpha` defaults to twice
+the rank. Setting `lora_r` above the model's max returns an error.
 
-Note: Long-context fine-tuning of Llama 3.1 models (32K-131K) is only supported using LoRA.
-
-### Max LoRA rank caps
-
-The `lora_r` parameter defaults to 64 but is capped per model. Setting `lora_r` above the cap returns an error.
-
-| Cap | Models |
-|-----|--------|
-| 16 | Moonshot Kimi K2 family (`Kimi-K2.5`, `Kimi-K2-Thinking`, `Kimi-K2-Instruct-0905`, `Kimi-K2-Instruct`, `Kimi-K2-Base`) |
-| 16 | Z.ai GLM-5, GLM-5.1 |
-| 16 | DeepSeek R1 / R1-0528 / V3 / V3.1 / V3-0324 (and `-Base` variants); R1-Distill variants stay at 64 |
-| 64 | All other LoRA-supported models (default) |
+| Default | Max | Models |
+|---------|-----|--------|
+| 16 | 16 | Z.ai GLM 5.1, 5.2, 5.3; Moonshot Kimi K2.6, K2.7 Code; DeepSeek V3.1 |
+| 64 | 128 | All other models, including DeepSeek V4 Flash |
 
 ## Full Fine-tuning
 
-Same models as LoRA, but batch sizes are generally smaller. Key full-fine-tuning-only models:
+Only these models support full fine-tuning (`lora=False`); all others are LoRA-only.
 
 | Organization | Model | API String | Context (SFT) |
 |-------------|-------|-----------|---------------|
-| DeepSeek | R1 Distill Llama 70B | `deepseek-ai/DeepSeek-R1-Distill-Llama-70B` | 24K |
-| DeepSeek | R1 Distill Qwen 14B | `deepseek-ai/DeepSeek-R1-Distill-Qwen-14B` | 65K |
-| DeepSeek | R1 Distill Qwen 1.5B | `deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B` | 131K |
-| Qwen | All Qwen3 variants | Various | 32K-41K |
-| Google | All Gemma 3 variants | Various | 32K-131K |
-| Meta | Llama 3.x variants | Various | 8K-131K |
+| Qwen | Qwen3.8 27B | `Qwen/Qwen3.8-27B` | 131K |
+| Qwen | Qwen3.6 27B | `Qwen/Qwen3.6-27B` | 131K |
+| Qwen | Qwen3.5 27B | `Qwen/Qwen3.5-27B` | 131K |
+| Qwen | Qwen3.5 9B | `Qwen/Qwen3.5-9B` | 65K |
+| Qwen | Qwen3.5 4B | `Qwen/Qwen3.5-4B` | 131K |
+| Google | Gemma 4 31B IT | `google/gemma-4-31B-it` | 49K |
+| Google | Gemma 4 31B IT VLM | `google/gemma-4-31B-it-VLM` | 24K |
+| Meta | Llama 3.3 70B | `meta-llama/Llama-3.3-70B-Instruct-Reference` | 24K |
+| Meta | Llama 3.1 8B | `meta-llama/Meta-Llama-3.1-8B-Instruct-Reference` | 131K |
+| Mistral | Mixtral 8x7B | `mistralai/Mixtral-8x7B-Instruct-v0.1` | 32K |
 
 ## VLM Fine-tuning
 
-| Model | API String | Full | LoRA |
-|-------|-----------|------|------|
-| Qwen3-VL-8B | `Qwen/Qwen3-VL-8B-Instruct` | Yes | Yes |
-| Qwen3-VL-30B-A3B | `Qwen/Qwen3-VL-30B-A3B-Instruct` | Yes | Yes |
-| Qwen3-VL-235B | `Qwen/Qwen3-VL-235B-A22B-Instruct` | No | Yes |
-| Llama 4 Maverick VLM | `meta-llama/Llama-4-Maverick-17B-128E-Instruct-VLM` | No | Yes |
-| Llama 4 Scout VLM | `meta-llama/Llama-4-Scout-17B-16E-Instruct-VLM` | No | Yes |
-| Gemma 3 4B VLM | `google/gemma-3-4b-it-VLM` | Yes | Yes |
-| Gemma 3 12B VLM | `google/gemma-3-12b-it-VLM` | Yes | Yes |
-| Gemma 3 27B VLM | `google/gemma-3-27b-it-VLM` | Yes | Yes |
+Qwen models take image data under their usual ID; Gemma 4 and Llama 4 need the `-VLM` ID.
+
+| Model | API String | Context (SFT) | Full | LoRA |
+|-------|-----------|---------------|------|------|
+| Qwen3.8 27B | `Qwen/Qwen3.8-27B` | 131K | Yes | Yes |
+| Qwen3.6 27B | `Qwen/Qwen3.6-27B` | 131K | Yes | Yes |
+| Qwen3.5 27B | `Qwen/Qwen3.5-27B` | 131K | Yes | Yes |
+| Qwen3.5 9B | `Qwen/Qwen3.5-9B` | 65K | Yes | Yes |
+| Qwen3.5 4B | `Qwen/Qwen3.5-4B` | 131K | Yes | Yes |
+| Gemma 4 31B IT VLM | `google/gemma-4-31B-it-VLM` | 24K | Yes | Yes |
+| Llama 4 Maverick VLM | `meta-llama/Llama-4-Maverick-17B-128E-Instruct-VLM` | 16K | No | Yes |
+| Llama 4 Scout VLM | `meta-llama/Llama-4-Scout-17B-16E-Instruct-VLM` | 32K | No | Yes |
 
 ## Reasoning Fine-tuning
 
 | Organization | Model | API String |
 |-------------|-------|-----------|
-| Qwen | Qwen3.5 family | `Qwen/Qwen3.5-*` (0.8B, 2B, 4B, 9B, 27B, 35B-A3B, 122B-A10B, 397B-A17B) |
-| Qwen | Qwen3 0.6B - 235B | `Qwen/Qwen3-*` (all sizes and base variants) |
-| Qwen | Qwen3 30B A3B | `Qwen/Qwen3-30B-A3B` (and base) |
-| Qwen | Qwen3-Next 80B Thinking | `Qwen/Qwen3-Next-80B-A3B-Thinking` |
-| Z.ai | GLM 5.1 | `zai-org/GLM-5.1` |
-| Z.ai | GLM 5 | `zai-org/GLM-5` |
-| Z.ai | GLM 4.7 | `zai-org/GLM-4.7` |
-| Z.ai | GLM 4.6 | `zai-org/GLM-4.6` |
+| Qwen | Qwen3.8 27B | `Qwen/Qwen3.8-27B` |
+| Qwen | Qwen3.6 family | `Qwen/Qwen3.6-27B`, `Qwen/Qwen3.6-35B-A3B` |
+| Qwen | Qwen3.5 family | `Qwen/Qwen3.5-*` (4B, 9B, 27B, 35B-A3B, 122B-A10B, 397B-A17B) |
+| Z.ai | GLM 5.1 - 5.3 | `zai-org/GLM-5.1`, `zai-org/GLM-5.2`, `zai-org/GLM-5.3` |
+| DeepSeek | DeepSeek V4 Flash | `deepseek-ai/DeepSeek-V4-Flash`, `deepseek-ai/DeepSeek-V4-Flash-0731` |
+| Google | Gemma 4 | `google/gemma-4-31B-it`, `google/gemma-4-31B-it-VLM`, `google/gemma-4-26B-A4B-it` |
+| OpenAI | GPT-OSS | `openai/gpt-oss-120b`, `openai/gpt-oss-20b` |
+
+## Function-calling Fine-tuning
+
+Every model above supports tool-call training data except the DeepSeek models (V3.1, V4 Flash)
+and Mixtral 8x7B.
 
 ## DPO/Preference Training
 
-Same models as LoRA/Full fine-tuning. Additional parameters:
+Every model above supports DPO; see the Context (DPO) column for its limit. Additional parameters:
 - `training_method`: `"dpo"`
 - `dpo_beta`: 0.05-0.9 (default 0.1)
-- DPO context lengths are generally half of SFT context lengths
+
+## Removed Models
+
+Together removed about 100 base models from fine-tuning on 2026-07-29, and jobs that name them
+fail. Replacements for the common ones (full list on the
+[deprecations page](https://docs.together.ai/docs/deprecations#fine-tuning)):
+
+| Removed | Use instead |
+|---------|-------------|
+| `Qwen/Qwen3-8B`, `Qwen/Qwen3-VL-8B-Instruct`, `Qwen/Qwen2.5-7B-Instruct`, `nvidia/NVIDIA-Nemotron-Nano-9B-v2` | `Qwen/Qwen3.5-9B` |
+| `Qwen/Qwen3-4B`, `Qwen/Qwen2.5-3B-Instruct` | `Qwen/Qwen3.5-4B` |
+| `Qwen/Qwen3-14B`, `Qwen/Qwen3-32B`, `Qwen/Qwen2.5-14B-Instruct`, `Qwen/Qwen2.5-32B-Instruct` | `Qwen/Qwen3.5-27B` |
+| `Qwen/Qwen3-30B-A3B`, `Qwen/Qwen3-Coder-30B-A3B-Instruct` | `Qwen/Qwen3.6-35B-A3B` |
+| `Qwen/Qwen3-235B-A22B`, `Qwen/Qwen3-235B-A22B-Instruct-2507` | `Qwen/Qwen3.5-397B-A17B` |
+| `Qwen/Qwen3-Next-80B-A3B-Instruct`, `Qwen/Qwen3-Next-80B-A3B-Thinking` | `Qwen/Qwen3.5-122B-A10B` |
+| `moonshotai/Kimi-K2.5`, `Kimi-K2-Thinking`, `Kimi-K2-Instruct-0905`, `Kimi-K2-Instruct`, `Kimi-K2-Base` | `moonshotai/Kimi-K2.6` |
+| `zai-org/GLM-5`, `zai-org/GLM-4.7`, `zai-org/GLM-4.6` | `zai-org/GLM-5.1` |
+| `deepseek-ai/DeepSeek-R1`, `-R1-0528`, `-V3`, `-V3-0324` (and `-Base` variants) | `deepseek-ai/DeepSeek-V3.1` |
+| `meta-llama/Llama-3.2-3B-Instruct`, `Llama-3.2-1B-Instruct`, Llama 3.1 8B `-131k` and base variants | `meta-llama/Meta-Llama-3.1-8B-Instruct-Reference` |
+| Llama 3.1 70B, Llama 3.3 70B `-32k`/`-131k`, `Qwen/Qwen2.5-72B-Instruct`, `deepseek-ai/DeepSeek-R1-Distill-Llama-70B` | `meta-llama/Llama-3.3-70B-Instruct-Reference` |
+| `google/gemma-3-1b-it`, `gemma-3-4b-it`, `gemma-3-12b-it` | `google/gemma-4-26B-A4B-it` |
+| `google/gemma-3-27b-it` | `google/gemma-4-31B-it` |
+| `google/gemma-3-12b-it-VLM`, `gemma-3-27b-it-VLM` | `google/gemma-4-31B-it-VLM` |
+| `mistralai/Mistral-7B-Instruct-v0.2` | `mistralai/Mixtral-8x7B-Instruct-v0.1` |
+
+No direct replacement: Llama 3.1 405B, Qwen3-Coder 480B, Qwen3-VL 32B and 235B. For the smallest
+removed models (Qwen3 0.6B and 1.7B, Qwen2.5 1.5B, Gemma 3 270M) the deprecations page suggests
+`Qwen/Qwen3.5-0.8B` or `Qwen/Qwen3.5-2B`, but neither is in the catalog; the smallest available
+model is `Qwen/Qwen3.5-4B`.
 
 ## BYOM (Bring Your Own Model)
 
-Fine-tune any CausalLM model from HuggingFace Hub:
+Fine-tune a CausalLM model from Hugging Face Hub (under 100B parameters, `.safetensors` weights,
+no custom code):
 
 ```python
 job = client.fine_tuning.create(
-    model="Qwen/Qwen3-4B",               # Base template (infrastructure config)
+    model="Qwen/Qwen3.5-4B",              # Base template (infrastructure config)
     from_hf_model="my-org/my-custom-model",  # Your actual model
     training_file=file_id,
     hf_api_token="hf_xxx",               # Optional, for private repos
@@ -182,4 +179,3 @@ job = client.fine_tuning.create(
 
 Important: The `model` parameter (base template) should have a similar architecture, size, and
 sequence length to the `from_hf_model` for best results.
-

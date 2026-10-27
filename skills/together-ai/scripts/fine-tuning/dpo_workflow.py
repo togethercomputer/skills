@@ -8,10 +8,10 @@ Best practice is to run SFT before DPO for better model quality.
 Usage:
     python dpo_workflow.py
     python dpo_workflow.py --sft-training-file sft.jsonl --dpo-training-file dpo.jsonl
-    python dpo_workflow.py --model meta-llama/Llama-3.2-3B-Instruct
+    python dpo_workflow.py --model meta-llama/Meta-Llama-3.1-8B-Instruct-Reference
 
 Requires:
-    uv pip install "together>=2.0.0"
+    uv pip install "together>=2.0.0,<3"
     export TOGETHER_API_KEY=your_key
 """
 
@@ -133,7 +133,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dpo-training-file", help="Path to a DPO preference JSONL file")
     parser.add_argument(
         "--model",
-        default="meta-llama/Llama-3.2-3B-Instruct",
+        default="meta-llama/Meta-Llama-3.1-8B-Instruct-Reference",
         help="Base model for both SFT and DPO",
     )
     parser.add_argument("--sft-suffix", default="sft-step", help="Suffix for the SFT warm-up job")

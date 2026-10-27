@@ -29,10 +29,10 @@ tokens. Serving the result is `domains/dedicated-model-inference.md`; measuring 
 | [scripts/fine-tuning/finetune_workflow.py](scripts/fine-tuning/finetune_workflow.py) | 229 | LoRA or full: validate, upload, create, monitor | standard SFT |
 | [scripts/fine-tuning/dpo_workflow.py](scripts/fine-tuning/dpo_workflow.py) | 267 | preference-pair data and DPO parameters | DPO |
 | [scripts/fine-tuning/function_calling_finetune.py](scripts/fine-tuning/function_calling_finetune.py) | 309 | tool-call training data and job | tuning tool use |
-| [scripts/fine-tuning/reasoning_finetune.py](scripts/fine-tuning/reasoning_finetune.py) | 281 | reasoning-trace data and job | tuning reasoning |
+| [scripts/fine-tuning/reasoning_finetune.py](scripts/fine-tuning/reasoning_finetune.py) | 282 | reasoning-trace data and job | tuning reasoning |
 | [scripts/fine-tuning/vlm_finetune.py](scripts/fine-tuning/vlm_finetune.py) | 228 | image-text data and VLM job | vision-language tuning |
-| [references/fine-tuning/data-formats.md](references/fine-tuning/data-formats.md) | 368 | every dataset format (conversational, instruction, DPO, reasoning, tools, VLM), loss masking, sample weights, validation | preparing or debugging a dataset |
-| [references/fine-tuning/supported-models.md](references/fine-tuning/supported-models.md) | 185 | models per method, recommended starting models, BYOM | choosing a base model |
+| [references/fine-tuning/data-formats.md](references/fine-tuning/data-formats.md) | 369 | every dataset format (conversational, instruction, DPO, reasoning, tools, VLM), loss masking, sample weights, validation | preparing or debugging a dataset |
+| [references/fine-tuning/supported-models.md](references/fine-tuning/supported-models.md) | 181 | models per method with context limits, LoRA ranks, removed models and replacements, BYOM | choosing a base model |
 | [references/fine-tuning/deployment.md](references/fine-tuning/deployment.md) | 234 | training parameters, monitoring, continued fine-tuning, deployment options, pricing | tuning hyperparameters or deploying the result |
 
 ## Docs
