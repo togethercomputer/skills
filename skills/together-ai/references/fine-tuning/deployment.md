@@ -234,12 +234,12 @@ for event in events.data:
 
 # List checkpoints
 checkpoints = client.fine_tuning.list_checkpoints(id=job_id)
-for cp in checkpoints:
-    print(f"Step {cp.step}: {cp.metrics}")
+for cp in checkpoints.data:
+    print(f"Step {cp.step}: {cp.checkpoint_type} {cp.object_id}")
 
 # List per-step training metrics (loss, learning rate, grad norm, eval/loss, ...)
 metrics = client.fine_tuning.list_metrics(job_id)
-for step in metrics.metrics:
+for step in metrics.metrics or []:
     print(step)
 ```
 
