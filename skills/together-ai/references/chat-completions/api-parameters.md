@@ -20,7 +20,7 @@
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `model` | string | Model identifier (e.g., `meta-llama/Llama-3.3-70B-Instruct-Turbo`) |
+| `model` | string | Model identifier (e.g., `zai-org/GLM-5.3-Flash`) |
 | `messages` | array | Array of message objects with `role` and `content` |
 
 ## Generation Parameters
@@ -47,7 +47,7 @@ from together import Together
 client = Together()
 
 response = client.chat.completions.create(
-    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    model="zai-org/GLM-5.3-Flash",
     messages=[
         {"role": "system", "content": "You are a helpful assistant"},
         {"role": "user", "content": "Hello!"},
@@ -67,7 +67,7 @@ import Together from "together-ai";
 const together = new Together();
 
 const response = await together.chat.completions.create({
-  model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+  model: "zai-org/GLM-5.3-Flash",
   messages: [
     { role: "system", content: "You are a helpful assistant" },
     { role: "user", content: "Hello!" },
@@ -93,7 +93,7 @@ console.log(response.choices[0].message.content);
 
 ```python
 stream = client.chat.completions.create(
-    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    model="zai-org/GLM-5.3-Flash",
     messages=[{"role": "user", "content": "Write a story"}],
     stream=True,
 )
@@ -107,7 +107,7 @@ for chunk in stream:
 
 ```typescript
 const stream = await together.chat.completions.create({
-  model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+  model: "zai-org/GLM-5.3-Flash",
   messages: [{ role: "user", content: "Write a story" }],
   stream: true,
 });
@@ -185,7 +185,7 @@ tools = [{
 }]
 
 response = client.chat.completions.create(
-    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    model="zai-org/GLM-5.3-Flash",
     messages=[{"role": "user", "content": "Weather in NYC?"}],
     tools=tools,
     tool_choice="auto",
@@ -194,7 +194,7 @@ response = client.chat.completions.create(
 
 ```typescript
 const response = await together.chat.completions.create({
-  model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+  model: "zai-org/GLM-5.3-Flash",
   messages: [{ role: "user", content: "Weather in NYC?" }],
   tools: [
     {

@@ -20,21 +20,23 @@ waiting on, use `domains/chat-completions.md` instead.
 
 - `client.batches.create()` returns a wrapper: the batch is `response.job` (`response.job.id`).
   `client.batches.retrieve()` returns the batch directly.
-- The 50% discount applies to `meta-llama/Llama-3.3-70B-Instruct-Turbo` and
-  `openai/whisper-large-v3` (audio batches use `/v1/audio/transcriptions`); other models run at
-  standard rates. Batches can also target a dedicated endpoint, without the discount.
+- The 50% discount currently applies only to `openai/whisper-large-v3` (audio batches use
+  `/v1/audio/transcriptions`); chat models run at standard rates (checked 2026-10-26). Batches can
+  also target a dedicated endpoint, without the discount.
 - Keep `custom_id` unique and meaningful; results come back unordered.
 - Batch is for independent requests; shared conversation state belongs in chat.
 - Always read the error file; failed rows appear only there.
 - For classification, set `max_tokens` low (about 4), `temperature` 0, and ask for the label
-  only.
+  only. Most serverless chat models think by default and would spend that budget on the trace, so
+  use a hybrid model such as `Qwen/Qwen3.5-9B` and add `"reasoning": {"enabled": false}` to each
+  body.
 
 ## Open next
 
 | File | Lines | Contains | Open when |
 |---|---|---|---|
-| [scripts/batch-inference/batch_workflow.py](scripts/batch-inference/batch_workflow.py) (.ts) | 170 | build JSONL, upload, create, poll, download, reconcile | running a batch end to end |
-| [references/batch-inference/api-reference.md](references/batch-inference/api-reference.md) | 307 | JSONL input and output formats, job object and statuses, discounted and excluded models, limits, error codes, CLI | a format detail, status, limit, or error |
+| [scripts/batch-inference/batch_workflow.py](scripts/batch-inference/batch_workflow.py) (.ts) | 186 | build JSONL, upload, create, poll, download, reconcile | running a batch end to end |
+| [references/batch-inference/api-reference.md](references/batch-inference/api-reference.md) | 308 | JSONL input and output formats, job object and statuses, discounted and excluded models, limits, error codes, CLI | a format detail, status, limit, or error |
 
 ## Docs
 

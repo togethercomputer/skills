@@ -7,11 +7,13 @@
 - [HTTP Status Codes](#http-status-codes)
 
 
-Base URL: `https://api.together.xyz/v1`
+Base URL: `https://api-inference.together.ai/v1` (dedicated inference)
 
-Together does not currently offer embedding or rerank models (checked 2026-10-07; see the
+Together does not currently offer embedding or rerank models (checked 2026-10-26; see the
 [deprecations page](https://docs.together.ai/docs/deprecations)). These shapes apply to an
-existing embedding or rerank endpoint.
+embedding or rerank model you already serve on a dedicated endpoint: send requests to the
+dedicated base URL with the endpoint string as `model` (shown below as
+`your-project/your-embedding-endpoint`).
 
 ## Endpoints
 
@@ -26,10 +28,10 @@ existing embedding or rerank endpoint.
 
 ```python
 from together import Together
-client = Together()
+client = Together(base_url="https://api-inference.together.ai/v1")
 
 response = client.embeddings.create(
-    model="intfloat/multilingual-e5-large-instruct",
+    model="your-project/your-embedding-endpoint",
     input="Our solar system orbits the Milky Way galaxy at about 515,000 mph",
 )
 print(response.data[0].embedding[:5])
@@ -37,21 +39,21 @@ print(response.data[0].embedding[:5])
 
 ```typescript
 import Together from "together-ai";
-const client = new Together();
+const client = new Together({ baseURL: "https://api-inference.together.ai/v1" });
 
 const response = await client.embeddings.create({
-  model: "intfloat/multilingual-e5-large-instruct",
+  model: "your-project/your-embedding-endpoint",
   input: "Our solar system orbits the Milky Way galaxy at about 515,000 mph",
 });
 console.log(response.data[0].embedding.slice(0, 5));
 ```
 
 ```shell
-curl -X POST "https://api.together.xyz/v1/embeddings" \
+curl -X POST "https://api-inference.together.ai/v1/embeddings" \
   -H "Authorization: Bearer $TOGETHER_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "intfloat/multilingual-e5-large-instruct",
+    "model": "your-project/your-embedding-endpoint",
     "input": "Our solar system orbits the Milky Way galaxy at about 515,000 mph"
   }'
 ```
@@ -64,7 +66,7 @@ within rate limits.
 
 ```python
 response = client.embeddings.create(
-    model="intfloat/multilingual-e5-large-instruct",
+    model="your-project/your-embedding-endpoint",
     input=["First document", "Second document", "Third document"],
 )
 for item in response.data:
@@ -73,7 +75,7 @@ for item in response.data:
 
 ```typescript
 const response = await client.embeddings.create({
-  model: "intfloat/multilingual-e5-large-instruct",
+  model: "your-project/your-embedding-endpoint",
   input: ["First document", "Second document", "Third document"],
 });
 for (const item of response.data) {
@@ -88,7 +90,7 @@ batch_size = 100
 for start in range(0, len(texts), batch_size):
     batch = texts[start : start + batch_size]
     response = client.embeddings.create(
-        model="intfloat/multilingual-e5-large-instruct",
+        model="your-project/your-embedding-endpoint",
         input=batch,
     )
     # store response.data embeddings
@@ -103,14 +105,15 @@ for start in range(0, len(texts), batch_size):
 
 ### Supported Models
 
-- `intfloat/multilingual-e5-large-instruct`
+None on serverless. `intfloat/multilingual-e5-large-instruct`, the last serverless embedding model, was
+removed on 2026-09-15.
 
 ### Response Schema
 
 ```json
 {
   "object": "list",
-  "model": "intfloat/multilingual-e5-large-instruct",
+  "model": "your-project/your-embedding-endpoint",
   "data": [
     {
       "object": "embedding",

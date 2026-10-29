@@ -10,10 +10,12 @@ repeatable. To change a model rather than measure it, go to `domains/fine-tuning
 2. Upload the dataset as an eval file (`check=False`) and keep the file ID.
 3. Choose judge and target models explicitly. The evaluation service keeps its **own** serverless
    allowlist, separate from the main catalog; check it live (free):
-   `GET https://api.together.xyz/v1/evaluation/model-list?model_source=serverless`. On 2026-10-07
-   the live list and the docs table disagreed, so trust the endpoint. Models on both, and callable
-   serverless: `openai/gpt-oss-120b` (the docs' example judge),
-   `meta-llama/Llama-3.3-70B-Instruct-Turbo`, and `Qwen/Qwen3.5-9B`.
+   `GET https://api.together.xyz/v1/evaluation/model-list?model_source=serverless`. The live list
+   and the docs table disagree, and both can name models that have left serverless (on 2026-10-26
+   both still listed `meta-llama/Llama-3.3-70B-Instruct-Turbo`, removed 2026-10-22), so also check
+   the serverless catalog. On both lists and serverless on 2026-10-26: `openai/gpt-oss-120b` (the
+   docs' example judge), `Qwen/Qwen3.5-9B`, and `Qwen/Qwen3.6-Plus` (needs third-party data
+   sharing).
 4. `client.evals.create(...)`, poll status until it is terminal, then download the per-row results.
 
 ## Rules
@@ -28,8 +30,8 @@ repeatable. To change a model rather than measure it, go to `domains/fine-tuning
 
 | File | Lines | Contains | Open when |
 |---|---|---|---|
-| [scripts/evaluations/run_evaluation.py](scripts/evaluations/run_evaluation.py) (.ts) | 458 | CLI for classify, score, and compare: upload, create, poll, `--download-results`; flags `--eval-column`, `--model-a-column`, `--model-b-column`, `--judge-model-source external` | running any evaluation |
-| [references/evaluations/api-reference.md](references/evaluations/api-reference.md) | 779 | request fields, judge and target config, result schemas, dataset format, image inputs, Jinja2 templates, external providers, retrieval endpoints | a field, template, or provider detail the script does not cover |
+| [scripts/evaluations/run_evaluation.py](scripts/evaluations/run_evaluation.py) (.ts) | 461 | CLI for classify, score, and compare: upload, create, poll, `--download-results`; flags `--eval-column`, `--model-a-column`, `--model-b-column`, `--judge-model-source external` | running any evaluation |
+| [references/evaluations/api-reference.md](references/evaluations/api-reference.md) | 782 | request fields, judge and target config, result schemas, dataset format, image inputs, Jinja2 templates, external providers, retrieval endpoints | a field, template, or provider detail the script does not cover |
 
 ## Docs
 

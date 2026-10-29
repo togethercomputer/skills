@@ -329,6 +329,9 @@ curl -X POST "https://api.together.xyz/v1/evaluation" \
 
 ### 3. Compare
 
+Here model A and the judge are both `openai/gpt-oss-120b`, which can favor its own answers. When
+the verdict matters, judge with a model that is neither candidate.
+
 ```python
 evaluation = client.evals.create(
     type="compare",
@@ -340,7 +343,7 @@ evaluation = client.evals.create(
             "system_template": "Assess which model has smarter and more helpful responses.",
         },
         "model_a": {
-            "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+            "model": "openai/gpt-oss-120b",
             "model_source": "serverless",
             "system_template": "You are a helpful assistant.",
             "input_template": "{{prompt}}",
@@ -371,7 +374,7 @@ const evaluation = await client.evals.create({
         "Assess which model has smarter and more helpful responses.",
     },
     model_a: {
-      model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+      model: "openai/gpt-oss-120b",
       model_source: "serverless",
       system_template: "You are a helpful assistant.",
       input_template: "{{prompt}}",
@@ -403,7 +406,7 @@ curl -X POST "https://api.together.xyz/v1/evaluation" \
         "system_template": "Assess which model has smarter and more helpful responses."
       },
       "model_a": {
-        "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+        "model": "openai/gpt-oss-120b",
         "model_source": "serverless",
         "system_template": "You are a helpful assistant.",
         "input_template": "{{prompt}}",

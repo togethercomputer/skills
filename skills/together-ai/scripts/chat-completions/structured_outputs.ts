@@ -87,7 +87,8 @@ async function regexExample(): Promise<void> {
   // The current TS SDK types do not yet expose regex response_format.
   const response = await client.chat.completions.create(
     {
-      model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+      model: "Qwen/Qwen3.5-9B",
+      reasoning: { enabled: false }, // hybrid model: keep the 10 tokens for the label
       temperature: 0.2,
       max_tokens: 10,
       messages: [

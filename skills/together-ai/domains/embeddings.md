@@ -35,7 +35,7 @@ Calls to the old IDs fail with `Unable to access non-serverless model` or a 503
 | [scripts/embeddings/semantic_search.py](scripts/embeddings/semantic_search.py) | 181 | embed a corpus, in-memory cosine store, query, optional rerank | the user has an embedding endpoint |
 | [scripts/embeddings/rag_pipeline.py](scripts/embeddings/rag_pipeline.py) | 175 | embed, retrieve, then answer with serverless chat | the user has an embedding endpoint |
 | [scripts/embeddings/embed_and_rerank.py](scripts/embeddings/embed_and_rerank.py) (.ts) | 185 | minimal embed plus similarity, rerank with cosine fallback | smallest working example |
-| [references/embeddings/api-reference.md](references/embeddings/api-reference.md) | 177 | `/embeddings` and `/rerank` request and response fields, status codes | request or response shapes |
+| [references/embeddings/api-reference.md](references/embeddings/api-reference.md) | 180 | `/embeddings` and `/rerank` request and response fields, status codes | request or response shapes |
 | [references/embeddings/models.md](references/embeddings/models.md) | 95 | historical embedding and rerank models, parameters, response shapes | parameter or response details |
 
 The scripts read `EMBEDDING_MODEL` (and optional `RERANK_MODEL`) as endpoint strings and exit

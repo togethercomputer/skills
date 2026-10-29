@@ -2,7 +2,7 @@
 
 ## Embedding Models
 
-Together does not currently offer embedding or rerank models (checked 2026-10-07): the serverless
+Together does not currently offer embedding or rerank models (checked 2026-10-26): the serverless
 catalog lists none, and the [deprecations page](https://docs.together.ai/docs/deprecations) shows
 the models below removed. They are kept here for reference only.
 
@@ -29,7 +29,7 @@ shape below applies if the user already has a rerank endpoint.
 ```json
 {
   "object": "list",
-  "model": "intfloat/multilingual-e5-large-instruct",
+  "model": "your-project/your-embedding-endpoint",
   "data": [
     {
       "object": "embedding",
@@ -74,20 +74,20 @@ shape below applies if the user already has a rerank endpoint.
 
 ### Embeddings
 
-The active serverless embedding model is `intfloat/multilingual-e5-large-instruct` (1024
-dimensions, 514 token max input). It supports multilingual text and is recommended for all
-embedding use cases including retrieval, semantic similarity, and classification.
+No embedding model is offered serverless. The last one, `intfloat/multilingual-e5-large-instruct`, was
+removed on 2026-09-15 with no replacement and is not available on dedicated endpoints either. If
+the user already serves an embedding model on a dedicated endpoint, pass that endpoint string as
+`model` and follow that model's own dimensions and input limit.
 
 ### Practical Notes
 
-- **514-token context limit:** Input text beyond 514 tokens is truncated silently. For
-  longer documents (articles, product pages, support tickets), split into chunks before
-  embedding. A typical English sentence is ~20 tokens, so 514 tokens covers roughly a
-  short paragraph.
+- **Respect the model's input limit.** Text beyond it can be truncated silently, so split long
+  documents (articles, product pages, support tickets) into chunks before embedding. The removed
+  E5 model stopped at 514 tokens, roughly a short paragraph.
 - **Use the same model for indexing and querying.** Mixing embedding models between corpus
   and query will produce meaningless similarity scores.
-- **Cosine similarity works out of the box.** E5 embeddings are normalized, so cosine
-  similarity and dot product give equivalent rankings.
+- **Prefer cosine similarity.** It ranks the same as dot product when the model returns
+  normalized vectors, and stays correct when it does not.
 
 ### Reranking
 

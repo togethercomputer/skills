@@ -24,7 +24,7 @@ from together import Together
 
 client = Together()
 
-MODEL = "meta-llama/Llama-3.3-70B-Instruct-Turbo"
+MODEL = "zai-org/GLM-5.3-Flash"
 
 # --- 1. Define tools ---
 tools = [

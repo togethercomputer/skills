@@ -391,8 +391,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--eval-external-base-url", help="Custom OpenAI-compatible base URL for the target")
     parser.add_argument(
         "--model-a",
-        default="meta-llama/Llama-3.3-70B-Instruct-Turbo",
-        help="Model A for compare evaluations",
+        default="openai/gpt-oss-120b",
+        help=(
+            "Model A for compare evaluations. The default is also the default judge, which can "
+            "favor its own answers; pass --judge-model to use a judge that is neither candidate."
+        ),
     )
     parser.add_argument(
         "--model-a-source",

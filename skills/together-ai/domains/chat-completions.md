@@ -17,18 +17,20 @@ from together import Together
 
 client = Together()
 resp = client.chat.completions.create(
-    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    model="zai-org/GLM-5.3-Flash",
     messages=[{"role": "user", "content": "Hello"}],
     # stream=True,  -> iterate chunks; text is chunk.choices[0].delta.content
 )
 print(resp.choices[0].message.content)
 ```
 
-- Serverless models that support tools and JSON output today include
-  `meta-llama/Llama-3.3-70B-Instruct-Turbo`, `openai/gpt-oss-120b` (reasoning), `Qwen/Qwen3.5-9B`
-  (small, also takes images), and `zai-org/GLM-5.3-Flash`. The catalog changes; see the model rule
-  in `SKILL.md`. `Qwen/Qwen3.6-Plus`, `Qwen3.7-Plus`, `Qwen3.7-Max`, and `Qwen3.8-Flash` return 403
-  `third_party_data_sharing_blocked` unless the organization enables third-party data sharing.
+- Serverless models that support tools and JSON output today include `zai-org/GLM-5.3-Flash`
+  (Together's function-calling pick), `openai/gpt-oss-120b`, `Qwen/Qwen3.5-9B` (small, also takes
+  images), and `meta-models/Muse-Glimmer-30B` (Together's replacement for the removed
+  `meta-llama/Llama-3.3-70B-Instruct-Turbo`). Most think by default; see the reasoning rule below.
+  The catalog changes; see the model rule in `SKILL.md`. `Qwen/Qwen3.6-Plus`, `Qwen3.7-Plus`,
+  `Qwen3.7-Max`, and `Qwen3.8-Flash` return 403 `third_party_data_sharing_blocked` unless the
+  organization enables third-party data sharing.
 - Image input: put `{"type": "image_url", "image_url": {"url": ...}}` parts in the user message's
   `content` list and use a vision model (`Qwen/Qwen3.5-9B`, `MiniMaxAI/MiniMax-M3`,
   `moonshotai/Kimi-K3`).
@@ -53,12 +55,13 @@ print(resp.choices[0].message.content)
   `response_format`; phase 2 sends `response_format` with no `tools`, after the tool results.
 - Prefer `json_schema` to looser JSON modes for machine-readable output. Streaming works with
   `response_format`: join the chunks, then parse the full string.
-- Reasoning: the trace arrives on `reasoning` (GPT-OSS, Qwen3.5 9B) or `reasoning_content` (Kimi K3, DeepSeek
-  V4 Pro 0813, GLM-5.2, MiniMax M3, as observed 2026-10-07). Read both, and when you send a prior
-  assistant turn back, return the trace unmodified under the key it came on. Thinking-by-default models spend
-  `max_tokens` on the trace first, so give them headroom or the answer comes back empty. Turn
-  thinking off with `reasoning={"enabled": False}` on hybrid models. Use reasoning models only
-  when the task benefits; they cost more and are slower.
+- Reasoning: the trace arrives on `reasoning` (GPT-OSS, Qwen3.5 9B, Muse Glimmer 30B) or
+  `reasoning_content` (Kimi K3, DeepSeek V4 Pro 0813, GLM-5.2, GLM-5.3 Flash, MiniMax M3; observed
+  2026-10-07 and 2026-10-26). Read both, and when you send a prior assistant turn back, return the
+  trace unmodified under the key it came on. Thinking-by-default models spend `max_tokens` on the
+  trace first, so give them headroom or the answer comes back empty. Turn thinking off with
+  `reasoning={"enabled": False}` on hybrid models. Use reasoning models only when the task benefits;
+  they cost more and are slower.
 - Token usage: reasoning models nest counts OpenAI-style
   (`usage.completion_tokens_details.reasoning_tokens`, `usage.prompt_tokens_details.cached_tokens`)
   but some models return `cached_tokens` flat on `usage`. Read both places.
@@ -72,15 +75,15 @@ Open a file only for the detail its row names. References over 100 lines start w
 |---|---|---|---|
 | [scripts/chat-completions/chat_basic.py](scripts/chat-completions/chat_basic.py) (.ts) | 76 | single call, streaming, multi-turn | you want a runnable starting point |
 | [scripts/chat-completions/tool_call_loop.py](scripts/chat-completions/tool_call_loop.py) (.ts) | 164 | multi-round tool loop with argument-error handling and the required-tool grounding check | building any agent or tool loop |
-| [scripts/chat-completions/structured_outputs.py](scripts/chat-completions/structured_outputs.py) (.ts) | 142 | `json_schema` and regex output | output must parse as JSON |
+| [scripts/chat-completions/structured_outputs.py](scripts/chat-completions/structured_outputs.py) (.ts) | 143 | `json_schema` and regex output | output must parse as JSON |
 | [scripts/chat-completions/reasoning_models.py](scripts/chat-completions/reasoning_models.py) (.ts) | 162 | reasoning field, effort levels, hybrid on/off toggles | using a reasoning model |
 | [scripts/chat-completions/async_parallel.py](scripts/chat-completions/async_parallel.py) | 50 | asyncio fan-out of independent requests | many requests and a user is waiting |
 | [scripts/chat-completions/debug_headers.py](scripts/chat-completions/debug_headers.py) (.ts) | 57 | raw response, rate-limit and routing headers | debugging latency, 429s, or routing |
-| [references/chat-completions/models.md](references/chat-completions/models.md) | 73 | model picks by use case, context lengths, vision and moderation models | choosing a model (verify it is live) |
+| [references/chat-completions/models.md](references/chat-completions/models.md) | 89 | model picks by use case, context lengths, vision and moderation models | choosing a model (verify it is live) |
 | [references/chat-completions/api-parameters.md](references/chat-completions/api-parameters.md) | 481 | every request parameter, message object, OpenAI-SDK compatibility, rate-limit tiers, HTTP status codes | a parameter or status code not covered above |
-| [references/chat-completions/function-calling-patterns.md](references/chat-completions/function-calling-patterns.md) | 841 | six calling patterns (parallel, multi-step, ...), `tool_choice`, tools plus structured output, best practices, supported models | a tool pattern the script does not show |
-| [references/chat-completions/structured-outputs.md](references/chat-completions/structured-outputs.md) | 541 | the three JSON modes, reasoning plus JSON, streaming JSON, troubleshooting | JSON output fails to parse or validate |
-| [references/chat-completions/reasoning-models.md](references/chat-completions/reasoning-models.md) | 481 | reasoning model table, effort levels, hybrid toggles, output format, token accounting | tuning reasoning depth or cost |
+| [references/chat-completions/function-calling-patterns.md](references/chat-completions/function-calling-patterns.md) | 843 | six calling patterns (parallel, multi-step, ...), `tool_choice`, tools plus structured output, best practices, supported models | a tool pattern the script does not show |
+| [references/chat-completions/structured-outputs.md](references/chat-completions/structured-outputs.md) | 549 | the three JSON modes, reasoning plus JSON, streaming JSON, troubleshooting | JSON output fails to parse or validate |
+| [references/chat-completions/reasoning-models.md](references/chat-completions/reasoning-models.md) | 484 | reasoning model table, effort levels, hybrid toggles, output format, token accounting | tuning reasoning depth or cost |
 
 ## Docs
 

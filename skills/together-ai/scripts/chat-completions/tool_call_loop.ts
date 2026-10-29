@@ -26,7 +26,7 @@ const client = new Together({
   apiKey: process.env.TOGETHER_API_KEY,
 });
 
-const MODEL = "meta-llama/Llama-3.3-70B-Instruct-Turbo";
+const MODEL = "zai-org/GLM-5.3-Flash";
 
 // --- 1. Define tools ---
 const tools: ChatCompletionTool[] = [

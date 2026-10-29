@@ -83,7 +83,8 @@ def regex_example() -> None:
     """Constrain output to match a regex pattern."""
     print("=== regex (classification) ===")
     response = client.chat.completions.create(
-        model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
+        model="Qwen/Qwen3.5-9B",
+        reasoning={"enabled": False},  # hybrid model: keep the 10 tokens for the label
         temperature=0.2,
         max_tokens=10,
         messages=[

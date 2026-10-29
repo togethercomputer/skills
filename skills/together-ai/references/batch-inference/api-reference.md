@@ -33,18 +33,20 @@ Authentication: `Authorization: Bearer $TOGETHER_API_KEY`
 Each line is a JSON object with two required fields:
 
 ```json
-{"custom_id": "request-1", "body": {"model": "meta-llama/Llama-3.3-70B-Instruct-Turbo", "messages": [{"role": "user", "content": "Hello"}], "max_tokens": 200}}
+{"custom_id": "request-1", "body": {"model": "Qwen/Qwen3.5-9B", "messages": [{"role": "user", "content": "Hello"}], "max_tokens": 200, "reasoning": {"enabled": false}}}
 ```
 
 - `custom_id` (string, required): Unique identifier for tracking (max 64 chars)
-- `body` (object, required): Request matching the `/v1/chat/completions` schema
+- `body` (object, required): Request matching the `/v1/chat/completions` schema. Most serverless
+  chat models think by default; on hybrid models such as Qwen3.5 9B,
+  `"reasoning": {"enabled": false}` keeps `max_tokens` for the answer.
 
 ## Output File Format (JSONL)
 
 Each line in the output file is a JSON object keyed by `custom_id`:
 
 ```json
-{"custom_id": "request-1", "response": {"status_code": 200, "body": {"id": "...", "object": "chat.completion", "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo", "choices": [{"index": 0, "message": {"role": "assistant", "content": "Hello!"}, "finish_reason": "stop"}], "usage": {"prompt_tokens": 12, "completion_tokens": 3, "total_tokens": 15}}}}
+{"custom_id": "request-1", "response": {"status_code": 200, "body": {"id": "...", "object": "chat.completion", "model": "Qwen/Qwen3.5-9B", "choices": [{"index": 0, "message": {"role": "assistant", "content": "Hello!"}, "finish_reason": "stop"}], "usage": {"prompt_tokens": 12, "completion_tokens": 3, "total_tokens": 15}}}}
 ```
 
 To extract the assistant's reply from a result line:
@@ -238,14 +240,13 @@ curl -X GET "https://api.together.xyz/v1/batches" \
 
 ## Models with 50% Discount
 
-- `meta-llama/Llama-3.3-70B-Instruct-Turbo`
 - `openai/whisper-large-v3` (audio batches through `/v1/audio/transcriptions` and
   `/v1/audio/translations`)
 
 Most serverless models support batch processing through `/v1/chat/completions`; models not
-listed above run at standard rates. Batches can also target a dedicated endpoint, but the
-discount does not apply to dedicated usage. Source:
-[Batch overview](https://docs.together.ai/docs/inference/batch/overview).
+listed above, which today means every chat model, run at standard rates (checked 2026-10-26).
+Batches can also target a dedicated endpoint, but the discount does not apply to dedicated usage.
+Source: [Batch overview](https://docs.together.ai/docs/inference/batch/overview).
 
 ## Rate Limits
 

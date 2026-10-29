@@ -255,6 +255,8 @@ curl -X POST "https://api.together.xyz/v1/chat/completions" \
 ### 3. regex (Pattern Matching)
 
 Constrains output to match a regex pattern. All models supported for JSON mode also support regex.
+The examples use `Qwen/Qwen3.5-9B` with reasoning off: it thinks by default, and a 10-token budget
+would go to the trace.
 
 ### Python
 
@@ -265,7 +267,8 @@ client = Together()
 
 # Sentiment classification
 response = client.chat.completions.create(
-    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    model="Qwen/Qwen3.5-9B",
+    reasoning={"enabled": False},
     temperature=0.2,
     max_tokens=10,
     messages=[
@@ -281,7 +284,8 @@ print(response.choices[0].message.content)  # "positive"
 
 # Phone number pattern
 response = client.chat.completions.create(
-    model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    model="Qwen/Qwen3.5-9B",
+    reasoning={"enabled": False},
     messages=[{"role": "user", "content": "Generate a US phone number for a pizza shop"}],
     response_format={"type": "regex", "pattern": r"\(\d{3}\) \d{3}-\d{4}"},
 )
@@ -294,7 +298,8 @@ import Together from "together-ai";
 const together = new Together();
 
 const completion = await together.chat.completions.create({
-  model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+  model: "Qwen/Qwen3.5-9B",
+  reasoning: { enabled: false },
   temperature: 0.2,
   max_tokens: 10,
   messages: [
@@ -322,7 +327,8 @@ curl -X POST "https://api.together.xyz/v1/chat/completions" \
   -H "Authorization: Bearer $TOGETHER_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    "model": "Qwen/Qwen3.5-9B",
+    "reasoning": {"enabled": false},
     "temperature": 0.2,
     "max_tokens": 10,
     "messages": [
@@ -507,20 +513,22 @@ console.log(`Title: ${result.title}`);
 
 ## Supported Models
 
-Serverless models that support this as of 2026-10-07, per the [serverless catalog](https://docs.together.ai/docs/serverless/models). Availability changes; a request with `max_tokens=1` confirms a model is live.
+Serverless models that support this include the ones below (checked 2026-10-26 against the
+[serverless catalog](https://docs.together.ai/docs/serverless/models), which marks every chat model
+except `together/Tev1-4B-experimental` as supported). Availability changes; a request with
+`max_tokens=1` confirms a model is live.
 
 - `moonshotai/Kimi-K3`
 - `zai-org/GLM-5.3`
 - `zai-org/GLM-5.3-Flash`
 - `zai-org/GLM-5.2`
 - `deepseek-ai/DeepSeek-V4-Pro-0813`
-- `deepseek-ai/DeepSeek-V4-Flash-0731`
 - `deepseek-ai/DeepSeek-V4.1-Flash`
 - `thinkingmachines/Inkling`
 - `MiniMaxAI/MiniMax-M3`
 - `Qwen/Qwen3.5-9B`
 - `openai/gpt-oss-120b`
-- `meta-llama/Llama-3.3-70B-Instruct-Turbo`
+- `meta-models/Muse-Glimmer-30B`
 
 ## Troubleshooting
 

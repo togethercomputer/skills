@@ -193,7 +193,8 @@ function parseScriptArgs(): ScriptArgs {
     temperature: parseNumber(flags.temperature, 0.7, "--temperature"),
     evalExternalApiToken: flags["eval-external-api-token"],
     evalExternalBaseUrl: flags["eval-external-base-url"],
-    modelA: flags["model-a"] ?? "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    // The default model A is also the default judge, which can favor its own answers.
+    modelA: flags["model-a"] ?? "openai/gpt-oss-120b",
     modelASource: parseModelSource(flags["model-a-source"], "--model-a-source"),
     modelAColumn: flags["model-a-column"],
     modelAExternalApiToken: flags["model-a-external-api-token"],

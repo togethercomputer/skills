@@ -25,19 +25,22 @@ from together import Together
 client = Together()
 
 
-def build_sample_requests(prompts: list[str], model: str, max_tokens: int) -> list[dict]:
+def build_sample_requests(
+    prompts: list[str], model: str, max_tokens: int, disable_reasoning: bool
+) -> list[dict]:
     """Build a small batch request list from prompts."""
-    return [
-        {
-            "custom_id": f"req-{index}",
-            "body": {
-                "model": model,
-                "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": max_tokens,
-            },
+    requests = []
+    for index, prompt in enumerate(prompts, start=1):
+        body: dict = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": max_tokens,
         }
-        for index, prompt in enumerate(prompts, start=1)
-    ]
+        if disable_reasoning:
+            # Hybrid models think by default and would spend max_tokens on the trace.
+            body["reasoning"] = {"enabled": False}
+        requests.append({"custom_id": f"req-{index}", "body": body})
+    return requests
 
 
 def load_requests_from_jsonl(path: str) -> list[dict]:
@@ -57,8 +60,16 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--model",
-        default="meta-llama/Llama-3.3-70B-Instruct-Turbo",
+        default="Qwen/Qwen3.5-9B",
         help="Model to use when generating a sample batch payload",
+    )
+    parser.add_argument(
+        "--keep-reasoning",
+        action="store_true",
+        help=(
+            "Do not add reasoning={'enabled': false} to generated requests. Use it for models "
+            "without that toggle, or to let a hybrid model think (raise --max-tokens too)."
+        ),
     )
     parser.add_argument(
         "--max-tokens",
@@ -94,7 +105,12 @@ def main() -> None:
     requests = (
         load_requests_from_jsonl(args.input_jsonl)
         if args.input_jsonl
-        else build_sample_requests(prompts=prompts, model=args.model, max_tokens=args.max_tokens)
+        else build_sample_requests(
+            prompts=prompts,
+            model=args.model,
+            max_tokens=args.max_tokens,
+            disable_reasoning=not args.keep_reasoning,
+        )
     )
 
     # --- 1. Prepare batch input file ---

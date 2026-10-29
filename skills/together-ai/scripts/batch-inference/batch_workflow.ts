@@ -21,19 +21,21 @@ const client = new Together();
 
 async function main() {
   // --- 1. Prepare batch input file ---
+  // Qwen3.5 9B thinks by default; turning reasoning off keeps max_tokens for the answer.
   const requests = [
     {
       custom_id: "req-1",
       body: {
-        model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+        model: "Qwen/Qwen3.5-9B",
         messages: [{ role: "user", content: "What is the capital of France?" }],
         max_tokens: 128,
+        reasoning: { enabled: false },
       },
     },
     {
       custom_id: "req-2",
       body: {
-        model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+        model: "Qwen/Qwen3.5-9B",
         messages: [
           {
             role: "user",
@@ -41,6 +43,7 @@ async function main() {
           },
         ],
         max_tokens: 128,
+        reasoning: { enabled: false },
       },
     },
   ];

@@ -103,7 +103,7 @@ Once installed, skills activate automatically when the agent detects a relevant 
 **Chat completions** — Ask the agent to build a chat app:
 
 ```
-> Build a multi-turn chatbot using Together AI with Llama 3.3 70B
+> Build a multi-turn chatbot using Together AI with Kimi K3
 ```
 
 The agent will use the `together-chat-completions` skill to generate correct v2 SDK code with proper model IDs, parameters, and streaming patterns.
