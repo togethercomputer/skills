@@ -170,7 +170,7 @@ These are the correct v2 SDK method names. Do NOT use v1 patterns:
 |-----------|-------------|------------|
 | Create batch | `client.batches.create()` | `client.create_batch()` |
 | Get batch | `client.batches.retrieve()` | `client.get_batch()` |
-| Get endpoint | `client.beta.endpoints.retrieve(id, project_id=...)` | `client.endpoints.get()` |
+| Get endpoint | `client.endpoints.retrieve()` | `client.endpoints.get()` |
 | File content | `client.files.content()` | `client.files.retrieve_content()` |
 | Evaluations | `client.evals.create()` | `client.evaluation.create()` |
 | Batch input | `input_file_id=` | `file_id=` |

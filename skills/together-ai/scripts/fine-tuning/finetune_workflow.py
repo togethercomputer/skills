@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Together AI Fine-Tuning -- Full Workflow (v2 SDK)
+Together AI Fine-Tuning -- Full Workflow (SDK 3.x)
 
 End-to-end: prepare data -> upload -> create LoRA job -> monitor -> deploy.
 
@@ -10,7 +10,7 @@ Usage:
     python finetune_workflow.py --skip-deploy
 
 Requires:
-    uv pip install --upgrade together   # a release with the beta DMI surface (client.beta.*)
+    uv pip install --upgrade "together>=3"
     export TOGETHER_API_KEY=your_key
 
 Billing note: the deployment bills per minute per running replica until you
@@ -27,7 +27,8 @@ from together import Together
 
 client = Together()
 
-INFERENCE_BASE_URL = "https://api-inference.together.ai/v1"
+# SDK 3.x base URLs omit /v1; each method adds its own version.
+INFERENCE_BASE_URL = "https://api-inference.together.ai"
 
 
 def wait_for_file_ready(file_id: str, poll_interval: int = 5) -> None:
@@ -104,6 +105,17 @@ def create_temp_dataset(rows: list[dict]) -> Path:
         return Path(temp_file.name)
 
 
+def resolve_project_id() -> str:
+    """TOGETHER_PROJECT_ID if set, else the project of a project-scoped API key."""
+    if client.project_id:
+        return client.project_id
+    identity = client.whoami()
+    project = getattr(identity, "project", None)
+    if project is None:
+        raise SystemExit(f"whoami returned {identity.type}, which has no project: set TOGETHER_PROJECT_ID.")
+    return project.id
+
+
 def deploy_fine_tuned_model(
     model_object_id: str,
     endpoint_name: str,
@@ -112,16 +124,16 @@ def deploy_fine_tuned_model(
 ):
     """Serve a completed fine-tune on dedicated model inference and wait for READY.
 
-    The SDK version of ``tg beta endpoints deploy <model_object_id> --endpoint <name>``:
+    The SDK version of ``tg endpoints deploy <model_object_id> --endpoint <name>``:
     pick a config for the base model, create the endpoint, attach a deployment,
     and route all traffic to it. Returns the endpoint and the deployment.
     """
-    project_id = client.whoami().project_id
-    model = client.beta.models.retrieve(model_object_id, project_id=project_id)
+    project_id = resolve_project_id()
+    model = client.models.retrieve(model_object_id, project_id=project_id)
 
     # Configs are published for the base model.
     configs = list(
-        client.beta.models.configs.list(
+        client.models.configs.list(
             project_id=project_id,
             reference_model=model.base_model or f"projects/{model.project_id}/models/{model.id}",
         )
@@ -136,9 +148,9 @@ def deploy_fine_tuned_model(
         available = ", ".join(c.id for c in configs) or "none"
         raise SystemExit(f"Choose a config with --config (available: {available})")
 
-    endpoint = client.beta.endpoints.create(project_id=project_id, name=endpoint_name)
+    endpoint = client.endpoints.create(project_id=project_id, name=endpoint_name)
     print(f"Created endpoint: {endpoint.id} ({endpoint.name})")
-    deployment = client.beta.endpoints.deployments.create(
+    deployment = client.endpoints.deployments.create(
         endpoint.id,
         project_id=project_id,
         name=f"{endpoint_name}-deployment",
@@ -150,14 +162,14 @@ def deploy_fine_tuned_model(
     print(f"Created deployment: {deployment.id}")
 
     # A READY deployment serves nothing until it is in the endpoint's traffic split.
-    client.beta.endpoints.update(
+    client.endpoints.update(
         endpoint.id,
         project_id=project_id,
         traffic_split=[{"deployment_id": deployment.id, "weight": 1}],
     )
 
     while True:
-        current = client.beta.endpoints.deployments.retrieve(
+        current = client.endpoints.deployments.retrieve(
             deployment.id, project_id=project_id, endpoint_id=endpoint.id
         )
         print(f"  Deployment state: {current.status.state}")
@@ -204,7 +216,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--config",
         default=None,
-        help="Config ID (cr_...) when the base model has more than one; list with tg beta models configs",
+        help="Config ID (cr_...) when the base model has more than one; list with tg models configs",
     )
     return parser.parse_args()
 
@@ -290,7 +302,7 @@ def main() -> None:
     )
     print(f"\nFine-tuned model response: {response.choices[0].message.content}")
     print(f"\nDeployment {deployment.id} is running and bills per minute. Tear it down when done:")
-    print(f"  tg beta endpoints rm {endpoint.id} --force")
+    print(f"  tg endpoints rm {endpoint.id} --force")
 
 
 if __name__ == "__main__":

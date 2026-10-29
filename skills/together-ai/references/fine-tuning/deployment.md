@@ -15,26 +15,27 @@
 A completed job is already a private model in your project, so it deploys on dedicated model
 inference (DMI) with no upload step. Deploy it by its model object ID (`ml_...`): `model_object_id`
 in `tg fine-tuning retrieve`, or `job.api_model_object_id` in the Python SDK. `model_output_name`
-(`x_model_output_name` in the SDK) is not a deployable identifier. The legacy v1 API
-(`client.endpoints.create` with `hardware=`, or `tg endpoints create`) returns HTTP 403
-`endpoints_v1_create_access_disabled`. Scaling, traffic splits, and teardown details are in
-`domains/dedicated-model-inference.md`.
+(`x_model_output_name` in the SDK) is not a deployable identifier. This needs `together` 3.x and CLI
+3.x. In 2.x, `client.endpoints.create(model=..., hardware=...)` and `tg endpoints create` call the
+retired v1 API, which returns HTTP 403 `endpoints_v1_create_access_disabled`. Scaling, traffic
+splits, and teardown details are in `domains/dedicated-model-inference.md`.
 
 The CLI creates the endpoint, attaches a deployment, and routes all traffic to it in one step:
 
 ```shell
-tg fine-tuning retrieve ft-abc123                     # copy model_object_id (ml_...)
-tg beta endpoints deploy ml_abc123 --endpoint my-finetuned-endpoint
-tg beta endpoints get dep_abc123 --json | jq -r '.status.state'   # until DEPLOYMENT_STATE_READY
-tg beta endpoints rm ep_abc123 --force                # tear down: scales to zero, then deletes
+tg fine-tuning retrieve ft-abc123                # copy model_object_id (ml_...)
+tg endpoints deploy ml_abc123 --endpoint my-finetuned-endpoint
+tg endpoints get dep_abc123 --json | jq -r '.status.state'   # until DEPLOYMENT_STATE_READY
+tg endpoints rm ep_abc123 --force                # tear down: scales to zero, then deletes
 ```
 
 `deploy` also accepts the full `model_object_name` (`<project_slug>/<model_name>`). If it reports
-more than one config, rerun it with `--config cr_...` (list them with `tg beta models configs
+more than one config, rerun it with `--config cr_...` (list them with `tg models configs
 ml_abc123`).
 
-The SDK has no single deploy call, so it runs the same steps. Every `client.beta.*` call takes
-`project_id`, and models and configs are passed as resource names:
+The SDK has no single deploy call, so it runs the same steps. Every `client.endpoints` and
+`client.models` call takes `project_id` (or reads `TOGETHER_PROJECT_ID`), and models and configs are
+passed as resource names:
 
 ```python
 import time
@@ -42,25 +43,28 @@ import time
 from together import Together
 
 client = Together()
-project_id = client.whoami().project_id
+identity = client.whoami()
+if identity.type != "project_api_key":
+    raise SystemExit("TOGETHER_API_KEY must be a project API key")
+project_id = identity.project.id
 
 job = client.fine_tuning.retrieve(id="ft-abc123")
 if not job.api_model_object_id:
     raise SystemExit("No model_object_id: the job is not completed or its upload failed")
-model = client.beta.models.retrieve(job.api_model_object_id, project_id=project_id)
+model = client.models.retrieve(job.api_model_object_id, project_id=project_id)
 
 # Configs are published for the base model. If there is more than one, choose by
 # config.selectors (accelerator_type, accelerator_count, optimization).
 configs = list(
-    client.beta.models.configs.list(
+    client.models.configs.list(
         project_id=project_id,
         reference_model=model.base_model or f"projects/{model.project_id}/models/{model.id}",
     )
 )
 config = configs[0]
 
-endpoint = client.beta.endpoints.create(project_id=project_id, name="my-finetuned-endpoint")
-deployment = client.beta.endpoints.deployments.create(
+endpoint = client.endpoints.create(project_id=project_id, name="my-finetuned-endpoint")
+deployment = client.endpoints.deployments.create(
     endpoint.id,
     project_id=project_id,
     name="my-finetuned-deployment",
@@ -70,14 +74,14 @@ deployment = client.beta.endpoints.deployments.create(
     autoscaling={"min_replicas": 1, "max_replicas": 1},
 )
 # A READY deployment serves nothing until it is in the endpoint's traffic split.
-client.beta.endpoints.update(
+client.endpoints.update(
     endpoint.id,
     project_id=project_id,
     traffic_split=[{"deployment_id": deployment.id, "weight": 1}],
 )
 
 while True:
-    current = client.beta.endpoints.deployments.retrieve(
+    current = client.endpoints.deployments.retrieve(
         deployment.id, project_id=project_id, endpoint_id=endpoint.id
     )
     print(f"  State: {current.status.state}")
@@ -88,8 +92,8 @@ while True:
     time.sleep(15)
 
 # Inference takes the endpoint string (endpoint.name, "<project_slug>/<endpoint_name>")
-# on the inference base URL, not the model ID.
-inference_client = Together(base_url="https://api-inference.together.ai/v1")
+# on the inference base URL, not the model ID. SDK 3.x base URLs omit /v1.
+inference_client = Together(base_url="https://api-inference.together.ai")
 response = inference_client.chat.completions.create(
     model=endpoint.name,
     messages=[{"role": "user", "content": "Hello!"}],
@@ -102,28 +106,31 @@ To stop billing, scale the deployment to zero. To delete it, wait for `DEPLOYMEN
 drop its traffic weight, then delete the deployment and the endpoint:
 
 ```python
-client.beta.endpoints.deployments.update(
+client.endpoints.deployments.update(
     deployment.id,
     project_id=project_id,
     endpoint_id=endpoint.id,
     autoscaling={"min_replicas": 0, "max_replicas": 0},
 )
 # Once the deployment is DEPLOYMENT_STATE_STOPPED:
-client.beta.endpoints.update(
+client.endpoints.update(
     endpoint.id,
     project_id=project_id,
     traffic_split=[{"deployment_id": deployment.id, "weight": 0}],
 )
-client.beta.endpoints.deployments.delete(
+client.endpoints.deployments.delete(
     deployment.id, project_id=project_id, endpoint_id=endpoint.id
 )
-client.beta.endpoints.delete(endpoint.id, project_id=project_id)
+client.endpoints.delete(endpoint.id, project_id=project_id)
 ```
 
 - Bills per minute per running replica, even when idle. Scale to zero or delete when done.
 - Reserved single-tenant GPUs with no hard rate limits.
 - Deploys only if the base model is supported for dedicated inference. Check the
   [supported models](https://docs.together.ai/docs/dedicated-endpoints/models) before training.
+  `-Reference` base models often can't be deployed.
+- A 404 on inference means the wrong host or `model`: OpenAI-compatible clients and curl use
+  `https://api-inference.together.ai/v1`, and `model` is the endpoint string, not the `ml_...` ID.
 
 ### Option 2: Download Weights
 
