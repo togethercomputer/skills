@@ -18,7 +18,7 @@ Checked against `together-sandbox` 4.1.1 (Python and TypeScript). The package is
 ## Install and configure
 
 ```bash
-pip install together-sandbox        # Python 3.10+
+uv pip install together-sandbox     # Python 3.10+
 npm install together-sandbox        # Node.js 18+
 curl -fsSL https://raw.githubusercontent.com/togethercomputer/together-sandbox/main/install.sh | bash  # CLI
 ```
@@ -193,7 +193,9 @@ together-sandbox sandboxes list          # running only (--all for every status)
 
 ## Migrating from Code Interpreter
 
-The Code Interpreter API is gone: `/tci/execute` and `/tci/sessions` return HTTP 404.
+The Code Interpreter API is gone: `/tci/execute` and `/tci/sessions` return HTTP 404, and
+`client.code_interpreter` (`client.codeInterpreter`) is removed from `together` 3.x and
+`together-ai` 1.x.
 
 | Code Interpreter | `together-sandbox` |
 |---|---|

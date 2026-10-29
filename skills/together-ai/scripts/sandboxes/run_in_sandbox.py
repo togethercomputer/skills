@@ -12,7 +12,7 @@ Usage:
     python run_in_sandbox.py --ttl 300
 
 Requires:
-    pip install together-sandbox   # Python 3.10+; must be enabled for your organization
+    uv pip install together-sandbox   # Python 3.10+; must be enabled for your organization
     export TOGETHER_API_KEY=your_key
     # together-sandbox reads TOGETHER_BASE_URL as its own API host: unset it if it
     # is set for the together SDK.

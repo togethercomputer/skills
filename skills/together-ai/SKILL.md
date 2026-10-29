@@ -33,7 +33,7 @@ only when it holds a detail you need. Paths are relative to this skill's directo
 | `domains/batch-inference.md` | large offline jobs at lower cost (JSONL, `batches.create`) |
 | `domains/evaluations.md` | LLM-as-a-judge: classify, score, or compare outputs |
 | `domains/fine-tuning.md` | LoRA, full, DPO, VLM, function-calling, and reasoning tuning; BYOM upload |
-| `domains/sandboxes.md` | run code in isolated sandboxes (`together-sandbox`); replaces the retired Code Interpreter (`code_interpreter`) |
+| `domains/sandboxes.md` | run code in isolated sandboxes with `together-sandbox`, which replaces the retired Code Interpreter (`code_interpreter`) |
 | `domains/dedicated-model-inference.md` | dedicated endpoints (`tg beta endpoints`, `client.beta.endpoints`): deploy, autoscale, traffic split, A/B, shadow, metrics, model/LoRA upload, v1 migration (HTTP 403 `endpoints_v1_create_access_disabled`) |
 | `domains/dedicated-containers.md` | your own Docker inference worker: Sprocket, Jig, queue jobs |
 | `domains/gpu-clusters.md` | H100/H200/B200 clusters, Kubernetes or Slurm, shared storage, credentials |

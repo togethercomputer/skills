@@ -4,19 +4,19 @@ Together code sandbox runs commands and code in isolated VMs built from Docker-i
 model-generated code, agent tool calls, data analysis, and RL rollout environments. It ships as its
 own package, `together-sandbox` (Python SDK, TypeScript SDK, and CLI), separate from the `together`
 SDK, and must be enabled for the organization: if a key that works with the `together` SDK is
-rejected here, ask the user to [request access](https://www.together.ai/contact). Long-running
+rejected here, ask the user to [request access](https://www.together.ai/contact-sales). Long-running
 services or GPU workloads go to `domains/dedicated-containers.md` or `domains/gpu-clusters.md`.
 
-> **Code Interpreter is retired.** `POST /tci/execute` and `GET /tci/sessions` return HTTP 404, so
-> `client.code_interpreter.execute()` and `client.code_interpreter.sessions.list()`
-> (`client.codeInterpreter` in TypeScript) fail, and the next major SDK release removes them. Do not
-> use or retry them. Rewrite the code with `together-sandbox` as below. The mapping is in
+> **Code Interpreter is retired.** `POST /tci/execute` and `GET /tci/sessions` return HTTP 404.
+> `client.code_interpreter` is gone from Python `together` 3.x and `client.codeInterpreter` from
+> TypeScript `together-ai` 1.x. On older SDKs the calls still exist but fail. Do not use or retry
+> them. Rewrite the code with `together-sandbox` as below. The mapping is in
 > [api-reference.md](references/sandboxes/api-reference.md#migrating-from-code-interpreter).
 
 ## Workflow
 
 1. Confirm the task needs code *executed*, not only written.
-2. Install the package: `pip install together-sandbox` (Python 3.10+) or
+2. Install the package: `uv pip install together-sandbox` (Python 3.10+) or
    `npm install together-sandbox` (Node.js 18+). It reads `TOGETHER_API_KEY`.
 3. Get a snapshot. Reuse one by alias (`snapshots.get_by_alias("my-python@v1")`) before building.
    Otherwise, create one from a public image or a Dockerfile context with an alias (`namespace@tag`).
@@ -57,7 +57,7 @@ services or GPU workloads go to `domains/dedicated-containers.md` or `domains/gp
 | File | Lines | Contains | Open when |
 |---|---|---|---|
 | [scripts/sandboxes/run_in_sandbox.py](scripts/sandboxes/run_in_sandbox.py) (.ts) | 118 | reuse or build a snapshot, create a sandbox with a TTL, write a file, run Python, read the result, terminate | running code remotely |
-| [references/sandboxes/api-reference.md](references/sandboxes/api-reference.md) | 218 | install, env vars, snapshots, sandbox create/connect/list/terminate, execs, files, states, errors, CLI, Code Interpreter migration | a parameter, state, error, or CLI question, or porting Code Interpreter code |
+| [references/sandboxes/api-reference.md](references/sandboxes/api-reference.md) | 220 | install, env vars, snapshots, sandbox create/connect/list/terminate, execs, files, states, errors, CLI, Code Interpreter migration | a parameter, state, error, or CLI question, or porting Code Interpreter code |
 
 ## Docs
 
