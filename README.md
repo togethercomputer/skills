@@ -35,7 +35,7 @@ Each skill contains:
 | **gpu-clusters.md** | GPU clusters (H100, H200, B200, B300, and other types; availability varies by region) with Kubernetes or Slurm, share... | `manage_cluster.py`, `manage_cluster.ts`, `manage_storage.py` |
 | **images.md** | Text-to-image generation and image editing. | `generate_image.py`, `generate_image.ts`, `kontext_editing.py` |
 | **kueue.md** | Kueue is a Kubernetes-native job queueing controller. | — |
-| **sandboxes.md** | Managed remote Python execution with stateful sessions, for running agent-written code, data analysis, and charts. | `execute_with_session.py`, `execute_with_session.ts` |
+| **sandboxes.md** | Together code sandbox runs commands and code in isolated VMs built from Docker-image snapshots, for model-generated c... | `run_in_sandbox.py`, `run_in_sandbox.ts` |
 | **togetherlink.md** | TogetherLink (`togetherlink`, alias `tlink`; beta) runs coding agents and desktop apps you already have on models hos... | — |
 | **video.md** | Text-to-video and image-to-video, billed per video. | `generate_video.py`, `generate_video.ts`, `image_to_video.py` |
 | **volcano.md** | Volcano is a Kubernetes-native batch scheduler. | — |
@@ -157,7 +157,6 @@ All code examples and scripts target the **Together Python v2 SDK** (`together>=
 - Keyword-only arguments (not positional)
 - `client.batches.create()` / `client.batches.retrieve()` (not `create_batch()` / `get_batch()`)
 - `client.endpoints.retrieve()` (not `get()`)
-- `client.code_interpreter.execute()` (not `run()`)
 - `client.evals.create()` (not `client.evaluation.create()`)
 - File objects via context managers (`with open(..., "rb") as f:`)
 - Typed parameter classes for evaluations

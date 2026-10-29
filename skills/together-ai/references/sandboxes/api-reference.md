@@ -1,276 +1,219 @@
-# Sandboxes API Reference
+# Code Sandbox SDK Reference
 ## Contents
 
-- [Endpoints](#endpoints)
-- [Execute Code](#execute-code)
-- [List Sessions](#list-sessions)
-- [Pre-installed Packages](#pre-installed-packages)
-- [Pricing](#pricing)
-- [Alternative Access](#alternative-access)
+- [Install and configure](#install-and-configure)
+- [Snapshots](#snapshots)
+- [Sandboxes](#sandboxes)
+- [Run commands](#run-commands)
+- [Files and directories](#files-and-directories)
+- [Sandbox states](#sandbox-states)
+- [Errors and retries](#errors-and-retries)
+- [CLI](#cli)
+- [Migrating from Code Interpreter](#migrating-from-code-interpreter)
+- [Full reference](#full-reference)
 
+Checked against `together-sandbox` 4.1.1 (Python and TypeScript). The package is separate from the
+`together` SDK and must be enabled for the organization.
 
-## Endpoints
+## Install and configure
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST /tci/execute` | Execute code | Run a code snippet in a sandboxed session |
-| `GET /tci/sessions` | List sessions | List all active sessions |
+```bash
+uv pip install together-sandbox     # Python 3.10+
+npm install together-sandbox        # Node.js 18+
+curl -fsSL https://raw.githubusercontent.com/togethercomputer/together-sandbox/main/install.sh | bash  # CLI
+```
 
-Base URL: `https://api.together.ai`
-Authentication: `Authorization: Bearer $TOGETHER_API_KEY`
+| Variable | Description |
+|---|---|
+| `TOGETHER_API_KEY` | Required. Also accepted as `api_key` (Python) or `apiKey` (TypeScript). |
+| `TOGETHER_BASE_URL` | Overrides the sandbox management API, default `https://api.bartender.codesandbox.io`. The `together` SDK reads the same variable, so unset it for sandbox code when it points at a Together inference host. |
 
-## Execute Code
+The Python SDK is async. Use it as `async with TogetherSandbox() as sdk:` inside `asyncio.run()`.
+Leaving the block closes HTTP connections and does not terminate sandboxes.
 
-### Request (ExecuteRequest)
+## Snapshots
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `language` | string | Yes | Programming language (`python`) |
-| `code` | string | Yes | Code snippet to execute |
-| `session_id` | string | No | Reuse an existing session for persistent state |
-| `files` | array | No | Files to upload before execution |
-
-### File Object
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | string | Yes | File name (e.g., `data.py`) |
-| `encoding` | string | Yes | `string` or `base64` |
-| `content` | string | Yes | File content |
-
-### Response (ExecuteResponse)
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `data.session_id` | string | Session ID for follow-up calls |
-| `data.status` | string | `success` |
-| `data.outputs` | array | Execution results (see Output Types) |
-| `errors` | array or null | Error details if execution failed |
-
-### Output Types
-
-| Type | Description | Data format |
-|------|-------------|-------------|
-| `stdout` | Standard output | string |
-| `stderr` | Standard error | string |
-| `error` | Exception/failure | string |
-| `display_data` | Rich output | object (see below) |
-| `execute_result` | Expression result | object (see below) |
-
-**display_data / execute_result** data object may contain:
-
-| Key | Description |
-|-----|-------------|
-| `application/json` | JSON data |
-| `text/html` | HTML content |
-| `text/markdown` | Markdown content |
-| `text/latex` | LaTeX content |
-| `image/png` | Base64-encoded PNG |
-| `image/jpeg` | Base64-encoded JPEG |
-| `image/gif` | Base64-encoded GIF |
-| `image/svg+xml` | SVG content |
-| `application/pdf` | Base64-encoded PDF |
-| `application/vnd.vegalite.v5+json` | Vega-Lite visualization |
-| `application/vnd.vega.v5+json` | Vega visualization |
-| `application/geo+json` | GeoJSON data |
-
-### Examples
+A snapshot is an immutable disk image that sandboxes boot from. Build one from a public image or a
+Docker build context. Together's remote builder does the work, so no local Docker is needed.
+Address it by ID or by a mutable alias, `tag` or `namespace@tag`.
 
 ```python
-from together import Together
-client = Together()
+from together_sandbox import CreateContextSnapshotParams, CreateImageSnapshotParams
 
-response = client.code_interpreter.execute(
-    code='print("Hello world!")',
-    language="python",
+result = await sdk.snapshots.create(
+    CreateImageSnapshotParams(image="python:3.12-slim", alias="my-python@v1")
 )
-print(response.data.outputs[0].data)
-```
-
-```typescript
-import Together from "together-ai";
-const client = new Together();
-
-const response = await client.codeInterpreter.execute({
-  code: 'print("Hello world!")',
-  language: "python",
-});
-console.log(response.data?.outputs?.[0]?.data);
-```
-
-```shell
-curl -X POST "https://api.together.ai/tci/execute" \
-  -H "Authorization: Bearer $TOGETHER_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"code": "print(\"Hello world!\")", "language": "python"}'
-```
-
-### Session Reuse
-
-```python
-# First call creates a session
-response1 = client.code_interpreter.execute(code="x = 42", language="python")
-session_id = response1.data.session_id
-
-# Second call reuses state
-response2 = client.code_interpreter.execute(
-    code='print(f"x = {x}")',
-    language="python",
-    session_id=session_id,
+result = await sdk.snapshots.create(
+    CreateContextSnapshotParams(context="./my-app", alias="my-app@v1", cache_key="my-app")
 )
+print(result.snapshot_id, result.alias)
 ```
 
 ```typescript
-const response1 = await client.codeInterpreter.execute({
-  code: "x = 42",
-  language: "python",
+const result = await sdk.snapshots.create({
+  image: "python:3.12-slim",
+  alias: "my-python@v1",
 });
-const sessionId = response1.data.session_id;
-
-const response2 = await client.codeInterpreter.execute({
-  code: 'print(f"x = {x}")',
-  language: "python",
-  session_id: sessionId,
-});
+console.log(result.snapshotId, result.alias);
 ```
 
-```shell
-# Use session_id from first response in subsequent calls
-curl -X POST "https://api.together.ai/tci/execute" \
-  -H "Authorization: Bearer $TOGETHER_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"language": "python", "code": "x = 42"}'
+| Parameter | Applies to | Description |
+|---|---|---|
+| `image` | image | Docker image reference, such as `python:3.12-slim`. |
+| `context` | context | Path to the build context. Uses its `Dockerfile` unless `dockerfile` is set. |
+| `dockerfile` | context | Path to another Dockerfile. |
+| `cache_key` / `cacheKey` | context | Stable key so repeated builds share a layer cache. Without one, every build is cold. |
+| `alias` | both | `namespace@tag`. |
+| `ttl` | context | Seconds before the snapshot retires itself. |
+| `on_progress` / `onProgress` | both | Callback receiving `step` (`prepare`, `build`, `auth`, `push`, `register`, `alias`) and `output`. |
 
-curl -X POST "https://api.together.ai/tci/execute" \
-  -H "Authorization: Bearer $TOGETHER_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"language": "python", "code": "print(f\"x = {x}\")", "session_id": "ses_..."}'
-```
+Other calls, with Python names (TypeScript uses camelCase):
 
-### File Upload
+- `get_by_alias(alias)` and `get_by_id(id)`: metadata, or `HttpError` 404 when missing.
+- `alias(snapshot_id, alias)`: point an alias at a snapshot.
+- `list(limit=, cursor=, exclude_retired=, tags=)`: an async-iterable `Page`.
+- `retire_by_id(id)` (TypeScript `retire(id)`): stop new sandboxes from using it.
+
+`snapshots.create` is not idempotent. Look the alias up before building, and exclude it from custom
+retry rules.
+
+## Sandboxes
 
 ```python
-response = client.code_interpreter.execute(
-    code="!python myscript.py",
-    language="python",
-    files=[{
-        "name": "myscript.py",
-        "encoding": "string",
-        "content": "import sys\nprint(f'Hello from {sys.argv[0]}!')",
-    }],
-)
+sandbox = await sdk.sandboxes.create(snapshot_alias="my-python@v1", ttl=600, tags={"task": "demo"})
+print(sandbox.id)
+await sandbox.terminate()
 ```
 
 ```typescript
-const response = await client.codeInterpreter.execute({
-  code: "!python myscript.py",
-  language: "python",
-  files: [{
-    name: "myscript.py",
-    encoding: "string",
-    content: "import sys\nprint(f'Hello from {sys.argv[0]}!')",
-  }],
-});
+const sandbox = await sdk.sandboxes.create({ snapshotAlias: "my-python@v1", ttl: 600 });
+await sandbox.terminate();
 ```
 
-```shell
-curl -X POST "https://api.together.ai/tci/execute" \
-  -H "Authorization: Bearer $TOGETHER_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "language": "python",
-    "files": [{"name": "myscript.py", "encoding": "string", "content": "print(\"hello\")"}],
-    "code": "!python myscript.py"
-  }'
-```
+| Parameter (Python / TypeScript) | Default | Description |
+|---|---|---|
+| `snapshot_id` / `snapshotId` | none | Snapshot to boot. Pass this or the alias. |
+| `snapshot_alias` / `snapshotAlias` | none | Alias to boot, such as `my-python@v1` or `sandbox:<id>`. |
+| `cpu` | `1.0` | Cores, 0.1 to 16. |
+| `memory_bytes` / `memoryBytes` | 2 GiB | 1 to 8 GB per CPU. |
+| `ttl` | none | Seconds after creation before the sandbox terminates itself. |
+| `tags` | none | Key/value labels, filterable in `list`. IDs are platform UUIDs, so name things with tags. |
+| `termination_policy` / `terminationPolicy` | ephemeral | `{"snapshot": {"aliases": [...], "memory": bool, "ttl": int, "tags": {...}}}` to snapshot on termination. |
 
-### Retrieving Charts
+`create` starts the VM and returns a connected sandbox. Other calls on `sdk.sandboxes`:
 
-`plt.show()` with the Agg backend does not reliably produce `display_data` outputs containing
-`image/png`. To get chart images back to the client, save explicitly and base64-encode via stdout:
+- `connect(sandbox_id)`: reattach to a running sandbox and get `.files`, `.execs`, and the rest.
+- `get(sandbox_id)`: metadata only (`status`, `status_reason`), with no in-VM namespaces.
+- `list(limit=, cursor=, statuses=, snapshot_id=, tags=)`: async-iterable `Page`.
+- `terminate(sandbox_id, snapshot=...)`: terminate by ID without a connected sandbox.
+
+`sandbox.terminate()` uses the stored termination policy. Pass
+`snapshot={"aliases": ["my-app@v2"]}` to keep the filesystem, add `"memory": True` to resume running
+processes later, or pass `snapshot=None` (TypeScript `null`) for a teardown with no snapshot. A
+terminated sandbox cannot restart: create a new one from the snapshot it produced, which is aliased
+`sandbox:<sandbox_id>`.
+
+## Run commands
+
+`execs.exec(command, args, cwd=, env=, user=, pty=)` runs to completion. Python returns a dict with
+`exit_code` and `output`, and TypeScript returns `{ exitCode, output }`. `output` is stdout and stderr
+joined in arrival order. It raises if the stream ends without an exit code, for example when the
+sandbox shuts down mid-run. Commands run as `1000:1000` unless `user` is set.
 
 ```python
-# --- Remote code (runs in the sandbox) ---
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import base64, io
-
-fig, ax = plt.subplots()
-ax.bar(["Jan", "Feb", "Mar"], [100, 150, 130])
-
-buf = io.BytesIO()
-fig.savefig(buf, format="png", dpi=150)
-buf.seek(0)
-print("chart_b64:" + base64.b64encode(buf.read()).decode())
-plt.close(fig)
+result = await sandbox.execs.exec("python3", ["-c", "print(6 * 7)"])
+if result["exit_code"] != 0:
+    raise RuntimeError(result["output"])
 ```
+
+For long-running processes, start one with `execs.create(command, args, autostart=True)`, then read
+it with `execs.stream_output(id)` (SSE) or poll `execs.get_output(id)`, whose `exit_code` stays
+`None` until the process exits. `execs.send_stdin(id, data)` writes to stdin, `execs.list()` shows
+active execs, and `execs.delete(id)` removes one.
+
+Each exec is a new process. To carry state between steps, write it to files in the sandbox or run
+the whole job as one script.
+
+## Files and directories
+
+| Call | Description |
+|---|---|
+| `files.create(path, content)` | Create or overwrite. `content` is `str` (UTF-8) or `bytes`. |
+| `files.read(path)` | Returns text. Base64-encode binary output in the sandbox and decode it on the client. |
+| `files.delete`, `files.move`, `files.copy`, `files.stat` | Usual file operations; `stat` returns size, type, and modified time. |
+| `files.watch(path, recursive=, ignore_patterns=)` | Async iterator of filesystem events. |
+| `directories.list`, `directories.create`, `directories.delete` | Directory operations. |
+| `ports.list()` | Open ports in the sandbox. |
+
+## Sandbox states
+
+`starting` → `running` → `terminating` → `terminated`. `create` and `terminate` block until the
+sandbox settles. A sandbox that cannot start ends in `failed_to_start` (`status_reason`
+`out_of_capacity` or `internal_error`). A crashed sandbox goes to `recovering`, then back to
+`running` (`restored`) or to `unrecovered`. Termination reasons include `termination_requested`,
+`autoterminated` (TTL), `crashed`, `oom_killed`, `evicted`, `node_lost`, and `cluster_lost`.
+
+## Errors and retries
+
+Every failure raises `HttpError`, which subclasses `RuntimeError` in Python and `Error` in
+TypeScript. `status` is the HTTP code, or `0` when the request never reached the server.
 
 ```python
-# --- Client side ---
-import base64
+from together_sandbox import HttpError
 
-for output in response.data.outputs:
-    if output.type == "stdout" and "chart_b64:" in output.data:
-        b64 = output.data.split("chart_b64:", 1)[1].strip()
-        with open("chart.png", "wb") as f:
-            f.write(base64.b64decode(b64))
+try:
+    snapshot = await sdk.snapshots.get_by_alias("my-python@v1")
+except HttpError as e:
+    if e.status != 404:
+        raise
 ```
 
-If the API does return a `display_data` output with an `image/png` key, prefer that over stdout
-parsing. Check both paths for maximum reliability.
+The SDKs retry 408, 429, 500, 502, 503, 504, and transport failures, three attempts in total with
+exponential backoff. Pass `RetryConfig(max_attempts=, should_retry=, on_retry=)` to change that.
 
-## List Sessions
+## CLI
 
-### Response (SessionListResponse)
+Command groups accept singular or plural names (`sandbox`/`sandboxes`). A leading `@` resolves an
+argument as a snapshot alias. Resources the CLI creates are tagged `client=together-sandbox-cli`.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `data.sessions` | array | List of active session objects |
+```bash
+together-sandbox snapshots create --image python:3.12-slim --alias my-python@v1
+together-sandbox sandboxes run @my-python@v1 --rm -- python3 -c "print(6 * 7)"
 
-### Session Object
+SANDBOX_ID=$(together-sandbox sandboxes create @my-python@v1 --ttl 600 | awk '{print $3}')
+together-sandbox sandbox exec run "$SANDBOX_ID" -- python3 -c "print(6 * 7)"
+together-sandbox sandboxes terminate "$SANDBOX_ID"
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | string | Session identifier (e.g., `ses_abcDEF123`) |
-| `execute_count` | integer | Number of executions in this session |
-| `started_at` | datetime | Session start timestamp |
-| `last_execute_at` | datetime | Most recent execution timestamp |
-| `expires_at` | datetime | Session expiration timestamp |
-
-### Examples
-
-```python
-response = client.code_interpreter.sessions.list()
-for session in response.data.sessions:
-    print(f"{session.id}: {session.execute_count} executions, expires {session.expires_at}")
+together-sandbox sandboxes list          # running only (--all for every status)
 ```
 
-```typescript
-const response = await client.codeInterpreter.sessions.list();
-for (const session of response.data?.sessions ?? []) {
-  console.log(`${session.id}: ${session.execute_count} executions`);
-}
-```
+`sandboxes create` takes `--cpu`, `--memory-bytes`, `--ttl`, `--tag`, and `--snapshot-on-terminate`
+(with `--snapshot-alias`, `--snapshot-memory`, `--snapshot-ttl`). `sandboxes terminate` takes
+`--ephemeral` or the same snapshot flags. `snapshots create --ci` prints the bare snapshot ID last.
 
-```shell
-curl -X GET "https://api.together.ai/tci/sessions" \
-  -H "Authorization: Bearer $TOGETHER_API_KEY" \
-  -H "Content-Type: application/json"
-```
+## Migrating from Code Interpreter
 
-## Pre-installed Packages
+The Code Interpreter API is gone: `/tci/execute` and `/tci/sessions` return HTTP 404, and
+`client.code_interpreter` (`client.codeInterpreter`) is removed from `together` 3.x and
+`together-ai` 1.x.
 
-aiohttp, beautifulsoup4, bokeh, gensim, imageio, joblib, librosa, matplotlib, nltk, numpy, opencv-python, openpyxl, pandas, plotly, pytest, python-docx, pytz, requests, scikit-image, scikit-learn, scipy, seaborn, soundfile, spacy, sympy, textblob, tornado, urllib3, xarray, xlrd
+| Code Interpreter | `together-sandbox` |
+|---|---|
+| `client.code_interpreter.execute(code=..., language="python")` | `sandbox.execs.exec("python3", ["-c", code])` in a sandbox created from a Python snapshot |
+| `session_id` reuse | Keep one sandbox running (`connect(sandbox_id)` to reattach). Files persist between execs; Python variables do not. |
+| `files=[{"name", "encoding", "content"}]` | `sandbox.files.create(path, content)` before the exec |
+| `outputs` of type `stdout`, `stderr`, `error` | `output` (stdout and stderr joined) and `exit_code` |
+| `display_data` with `image/png` | Save the figure, base64-encode it, print or write it, and decode on the client |
+| `client.code_interpreter.sessions.list()` | `sdk.sandboxes.list(statuses=["running"])` |
+| Preinstalled data-science packages | Whatever the snapshot's image installs. Build one from a Dockerfile with the packages you need. |
+| Session expiry after 60 minutes | `ttl` at creation, or terminate explicitly |
 
-Install additional packages at runtime with `!pip install <package>`.
+## Full reference
 
-## Pricing
+The package installs `LLMS.md` and a `docs/` folder next to its code (`together_sandbox/` in Python
+site-packages). Online:
 
-$0.03 per session. Sessions last 60 minutes and support multiple executions.
-
-## Alternative Access
-
-Together AI also exposes MCP-compatible tooling for agent workflows that prefer MCP over direct API
-calls. Use the direct TCI API when you need explicit SDK control over sessions, files, and response
-objects; use MCP when the surrounding agent framework already speaks MCP.
+- [Python SDK](https://github.com/togethercomputer/together-sandbox/blob/main/docs/python-sdk.md)
+- [TypeScript SDK](https://github.com/togethercomputer/together-sandbox/blob/main/docs/typescript-sdk.md)
+- [CLI](https://github.com/togethercomputer/together-sandbox/blob/main/docs/cli.md)
+- [Sandboxes and snapshots concepts](https://github.com/togethercomputer/together-sandbox/blob/main/docs/sandboxes.md)

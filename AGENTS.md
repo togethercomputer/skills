@@ -43,7 +43,7 @@ There are 15 domain guides under `skills/together-ai/domains/`:
 - **gpu-clusters.md** (GPU Clusters): GPU clusters (H100, H200, B200, B300, and other types; availability varies by region) with Kubernetes or Slurm, shared storage, and credentials, for distributed training, multi-node inference, and HPC.
 - **images.md** (Images): Text-to-image generation and image editing.
 - **kueue.md** (Kueue on Together GPU clusters): Kueue is a Kubernetes-native job queueing controller.
-- **sandboxes.md** (Sandboxes): Managed remote Python execution with stateful sessions, for running agent-written code, data analysis, and charts.
+- **sandboxes.md** (Sandboxes): Together code sandbox runs commands and code in isolated VMs built from Docker-image snapshots, for model-generated code, agent tool calls, data analysis, and RL rollout environments.
 - **togetherlink.md** (TogetherLink): TogetherLink (`togetherlink`, alias `tlink`; beta) runs coding agents and desktop apps you already have on models hosted by Together AI: Claude Code, Codex, OpenCode, Pi Code, Claude Desktop and Cowork, and ChatGPT Desktop.
 - **video.md** (Video): Text-to-video and image-to-video, billed per video.
 - **volcano.md** (Volcano on Together GPU clusters): Volcano is a Kubernetes-native batch scheduler.
@@ -171,7 +171,6 @@ These are the correct v2 SDK method names. Do NOT use v1 patterns:
 | Create batch | `client.batches.create()` | `client.create_batch()` |
 | Get batch | `client.batches.retrieve()` | `client.get_batch()` |
 | Get endpoint | `client.endpoints.retrieve()` | `client.endpoints.get()` |
-| Run code | `client.code_interpreter.execute()` | `client.code_interpreter.run()` |
 | File content | `client.files.content()` | `client.files.retrieve_content()` |
 | Evaluations | `client.evals.create()` | `client.evaluation.create()` |
 | Batch input | `input_file_id=` | `file_id=` |
