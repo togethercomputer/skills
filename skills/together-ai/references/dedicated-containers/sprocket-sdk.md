@@ -7,7 +7,6 @@
 - [`sprocket.Sprocket` Base Class](#sprocketsprocket-base-class)
 - [`sprocket.run(sprocket, name=None, use_torchrun=False)`](#sprocketrun)
 - [`sprocket.FileOutput`](#sprocketfileoutput)
-- [`sprocket.emit_info(info: dict)`](#sprocketemitinfo)
 - [`sprocket.InputOutputProcessor`](#sprocketinputoutputprocessor)
 - [HTTP Endpoints (Sprocket exposes)](#http-endpoints)
 - [CLI Arguments](#cli-arguments)
@@ -88,28 +87,6 @@ def predict(self, args):
 ```
 
 The file is uploaded after `predict()` returns, and the path is replaced with an access URL in the final result. The URL is not publicly readable -- clients must authenticate with their Together API key (e.g. `Authorization: Bearer $TOGETHER_API_KEY`) when fetching it.
-
-## `sprocket.emit_info(info: dict)`
-
-> **Availability note:** `emit_info` is not available in all Sprocket versions. Guard calls
-> with `hasattr(sprocket, "emit_info")` or wrap in a try/except. If unavailable, omit
-> progress reporting -- jobs will still complete normally.
-
-Report progress from inside `predict()`:
-
-```python
-def predict(self, args):
-    for i in range(100):
-        frame = generate_frame(i)
-        if hasattr(sprocket, "emit_info"):
-            sprocket.emit_info({"progress": (i + 1) / 100, "status": "generating"})
-    return {"video": sprocket.FileOutput("output.mp4")}
-```
-
-Constraints:
-- Must serialize to under 4,096 bytes JSON
-- Updates batched and merged (later values overwrite earlier)
-- With `use_torchrun=True`, call only from rank 0
 
 ## `sprocket.InputOutputProcessor`
 
