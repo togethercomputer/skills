@@ -25,8 +25,8 @@ the runtime is genuinely custom; a standard model belongs on
 | File | Lines | Contains | Open when |
 |---|---|---|---|
 | [scripts/dedicated-containers/sprocket_hello_world.py](scripts/dedicated-containers/sprocket_hello_world.py) | 85 | minimal Sprocket worker | writing a worker |
-| [scripts/dedicated-containers/queue_client.py](scripts/dedicated-containers/queue_client.py) (.ts) | 109 | submit a job, poll, fetch the result | calling a deployed worker |
-| [references/dedicated-containers/sprocket-sdk.md](references/dedicated-containers/sprocket-sdk.md) | 189 | Sprocket base class, `run`, file outputs, HTTP endpoints, env vars | a worker API detail |
+| [scripts/dedicated-containers/queue_client.py](scripts/dedicated-containers/queue_client.py) (.ts) | 102 | submit a job, poll, fetch the result | calling a deployed worker |
+| [references/dedicated-containers/sprocket-sdk.md](references/dedicated-containers/sprocket-sdk.md) | 166 | Sprocket base class, `run`, file outputs, HTTP endpoints, env vars | a worker API detail |
 | [references/dedicated-containers/jig-cli.md](references/dedicated-containers/jig-cli.md) | 526 | build, deploy, queue, secrets, volumes commands; `pyproject.toml` schema; full example | deploying or configuring |
 
 ## Docs

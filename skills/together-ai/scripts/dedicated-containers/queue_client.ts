@@ -40,11 +40,7 @@ async function submitAndPoll(
       model: DEPLOYMENT,
     });
 
-    let line = `  Status: ${status.status}`;
-    if (status.info?.progress !== undefined) {
-      line += ` | Progress: ${(status.info.progress * 100).toFixed(0)}%`;
-    }
-    console.log(line);
+    console.log(`  Status: ${status.status}`);
 
     if (status.status === "done") {
       console.log("  Outputs:", JSON.stringify(status.outputs));
