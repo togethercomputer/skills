@@ -33,7 +33,7 @@ There are 15 domain guides under `skills/together-ai/domains/`:
 
 <domains>
 - **audio.md** (Audio): Text-to-speech (REST, streaming, realtime WebSocket) and speech-to-text (transcription, translation, diarization, timestamps, realtime).
-- **batch-inference.md** (Batch Inference): Asynchronous bulk inference over a JSONL file, up to 50% cheaper than real-time, with a 24-hour completion window (batches under 1,000 requests usually finish in minutes; complex or busy models can occasionally run past 24 hours, so track status rather than wall-clock time).
+- **batch-inference.md** (Batch Inference): Asynchronous bulk inference over a JSONL file, with a separate rate limit pool and a 24-hour completion window (batches under 1,000 requests usually finish in minutes; complex or busy models can occasionally run past 24 hours, so track status rather than wall-clock time).
 - **chat-completions.md** (Chat Completions): Serverless, OpenAI-compatible text generation: one call, billed per token.
 - **dedicated-containers.md** (Dedicated Containers): Run your own Docker image as an inference worker on Together GPUs: Sprocket handles the request lifecycle, Jig builds and deploys, and clients submit async jobs to a queue.
 - **dedicated-model-inference.md** (Dedicated Model Inference): Dedicated model inference (DMI) serves a model on reserved single-tenant GPUs.
