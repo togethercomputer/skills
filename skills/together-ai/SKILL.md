@@ -30,7 +30,7 @@ only when it holds a detail you need. Paths are relative to this skill's directo
 | `domains/video.md` | text-to-video, image-to-video, keyframes |
 | `domains/audio.md` | TTS (REST, streaming, WebSocket), transcription, translation, diarization, realtime STT |
 | `domains/embeddings.md` | embeddings, semantic search, RAG retrieval, reranking (not currently offered; read before building) |
-| `domains/batch-inference.md` | large offline jobs at lower cost (JSONL, `batches.create`) |
+| `domains/batch-inference.md` | large offline jobs on a separate rate limit pool (JSONL, `batches.create`) |
 | `domains/evaluations.md` | LLM-as-a-judge: classify, score, or compare outputs |
 | `domains/fine-tuning.md` | LoRA, full, DPO, VLM, function-calling, and reasoning tuning; BYOM upload |
 | `domains/sandboxes.md` | run code in isolated sandboxes with `together-sandbox`, which replaces the retired Code Interpreter (`code_interpreter`) |

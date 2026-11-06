@@ -25,7 +25,7 @@ Each skill contains:
 | Domain guide | What it covers | Scripts |
 |--------------|----------------|---------|
 | **audio.md** | Text-to-speech (REST, streaming, realtime WebSocket) and speech-to-text (transcription, translation, diarization, tim... | `stt_realtime.py`, `stt_transcribe.py`, `stt_transcribe.ts`, `tts_generate.py`, `tts_generate.ts`, `tts_websocket.py` |
-| **batch-inference.md** | Asynchronous bulk inference over a JSONL file, up to 50% cheaper than real-time, with a 24-hour completion window (ba... | `batch_workflow.py`, `batch_workflow.ts` |
+| **batch-inference.md** | Asynchronous bulk inference over a JSONL file, with a separate rate limit pool and a 24-hour completion window (batch... | `batch_workflow.py`, `batch_workflow.ts` |
 | **chat-completions.md** | Serverless, OpenAI-compatible text generation: one call, billed per token. | `async_parallel.py`, `chat_basic.py`, `chat_basic.ts`, `debug_headers.py`, `debug_headers.ts`, `reasoning_models.py`, `reasoning_models.ts`, `structured_outputs.py`, `structured_outputs.ts`, `tool_call_loop.py`, `tool_call_loop.ts` |
 | **dedicated-containers.md** | Run your own Docker image as an inference worker on Together GPUs: Sprocket handles the request lifecycle, Jig builds... | `queue_client.py`, `queue_client.ts`, `sprocket_hello_world.py` |
 | **dedicated-model-inference.md** | Dedicated model inference (DMI) serves a model on reserved single-tenant GPUs. | `deploy_model.py`, `upload_custom_model.py` |
