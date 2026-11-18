@@ -34,7 +34,7 @@
 | `response_format` | string | No | `"url"` | `"base64"` for inline data, `"url"` for hosted |
 | `image_url` | string | No | - | Reference image URL (Kontext models) |
 | `reference_images` | array | No | - | Reference image URLs (FLUX.2, Google models) |
-| `guidance_scale` | number | No | 3 | Prompt alignment (1-5 creative, 8-10 faithful); FLUX.2 dev/flex |
+| `guidance_scale` | number | No | 3.5 | Prompt alignment (1-5 creative, 8-10 faithful); FLUX.2 dev/flex |
 | `prompt_upsampling` | bool | No | true | Auto-enhance prompts (FLUX.2 pro only; Python: pass via `extra_body`) |
 | `output_format` | string | No | `"jpeg"` | `"jpeg"` or `"png"`; FLUX models including Kontext |
 | `aspect_ratio` | string | No | - | Kontext output size: 1:1, 16:9, 9:16, 4:3, 3:2 (Python: pass via `extra_body`) |
