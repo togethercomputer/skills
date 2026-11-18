@@ -162,7 +162,7 @@ All code examples and scripts target the **Together Python SDK 3.x** (`together>
 - File objects via context managers (`with open(..., "rb") as f:`)
 - Typed parameter classes for evaluations
 
-If you're using the v1 SDK, start with the [v2 migration guide](https://docs.together.ai/docs/v2-migration-guide).
+If you're using the v1 SDK, start with the [v2 migration guide](https://docs.together.ai/docs/pythonv2-migration-guide).
 
 ## Requirements
 
