@@ -30,8 +30,9 @@ print(resp.choices[0].message.content)
   in `SKILL.md`. `Qwen/Qwen3.6-Plus`, `Qwen3.7-Plus`, `Qwen3.7-Max`, and `Qwen3.8-Flash` return 403
   `third_party_data_sharing_blocked` unless the organization enables third-party data sharing.
 - Image input: put `{"type": "image_url", "image_url": {"url": ...}}` parts in the user message's
-  `content` list and use a vision model (`Qwen/Qwen3.5-9B`, `MiniMaxAI/MiniMax-M3`,
-  `moonshotai/Kimi-K3`).
+  `content` list and use a vision model (`Qwen/Qwen3.5-9B`,
+  `nvidia/NVIDIA-Nemotron-3.5-Super-VL`, `moonshotai/Kimi-K3`; each answered an image request on
+  2026-11-18).
 
 ## Rules
 
@@ -82,7 +83,7 @@ Open a file only for the detail its row names. References over 100 lines start w
 | [scripts/chat-completions/reasoning_models.py](scripts/chat-completions/reasoning_models.py) (.ts) | 162 | reasoning field, effort levels, hybrid on/off toggles | using a reasoning model |
 | [scripts/chat-completions/async_parallel.py](scripts/chat-completions/async_parallel.py) | 50 | asyncio fan-out of independent requests | many requests and a user is waiting |
 | [scripts/chat-completions/debug_headers.py](scripts/chat-completions/debug_headers.py) (.ts) | 57 | raw response, rate-limit and routing headers | debugging latency, 429s, or routing |
-| [references/chat-completions/models.md](references/chat-completions/models.md) | 73 | model picks by use case, context lengths, vision and moderation models | choosing a model (verify it is live) |
+| [references/chat-completions/models.md](references/chat-completions/models.md) | 78 | model picks by use case, context lengths, vision and moderation models | choosing a model (verify it is live) |
 | [references/chat-completions/api-parameters.md](references/chat-completions/api-parameters.md) | 481 | every request parameter, message object, OpenAI-SDK compatibility, rate-limit tiers, HTTP status codes | a parameter or status code not covered above |
 | [references/chat-completions/function-calling-patterns.md](references/chat-completions/function-calling-patterns.md) | 841 | six calling patterns (parallel, multi-step, ...), `tool_choice`, tools plus structured output, best practices, supported models | a tool pattern the script does not show |
 | [references/chat-completions/structured-outputs.md](references/chat-completions/structured-outputs.md) | 541 | the three JSON modes, reasoning plus JSON, streaming JSON, troubleshooting | JSON output fails to parse or validate |

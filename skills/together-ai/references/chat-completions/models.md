@@ -62,10 +62,15 @@ structured outputs are supported.
 | Organization | Model | API String | Context |
 |-------------|-------|-----------|---------|
 | Qwen | Qwen3.5 9B | `Qwen/Qwen3.5-9B` | 262,144 |
-| MiniMax | MiniMax M3 | `MiniMaxAI/MiniMax-M3` | 524,288 |
 | Moonshot | Kimi K3 | `moonshotai/Kimi-K3` | 1,048,576 |
+| NVIDIA | Nemotron 3.5 Super VL | `nvidia/NVIDIA-Nemotron-3.5-Super-VL` | 262,144 |
 
 Start with `Qwen/Qwen3.5-9B` unless the task needs a larger model.
+
+Checked 2026-11-18 by sending each model an image and reading its answer. `MiniMaxAI/MiniMax-M3`
+left the serverless list and is gone from this table. `MiniMaxAI/MiniMax-M3.1-Flash`,
+`moonshotai/Kimi-K3.1-Pro`, and `thinkingmachines/Inkling-2-Small` also answered image requests.
+`Qwen/Qwen4-Max` only streams and was not tested.
 
 ## Moderation Models
 
