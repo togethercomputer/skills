@@ -398,19 +398,20 @@ Deletion is permanent, and a deployment must be stopped first. Order:
 4. Delete the endpoint once it has no deployments.
 
 ```python
-# You can't zero the split with an empty list: the SDK/API omits an empty `traffic_split`
-# from the PATCH body and returns "400 no fields to update". Send the split with this
-# deployment's entry removed (keeping any others):
+# Send the split with this deployment's entry removed (keeping any others), and pass
+# update_mask. Without the mask the API does not treat an empty list as a change and
+# returns "400 no fields to update".
 client.endpoints.update("ep_abc123", project_id=project_id,
-                             traffic_split=[{"deployment_id": "dep_other", "weight": 1}])
+                        traffic_split=[{"deployment_id": "dep_other", "weight": 1}],
+                        update_mask="trafficSplit")
 client.endpoints.deployments.delete("dep_abc123", project_id=project_id, endpoint_id="ep_abc123")
 client.endpoints.delete("ep_abc123", project_id=project_id)
 ```
 
-When the deployment is the endpoint's **only** traffic entry there's nothing to route to, so
-the empty-split limitation above blocks the pure-SDK path — use the CLI's `rm ... --force`
-instead, which auto-detaches from the split and deletes the deployment and endpoint together
-(it smart-deletes by ID prefix; see [cli-reference.md](cli-reference.md)). The CLI now handles
+When the deployment is the endpoint's **only** traffic entry, send `traffic_split=[]` with
+`update_mask="trafficSplit"` to clear the split. The CLI's `rm ep_... --force` makes the same
+call, and it is the shorter path: it detaches from the split and deletes the deployment and
+endpoint together (it smart-deletes by ID prefix; see [cli-reference.md](cli-reference.md)). The CLI now handles
 running deployments: `rm ep_... --force` scales the endpoint's deployments to `0/0` itself as
 part of teardown, and a bare `rm dep_...` on a running deployment scales it to `0/0` and asks
 you to retry once it reaches `STOPPED` (the delete itself still requires a stopped

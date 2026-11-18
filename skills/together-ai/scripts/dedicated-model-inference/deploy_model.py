@@ -212,7 +212,17 @@ def delete(endpoint_id: str, deployment_id: str | None = None):
                 break
             print(f"  waiting for STOPPED (now {d.status.state})")
             time.sleep(10)
-        client.endpoints.update(endpoint_id, project_id=PROJECT_ID, traffic_split=[])
+        # Take this deployment out of the split and keep any others. Pass update_mask: without
+        # it the API does not treat an empty list as a change and answers "400 no fields to update".
+        endpoint = client.endpoints.retrieve(endpoint_id, project_id=PROJECT_ID)
+        remaining = [
+            {"deployment_id": entry.deployment_id, "weight": entry.weight}
+            for entry in (endpoint.traffic_split or [])
+            if entry.deployment_id != deployment_id
+        ]
+        client.endpoints.update(
+            endpoint_id, project_id=PROJECT_ID, traffic_split=remaining, update_mask="trafficSplit"
+        )
         client.endpoints.deployments.delete(
             deployment_id, project_id=PROJECT_ID, endpoint_id=endpoint_id
         )
