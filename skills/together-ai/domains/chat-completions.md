@@ -53,12 +53,17 @@ print(resp.choices[0].message.content)
   `response_format`; phase 2 sends `response_format` with no `tools`, after the tool results.
 - Prefer `json_schema` to looser JSON modes for machine-readable output. Streaming works with
   `response_format`: join the chunks, then parse the full string.
-- Reasoning: the trace arrives on `reasoning` (GPT-OSS, Qwen3.5 9B) or `reasoning_content` (Kimi K3, DeepSeek
-  V4 Pro 0813, GLM-5.2, MiniMax M3, as observed 2026-10-07). Read both, and when you send a prior
+- Reasoning: the trace arrives on `reasoning_content` for most models and on `reasoning` for a few
+  (Qwen3.6 Plus, Muse Glimmer 30B, as observed 2026-11-18). Read both, and when you send a prior
   assistant turn back, return the trace unmodified under the key it came on. Thinking-by-default models spend
-  `max_tokens` on the trace first, so give them headroom or the answer comes back empty. Turn
-  thinking off with `reasoning={"enabled": False}` on hybrid models. Use reasoning models only
-  when the task benefits; they cost more and are slower.
+  `max_tokens` on the trace first, so give them headroom or the answer comes back empty. Use
+  reasoning models only when the task benefits; they cost more and are slower.
+- Reasoning controls differ per model, and the API returns HTTP 200 for a control the model
+  ignores. `reasoning={"enabled": False}` turns thinking off on some models, DeepSeek V4 Pro 0813
+  needs `chat_template_kwargs={"enable_thinking": False}`, and GLM-5.3 and GPT-OSS cannot be
+  turned off but honor `reasoning_effort="low"`. Check the per-model table in
+  [reasoning-models.md](references/chat-completions/reasoning-models.md) (Reasoning Controls by
+  Model), then confirm the change in `usage.completion_tokens_details.reasoning_tokens`.
 - Token usage: reasoning models nest counts OpenAI-style
   (`usage.completion_tokens_details.reasoning_tokens`, `usage.prompt_tokens_details.cached_tokens`)
   but some models return `cached_tokens` flat on `usage`. Read both places.
@@ -80,7 +85,7 @@ Open a file only for the detail its row names. References over 100 lines start w
 | [references/chat-completions/api-parameters.md](references/chat-completions/api-parameters.md) | 481 | every request parameter, message object, OpenAI-SDK compatibility, rate-limit tiers, HTTP status codes | a parameter or status code not covered above |
 | [references/chat-completions/function-calling-patterns.md](references/chat-completions/function-calling-patterns.md) | 841 | six calling patterns (parallel, multi-step, ...), `tool_choice`, tools plus structured output, best practices, supported models | a tool pattern the script does not show |
 | [references/chat-completions/structured-outputs.md](references/chat-completions/structured-outputs.md) | 541 | the three JSON modes, reasoning plus JSON, streaming JSON, troubleshooting | JSON output fails to parse or validate |
-| [references/chat-completions/reasoning-models.md](references/chat-completions/reasoning-models.md) | 481 | reasoning model table, effort levels, hybrid toggles, output format, token accounting | tuning reasoning depth or cost |
+| [references/chat-completions/reasoning-models.md](references/chat-completions/reasoning-models.md) | 549 | reasoning model table, measured per-model control matrix (off switches, `reasoning_effort`, trace field), effort levels, hybrid toggles, output format, token accounting | tuning reasoning depth or cost, or a reasoning setting that seems to do nothing |
 
 ## Docs
 
