@@ -213,9 +213,10 @@ client.endpoints.deployments.update(
 CLI equivalent: `tg endpoints update dep_abc123 --min-replicas 1 --max-replicas 4`.
 
 Optional windows (settable at deploy or update time via CLI flags): `scale_up_window` (metric must stay
-above target this long before adding replicas), `scale_down_window` (cooldown between
-scale-downs), `scale_to_zero_window` (idle time before scaling to zero). Scale-up reacts fast;
-scale-down is deliberately slow so bursty traffic doesn't pay a cold start on every trough.
+above target this long before adding replicas) and `scale_down_window` (cooldown between
+scale-downs). Scale-up reacts fast; scale-down is deliberately slow so bursty traffic doesn't
+pay a cold start on every trough. To stop an idle deployment, set `inactive_timeout` (see
+[Stop / Restart](#stop--restart)). Autoscaling never takes a running deployment to zero.
 
 New replicas **cold start**: placement → image pull → weight load → engine load → warmup.
 Minutes even for small models (image pull on a cold node often dominates — up to several
@@ -287,8 +288,29 @@ Caveats:
 ## Stop / Restart
 
 Idle shutdown is off by default: a deployment runs and bills until you stop it, unless you set
-`inactive_timeout` (30–1440 minutes; `0` disables) on the deployment, which stops it after that
-long without requests. A deployment with an inactivity timeout cannot take part in a rollout.
+`inactive_timeout` on the deployment (`inactiveTimeout` in the REST API, `--inactive-timeout` in
+the CLI), which stops it after that many minutes without requests. A deployment with an
+inactivity timeout cannot take part in a rollout.
+
+```python
+client.endpoints.deployments.update(
+    "dep_abc123", project_id=project_id, endpoint_id="ep_abc123",
+    update_mask="inactiveTimeout",   # the same mask the CLI sends
+    inactive_timeout=30,             # minutes: 0 turns it off, otherwise 30 to 1440
+)
+```
+
+- **Accepted values are `0` or `30` to `1440`.** Anything else returns HTTP 400
+  `inactive_timeout (N minutes) must be within [30, 1440] minutes (0 disables)`. When a task asks
+  for less than 30 minutes, set `30`, report that it is the minimum, and verify the shutdown at
+  that value.
+- **The clock** starts when the deployment first reaches `READY`, resets on every inference
+  request, and resets when you change the timeout. The deployment bills for the whole idle
+  period.
+- **After an idle shutdown** the deployment is `DEPLOYMENT_STATE_STOPPED` and does not restart
+  on its own. The timeout stays set.
+- HTTP 400 `inactive_timeout is not available for this account` means idle shutdown is not
+  enabled for the organization.
 
 ```python
 # Stop (drains, then STOPPED; billing stops)

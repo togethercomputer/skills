@@ -65,11 +65,18 @@ your own Docker runtime is `domains/dedicated-containers.md`; raw nodes are `dom
 ## Rules
 
 - **Billing runs while replicas run.** Per minute, per replica, by hardware. Idle shutdown is off
-  unless you set an inactivity timeout: `--inactive-timeout N` on `deploy` or `update` (30 to
-  1440 minutes, `0` disables; `inactive_timeout` in a current Python SDK). It stops the deployment
-  after N minutes without requests. Otherwise scale to zero (`min_replicas: 0, max_replicas: 0`)
-  or delete when the user is done; a forgotten deployment bills until someone stops it. A
-  deployment with an inactivity timeout cannot take part in a rollout.
+  unless you set an inactivity timeout: `--inactive-timeout N` on `deploy` or `update`
+  (`inactive_timeout` in the Python SDK). It stops the deployment after N minutes without
+  requests. Otherwise scale to zero (`min_replicas: 0, max_replicas: 0`) or delete when the user
+  is done; a forgotten deployment bills until someone stops it. A deployment with an inactivity
+  timeout cannot take part in a rollout.
+- **The idle timeout is `0` (off) or `30` to `1440` minutes.** The API has nothing shorter than 30
+  and rejects other values with HTTP 400 `inactive_timeout (N minutes) must be within [30, 1440]
+  minutes (0 disables)`. When a task asks for less than 30, set `30`, say that it is the minimum,
+  and verify the shutdown at that value. Do not stop to ask. The clock starts when the deployment
+  first reaches `READY` and resets on every inference request and on every change to the
+  timeout, so to verify, send no requests and poll until `status.state` is
+  `DEPLOYMENT_STATE_STOPPED`. No autoscaling window gives a shorter idle stop.
 - **A `READY` deployment serves nothing until it's in the endpoint's traffic split.** The CLI's
   `deploy` routes automatically; otherwise set a weight with `tg endpoints update <dep_id>
   --traffic-weight N` (upserts one entry) or replace the split via SDK
@@ -148,9 +155,9 @@ only for the detail named in its row, and read just that section; each starts wi
 |---|---|---|---|
 | [scripts/dedicated-model-inference/deploy_model.py](scripts/dedicated-model-inference/deploy_model.py) | 288 | SDK path: deploy, poll to READY, infer on the dedicated base URL, scale, clean up | scripting the lifecycle in Python |
 | [scripts/dedicated-model-inference/upload_custom_model.py](scripts/dedicated-model-inference/upload_custom_model.py) | 158 | upload custom weights or a LoRA adapter, then deploy | serving your own weights |
-| [references/dedicated-model-inference/cli-reference.md](references/dedicated-model-inference/cli-reference.md) | 302 | every `tg endpoints` and `models` command and flag: deploy, get, update, rm, `ab`, `shadow`; what the CLI cannot do | a CLI flag or subcommand |
-| [references/dedicated-model-inference/api-reference.md](references/dedicated-model-inference/api-reference.md) | 543 | SDK and REST for endpoints and deployments: states, autoscaling and scaling metrics, stop/restart, routing, deletion, the metrics endpoint (`_rate5m` names, organization ID, request counts per endpoint or deployment), Events Feed | SDK calls, metrics, or the events feed |
-| [references/dedicated-model-inference/traffic-routing.md](references/dedicated-model-inference/traffic-routing.md) | 350 | how weights route, stickiness, observing routing via headers, gradual cutover, A/B tests, shadow experiments, confirming mirrored volume from metrics | traffic splits, A/B, or shadow |
+| [references/dedicated-model-inference/cli-reference.md](references/dedicated-model-inference/cli-reference.md) | 304 | every `tg endpoints` and `models` command and flag: deploy, get, update, rm, `ab`, `shadow`; what the CLI cannot do | a CLI flag or subcommand |
+| [references/dedicated-model-inference/api-reference.md](references/dedicated-model-inference/api-reference.md) | 568 | SDK and REST for endpoints and deployments: states, autoscaling and scaling metrics, stop/restart, routing, deletion, the metrics endpoint (`_rate5m` names, organization ID, request counts per endpoint or deployment), Events Feed | SDK calls, metrics, or the events feed |
+| [references/dedicated-model-inference/traffic-routing.md](references/dedicated-model-inference/traffic-routing.md) | 352 | how weights route, stickiness, observing routing via headers, gradual cutover, A/B tests, shadow experiments, confirming mirrored volume from metrics | traffic splits, A/B, or shadow |
 | [references/dedicated-model-inference/models-and-configs.md](references/dedicated-model-inference/models-and-configs.md) | 363 | choosing a model, deployment profiles, configs, hardware pricing, model and LoRA upload, upload troubleshooting | picking a profile or uploading weights |
 
 ## Docs

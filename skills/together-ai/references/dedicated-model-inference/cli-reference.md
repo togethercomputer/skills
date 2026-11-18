@@ -88,10 +88,11 @@ name/ID (adds a deployment to it).
 | `--placement.regions` | — | Comma-separated inline placement regions (mutually exclusive with `--placement`). |
 | `--placement.constraint` | — | `required` or `preferred` — how strictly to enforce inline placement regions. |
 | `--placement.hipaa` | off | Require HIPAA-eligible placement. |
-| `--inactive-timeout` | off | Minutes without requests before the deployment stops itself (30–1440; `0` disables). |
+| `--inactive-timeout` | off | Minutes without requests before the deployment stops itself: `0` (off) or `30` to `1440`. |
 
-Without `--inactive-timeout`, a deployment runs and bills until you stop it. The scale-to-zero
-window is an SDK/API autoscaling field (`scale_to_zero_window`), not a CLI flag.
+Without `--inactive-timeout`, a deployment runs and bills until you stop it. 30 minutes is the
+shortest idle timeout, and a value from 1 to 29 is rejected with HTTP 400. When a task asks for
+less than 30, pass `30`, say it is the minimum, and verify the shutdown at that value.
 
 ```bash
 # Deploy a public model, single replica
@@ -153,7 +154,7 @@ tg endpoints update dep_abc123 --traffic-weight 0
 | --- | --- |
 | `--min-replicas` / `--max-replicas` | Updated replica bounds. |
 | `--scale-up-window` / `--scale-down-window` | Autoscaling stabilization windows. |
-| `--inactive-timeout` | Minutes without requests before the deployment stops itself (30–1440; `0` disables). |
+| `--inactive-timeout` | Minutes without requests before the deployment stops itself: `0` (off) or `30` to `1440`. Changing it restarts the idle clock. |
 | `--scaling-metric` / `--scaling-target` / `--scaling-percentile` | Autoscale on one metric: metric name + target, plus an optional percentile (`p50`/`p90`/`p95`/`p99`, latency metrics only). The CLI takes a single metric this way; the JSON `scaling_metrics` array is SDK/API-only (see api-reference.md, Scaling Metrics). |
 | `--traffic-weight` | Capacity weight in the endpoint's traffic split. Upserts just this deployment's entry; `0` stops routing to it. |
 | `--ab-percent` | A/B traffic percent for this variant deployment. Takes from or returns to the control only. |
