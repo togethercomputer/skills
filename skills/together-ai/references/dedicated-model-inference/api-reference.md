@@ -402,7 +402,8 @@ and deployment — the same series that drive autoscaling. Three surfaces:
   Use it to monitor at a glance and to compare deployments during a cutover or A/B test.
 - **Events feed** — the audit trail of lifecycle changes (below).
 - **Prometheus-compatible metrics endpoint** (beta) — org-scoped scrape target for your own
-  Prometheus/Grafana/Datadog stack (below).
+  Prometheus/Grafana/Datadog stack, and the source for per-endpoint and per-deployment request
+  counts (below).
 
 Note the autoscaling metric names (`gpu_utilization`, `inflight_requests`, ...) are their
 own catalog — not interchangeable with the raw Prometheus series below.
@@ -413,23 +414,68 @@ Org-scoped, bearer-authenticated scrape target (beta — host/path may change, a
 need enabling for your org):
 
 ```bash
-curl -H "Authorization: Bearer $TOGETHER_API_KEY" \
-  "https://o11y-de2-metrics.cloud.together.ai/organizations/$ORG_ID/metrics"
+curl -s -H "Authorization: Bearer $TOGETHER_API_KEY" \
+  "https://o11y-de2-metrics.cloud.together.ai/organizations/$ORG_ID/metrics" \
+  | grep '^router_inference_requests_rate5m{'
 ```
+
+`$ORG_ID` is your organization ID (`org_...`): run `tg whoami`, or read `organization.id` from
+`GET https://api.together.ai/v3/whoami` (the same response has `project.id`). The response holds
+every series for the organization and can be hundreds of megabytes, so filter it with `grep`
+as above and never print it whole.
 
 Works with any Prometheus-compatible scraper (set `metrics_path:
 /organizations/<ORG_ID>/metrics`, target `o11y-de2-metrics.cloud.together.ai`, bearer
-credentials). Series are grouped by request-path stage — edge (`edge_inference_requests_total`,
-`edge_inference_request_duration_ms`, `edge_inference_ttft_ms`, `edge_inference_inflight_requests`),
-router (`router_inference_request_duration_seconds`, `router_inference_ttft_seconds`,
-`router_pre_worker_duration_seconds`, `router_token_count`, ...), and worker
-(`worker_ttft_seconds`, `worker_generation_duration_seconds`, `worker_tpot_seconds`,
-`worker_token_total`, plus two engine-cache gauges — `worker_engine_kv_cache_utilization`
-(fraction of the engine's KV-cache capacity in use, 0–1) and `worker_engine_cache_hit_rate`
-(engine KV-cache hit rate, 0–1; higher means more prefix reuse across requests), ...). Labels
-include `endpoint_id`/`endpoint_name`,
-`deployment_id`/`deployment_name`, `replica_id`, `model`, `status_code`, `is_streaming`, and
-`token_type`.
+credentials).
+
+Most request, token, and latency metrics end in `_rate5m`. They are precomputed per-second rates
+over the last 5 minutes, exposed as gauges, so read or chart them directly and do not wrap them
+in `rate()`. Histograms are exposed as `_rate5m_bucket`, `_rate5m_sum`, and `_rate5m_count`.
+
+| Stage | Metrics |
+| --- | --- |
+| Edge | `edge_inference_requests_rate5m`, `edge_inference_request_duration_ms_rate5m`, `edge_inference_ttft_ms_rate5m`, `edge_inference_inflight_requests` (gauge) |
+| Router | `router_inference_requests_rate5m`, `router_inference_request_duration_seconds_rate5m`, `router_inference_ttft_seconds_rate5m`, `router_pre_worker_duration_seconds_rate5m`, `router_inference_inflight_requests` (gauge), `router_token_rate5m`, `router_tokens_per_request_rate5m` |
+| Worker | `worker_inference_request_total` (counter), `worker_ttft_seconds_rate5m`, `worker_generation_duration_seconds_rate5m`, `worker_tpot_seconds_rate5m`, `worker_token_rate5m`, `worker_tokens_per_request_rate5m`, `worker_engine_kv_cache_utilization` (gauge, 0–1), `worker_engine_cache_hit_rate` (gauge, 0–1) |
+
+The older names without `_rate5m` (`edge_inference_requests_total`,
+`router_inference_requests_total`, `router_token_count`, `worker_token_total`, and the plain
+histograms) are deprecated and due for removal. Their values reset when a replica restarts or
+scales down, so do not build on them.
+
+Labels include `endpoint_id`/`endpoint_name`, `deployment_id`/`deployment_name`, `replica_id`,
+`status_code`, `path`, `is_streaming`, and `token_type`. Not every label is on every metric. The
+router request series carry `endpoint_id`, `deployment_id`, `replica_id`, `status_code`, and
+`path`.
+
+### Count requests per endpoint or deployment
+
+To turn a `_rate5m` value into a count, multiply it by the 300 seconds it covers. Add up the
+`router_inference_requests_rate5m` lines that match a `deployment_id` (or an `endpoint_id`) and
+your inference `path`, then multiply by 300 for the requests received in the last 5 minutes. In
+Prometheus:
+
+```text
+sum by (deployment_id) (router_inference_requests_rate5m{endpoint_id="<ENDPOINT_ID>"}) * 300
+```
+
+For a longer period, add up the 5-minute windows:
+
+```text
+sum by (endpoint_id) (sum_over_time(router_inference_requests_rate5m[24h:5m])) * 300
+```
+
+The router series count every request a deployment receives, including the copies mirrored to a
+shadow target, which is how you confirm a shadow experiment is mirroring (see
+[traffic-routing.md](traffic-routing.md), Confirm mirrored volume). They are split by `path`, so
+match your inference path, such as `path="/v1/chat/completions"`, to leave out other APIs and
+health probes such as `/liveness` and `/readiness`. Each line of the raw response is
+`name{labels} value timestamp`, so the rate is the field after the closing brace.
+
+The analytics API (`client.endpoints.analytics`,
+`GET /v2/projects/{project_id}/endpoints/{id}/analytics`) returns organization-wide totals today,
+the same numbers for every endpoint, with an empty per-deployment breakdown. It cannot give
+per-endpoint or per-deployment counts, so use the metrics above for those.
 
 ## Events Feed
 
@@ -474,7 +520,9 @@ To attribute a response to the deployment/replica that served it (e.g. verifying
 read the **response headers**, not the body: `x-cluster` is the per-deployment cluster ID and
 `worker_url` (in `x-i-router-log-event`) is the replica pod. The body's `model` field only
 echoes the endpoint name. Full method — including varying the sampling key so load spreads
-across the split — is in [traffic-routing.md](traffic-routing.md) (Observing routing).
+across the split — is in [traffic-routing.md](traffic-routing.md) (Observing routing). To count
+what each deployment received without reading headers, including a shadow target, see
+[Count requests per endpoint or deployment](#count-requests-per-endpoint-or-deployment).
 
 ## Troubleshooting
 
