@@ -23,8 +23,9 @@ translation, diarization, timestamps, realtime). Serverless TTS includes `hexgra
   as `"pcm_s16le"`). It yields `AudioSpeechStreamChunk` objects of type
   `conversation.item.audio_output.delta`; decode audio with `base64.b64decode(chunk.delta)`.
 - STT: `client.audio.transcriptions.create()` and `client.audio.translations.create()`. Limits:
-  80 MB direct upload, 1 GB by URL, 4 hours of audio per request. Pass a public HTTPS URL as
-  `file=` for big files; split audio longer than 4 hours.
+  80 MB direct upload, 1 GB by URL, 4 hours of audio per request. For a bigger file, send a
+  public HTTPS URL as the `file` form field over REST: the Python SDK rejects a string for
+  `file=`. Split audio longer than 4 hours.
 - Realtime endpoints expect a specific PCM format; confirm sample rate and encoding before
   streaming bytes.
 - Diarization and word timestamps change the response shape; parse the verbose output explicitly.
@@ -37,10 +38,10 @@ translation, diarization, timestamps, realtime). Serverless TTS includes `hexgra
 |---|---|---|---|
 | [scripts/audio/tts_generate.py](scripts/audio/tts_generate.py) (.ts) | 267 | REST and streaming TTS, voices, formats | generating speech |
 | [scripts/audio/tts_websocket.py](scripts/audio/tts_websocket.py) | 137 | realtime TTS over WebSocket | live or conversational speech |
-| [scripts/audio/stt_transcribe.py](scripts/audio/stt_transcribe.py) (.ts) | 221 | transcription, translation, diarization, timestamps | transcribing files |
+| [scripts/audio/stt_transcribe.py](scripts/audio/stt_transcribe.py) (.ts) | 226 | transcription, translation, diarization, timestamps | transcribing files |
 | [scripts/audio/stt_realtime.py](scripts/audio/stt_realtime.py) | 125 | realtime STT over WebSocket | live captions or voice input |
 | [references/audio/tts-models.md](references/audio/tts-models.md) | 227 | TTS models, REST and streaming parameters, WebSocket protocol, voice lists | choosing a voice or TTS parameter |
-| [references/audio/stt-models.md](references/audio/stt-models.md) | 303 | STT models, input formats, limits, response formats, realtime protocol, errors | an STT parameter, limit, or error |
+| [references/audio/stt-models.md](references/audio/stt-models.md) | 306 | STT models, input formats, limits, response formats, realtime protocol, errors | an STT parameter, limit, or error |
 
 ## Docs
 
