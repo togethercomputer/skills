@@ -720,58 +720,6 @@ Sub-1000 sample jobs typically complete within 1 hour.
 
 ## CLI Commands
 
-### Create
-
-```shell
-together evals create [OPTIONS]
-```
-
-| Option | Description |
-|--------|-------------|
-| `--type [classify\|score\|compare]` | Type of evaluation (required) |
-| `--judge-model TEXT` | Judge model name or URL (required) |
-| `--judge-model-source [serverless\|dedicated\|external]` | Source of the judge model (required) |
-| `--judge-system-template TEXT` | System template for the judge (required) |
-| `--judge-external-api-token TEXT` | API token for external judge |
-| `--judge-external-base-url TEXT` | Custom base URL for external judge |
-| `--input-data-file-path TEXT` | Path to the input data file (required) |
-| `--model-field TEXT` | Field in input file containing model-generated text |
-| `--model-to-evaluate TEXT` | Model name for detailed config |
-| `--model-to-evaluate-source [serverless\|dedicated\|external]` | Source of model to evaluate |
-| `--model-to-evaluate-max-tokens INTEGER` | Max tokens for model to evaluate |
-| `--model-to-evaluate-temperature FLOAT` | Temperature for model to evaluate |
-| `--model-to-evaluate-system-template TEXT` | System template for model to evaluate |
-| `--model-to-evaluate-input-template TEXT` | Input template for model to evaluate |
-| `--labels TEXT` | Classify: comma-separated labels |
-| `--pass-labels TEXT` | Classify: labels considered passing |
-| `--min-score FLOAT` | Score: minimum score value |
-| `--max-score FLOAT` | Score: maximum score value |
-| `--pass-threshold FLOAT` | Score: threshold for passing |
-| `--model-a TEXT` | Compare: model A name |
-| `--model-a-source [serverless\|dedicated\|external]` | Compare: source of model A |
-| `--model-b TEXT` | Compare: model B name |
-| `--model-b-source [serverless\|dedicated\|external]` | Compare: source of model B |
-| `--disable-position-bias-correction` | Compare: skip the flipped-order judge pass and run only a single judge pass (original order). Halves judge cost and latency at the expense of position-bias correction. Default: off (two-pass mode). |
-
-### List
-
-```shell
-together evals list [OPTIONS]
-```
-
-| Option | Description |
-|--------|-------------|
-| `--status` | Filter: `pending`, `queued`, `running`, `completed`, `error`, `user_error` |
-| `--limit` | Number of results (max 100) |
-
-### Retrieve
-
-```shell
-together evals retrieve <EVALUATION_ID>
-```
-
-### Status
-
-```shell
-together evals status <EVALUATION_ID>
-```
+The CLI has no evaluation commands as of 3.2.1: `tg evals` prints `Service discontinued` and runs
+nothing, and `tg files upload` no longer takes the `eval` purpose. Upload the dataset, then
+create, list, retrieve, and poll evaluations, with the SDK or REST calls in this file.

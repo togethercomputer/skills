@@ -352,7 +352,7 @@ together files retrieve <FILE-ID>
 
 # List and download files
 together files list
-together files retrieve-content <FILE-ID>
+together files download <FILE-ID>
 ```
 
 ## Converting Image URLs to Base64
