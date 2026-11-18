@@ -216,7 +216,9 @@ Optional windows (settable at deploy or update time via CLI flags): `scale_up_wi
 above target this long before adding replicas) and `scale_down_window` (cooldown between
 scale-downs). Scale-up reacts fast; scale-down is deliberately slow so bursty traffic doesn't
 pay a cold start on every trough. To stop an idle deployment, set `inactive_timeout` (see
-[Stop / Restart](#stop--restart)). Autoscaling never takes a running deployment to zero.
+[Stop / Restart](#stop--restart)). Autoscaling never takes a running deployment to zero. The
+`scale_to_zero_window` field is still in the SDK's autoscaling type and the API accepts it, but
+it has no effect, so do not use it for idle shutdown.
 
 New replicas **cold start**: placement → image pull → weight load → engine load → warmup.
 Minutes even for small models (image pull on a cold node often dominates — up to several
