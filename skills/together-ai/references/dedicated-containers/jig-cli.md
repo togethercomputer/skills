@@ -29,12 +29,11 @@ Jig commands are under `together beta jig`.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `TOGETHER_API_KEY` | Required | Your Together API key |
-| `TOGETHER_DEBUG` | `""` | Enable debug logging (`"1"` or `"true"`) |
+| `TOGETHER_API_KEY` | None | Your Together API key. Not needed when you are logged in with `tg login` |
 | `WARMUP_ENV_NAME` | `TORCHINDUCTOR_CACHE_DIR` | Environment variable for cache location |
 | `WARMUP_DEST` | `torch_cache` | Cache directory path in container |
 
-All commands are subcommands of `together beta jig`. Use `--config <path>` to specify a custom config file (default: `pyproject.toml`).
+All commands are subcommands of `together beta jig`. Use `--config <path>` to specify a custom config file (default: `pyproject.toml`). To debug a command, pass `--debug` (see [Debug Mode](#debug-mode)).
 
 ## Build Commands
 
@@ -95,6 +94,12 @@ together beta jig deploy [flags]
 | `--warmup` | Pre-generate compile caches (requires GPU) |
 | `--build-only` | Build and push only, skip deployment creation |
 | `--image <ref>` | Deploy an existing image, skip build and push |
+| `--detach` | Return without waiting for the deployment to complete |
+
+From CLI 3.1.0, `jig deploy` no longer stores your API key as a `TOGETHER_API_KEY` secret on new
+deployments. Sprocket 0.1.8 and later authenticate with the deployment's service token, so pin
+`sprocket` to 0.1.8 or later in the image. If your own worker code reads `TOGETHER_API_KEY`, set
+it yourself with `jig secrets set`. Existing deployments keep the secret they already have.
 
 ### jig status
 
@@ -290,6 +295,12 @@ together beta jig secrets set --name <name> --value <value> [flags]
 | `--name <name>` | Secret name (required) |
 | `--value <value>` | Secret value (required) |
 | `--description <text>` | Human-readable description |
+| `--ttl <days>` | Days until the secret expires and is deleted, `1d` to `14d` (default `14d`) |
+
+A secret expires after its TTL, 14 days unless you set one. `jig deploy` warns about a secret
+that expires within seven days, and setting the secret again restarts the countdown. A name
+cannot be both a secret and an entry in `[tool.jig.deploy.environment_variables]`: `jig deploy`
+fails and lists the colliding names.
 
 Example:
 
@@ -307,10 +318,18 @@ together beta jig secrets list
 
 ### jig secrets unset
 
-Remove a secret.
+Remove a secret from local state only. The deployment keeps it.
 
 ```shell
-together beta jig secrets unset <name>
+together beta jig secrets unset --name <name>
+```
+
+### jig secrets delete
+
+Delete a secret from the deployment and unset it locally.
+
+```shell
+together beta jig secrets delete --name <name>
 ```
 
 ## Volumes Commands
@@ -338,7 +357,9 @@ together beta jig volumes create --name my-weights --source ./model_weights/
 
 ### jig volumes update
 
-Update a volume with new files.
+Update a volume with new files. Each update raises the volume's version by 1, and a mount with
+no `version` field stays on the initial version (`0`), so set `version` on the mount to use the
+new files.
 
 ```shell
 together beta jig volumes update --name <name> --source <path>
@@ -371,7 +392,7 @@ together beta jig volumes delete --name <name>
 Mount a volume by adding to your `pyproject.toml`:
 
 ```toml
-[[tool.jig.volume_mounts]]
+[[tool.jig.deploy.volume_mounts]]
 name = "my-weights"
 mount_path = "/models"
 ```
@@ -426,7 +447,7 @@ model = load_model(device=device)
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `description` | string | `""` | Human-readable description |
-| `gpu_type` | string | `"h100-80gb"` | `"h100-80gb"` or `"none"` (CPU-only) |
+| `gpu_type` | string | `"h100-80gb"` | `"h100-80gb"`, `"b200-192gb"`, or `"none"` (CPU-only). Other hardware is on request |
 | `gpu_count` | int | `1` | GPUs per replica |
 | `cpu` | float | `1.0` | CPU cores per replica (supports fractional, e.g. `0.1`) |
 | `memory` | float | `8.0` | Memory in GB (supports fractional, e.g. `0.5`) |
@@ -449,27 +470,34 @@ TORCH_COMPILE = "1"
 LOG_LEVEL = "INFO"
 ```
 
-### `[tool.jig.autoscaling]`
+### `[tool.jig.deploy.autoscaling]`
 
-> **Not yet supported.** The autoscaling config below is planned but the API currently rejects
-> it with `unknown autoscaling metric`. Do not include `[tool.jig.autoscaling]` in your
-> `pyproject.toml` until this feature is live. Use `min_replicas` / `max_replicas` under
-> `[tool.jig.deploy]` for basic scaling control in the meantime.
+Scales the deployment between `min_replicas` and `max_replicas`. Set `metric` and `target`:
 
 ```toml
-# NOT YET SUPPORTED -- will cause deployment failure
-[tool.jig.autoscaling]
-profile = "QueueBacklogPerWorker"
-targetValue = "1.05"
+[tool.jig.deploy.autoscaling]
+metric = "QueueBacklogPerWorker"
+target = 1.05
 ```
 
-### `[[tool.jig.volume_mounts]]`
+| `metric` | Scales on | `target` |
+|----------|-----------|----------|
+| `QueueBacklogPerWorker` | Queue depth relative to worker count. Recommended for queue workloads | `desired_replicas = queue_depth / target`. `1.05` is the recommended value |
+| `CustomMetric` | A Prometheus metric the worker exports on `/metrics`. Requires `custom_metric_name` (for example `vllm:num_requests_running`) | Threshold for that metric. Defaults to `500` |
+
+The older keys `profile` and `targetValue` are not part of this config.
+
+### `[[tool.jig.deploy.volume_mounts]]`
 
 ```toml
-[[tool.jig.volume_mounts]]
+[[tool.jig.deploy.volume_mounts]]
 name = "my-weights"
 mount_path = "/models"
+version = 2   # optional: the volume version to mount (default 0, the initial upload)
 ```
+
+The top-level `[tool.jig.autoscaling]` and `[[tool.jig.volume_mounts]]` tables still load, but
+the CLI prints a deprecation warning. Put both under `[tool.jig.deploy]`.
 
 ## Full Example
 
@@ -506,9 +534,13 @@ health_check_path = "/health"
 MODEL_PATH = "/models/weights"
 TORCH_COMPILE = "1"
 
-[[tool.jig.volume_mounts]]
+[[tool.jig.deploy.volume_mounts]]
 name = "my-weights"
 mount_path = "/models"
+
+[tool.jig.deploy.autoscaling]
+metric = "QueueBacklogPerWorker"
+target = 1.05
 ```
 
 ## Container Registry
@@ -520,7 +552,9 @@ mount_path = "/models"
 
 ## Debug Mode
 
+Pass `--debug` to print each HTTP request and response and write a full log to a temporary file.
+There is no `TOGETHER_DEBUG` environment variable.
+
 ```shell
-export TOGETHER_DEBUG=1
-together beta jig deploy
+together beta jig deploy --debug
 ```
