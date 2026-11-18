@@ -12,6 +12,7 @@ traffic: weighted splits, A/B tests, and shadow experiments.
 - [Replace a deployment (gradual cutover)](#replace-a-deployment-gradual-cutover)
 - [A/B tests](#ab-tests)
 - [Shadow experiments](#shadow-experiments)
+- [Confirm mirrored volume](#confirm-mirrored-volume)
 - [Choosing a strategy](#choosing-a-strategy)
 
 ## How routing works
@@ -42,8 +43,11 @@ reassigns some keys.
 
 ## Observing routing
 
-To verify empirically how traffic actually lands — for a split or an A/B test — you
-need two things the obvious approach misses:
+Two ways to verify empirically how traffic lands. Response headers attribute each request
+you send, which suits a split or an A/B test. The router request metrics count what each
+deployment received, which is the way to check a shadow target, because its responses never
+come back to you (see [Confirm mirrored volume](#confirm-mirrored-volume)). For the header
+method you need two things the obvious approach misses:
 
 - **Attribution comes from the response headers, not the body.** The response body's `model`
   field only echoes the endpoint string, so two deployments serving the same model
@@ -76,7 +80,7 @@ a parsed body with no headers), and `prompt_cache_key` is not a top-level argume
 from collections import Counter
 from together import Together
 
-client = Together(base_url="https://api-inference.together.ai/v1")
+client = Together(base_url="https://api-inference.together.ai")   # SDK 3.x: no /v1
 counts = Counter()
 for i in range(200):  # a few hundred varied requests → stable share estimate
     raw = client.chat.completions.with_raw_response.create(
@@ -99,17 +103,17 @@ Set one deployment's weight from the CLI — it resolves the parent endpoint and
 other deployments' weights, so run it once per deployment:
 
 ```bash
-tg beta endpoints update dep_abc123 --traffic-weight 70
-tg beta endpoints update dep_def456 --traffic-weight 30
+tg endpoints update dep_abc123 --traffic-weight 70
+tg endpoints update dep_def456 --traffic-weight 30
 
 # Take a deployment out of rotation without scaling it down
-tg beta endpoints update dep_abc123 --traffic-weight 0
+tg endpoints update dep_abc123 --traffic-weight 0
 ```
 
 Or replace the whole split at once from the SDK/API:
 
 ```python
-client.beta.endpoints.update(
+client.endpoints.update(
     "ep_abc123",
     project_id=project_id,
     traffic_split=[
@@ -129,8 +133,10 @@ Semantics that trip people up:
 - A deployment gets no traffic if its weight is 0, it's absent from the split, or it has zero
   ready replicas. Scaling to zero takes it out of rotation but its weight is remembered and
   reapplies on scale-up.
-- An endpoint whose deployments are all stopped returns HTTP 400 `endpoint_not_ready`; a READY
-  deployment that is missing from the split (or has weight 0) gets `endpoint_not_configured`.
+- An endpoint whose deployments are all stopped returns HTTP 400 `endpoint_not_ready`, and one
+  whose deployments are still starting returns HTTP 409 `endpoint_not_ready` (retry shortly). A
+  READY deployment that is missing from the split (or has weight 0) gets
+  `endpoint_not_configured`.
 
 ## Replace a deployment (gradual cutover)
 
@@ -139,12 +145,12 @@ deployments side by side and shift traffic with weights and replica counts:
 
 1. Create the new deployment on the **same endpoint**, sized for its eventual share, and wait
    for `READY`. It receives no traffic yet (weight unset).
-2. Give it a small share: `tg beta endpoints update dep_new --traffic-weight 10` (with the old
+2. Give it a small share: `tg endpoints update dep_new --traffic-weight 10` (with the old
    deployment holding e.g. weight 90 — remember share is weight x ready replicas, so match
    replica counts or account for them).
 3. Watch the dashboard (and the [Observing routing](#observing-routing) probe) between steps;
    raise the new deployment's weight stepwise (25 -> 50 -> 100-equivalent) as confidence grows.
-4. Cut over: `tg beta endpoints update dep_old --traffic-weight 0` takes the old deployment
+4. Cut over: `tg endpoints update dep_old --traffic-weight 0` takes the old deployment
    out of rotation without scaling it down — instant rollback is just restoring its weight.
 5. Once stable, scale the old deployment to `0/0`, wait for `STOPPED`, and `rm` it.
 
@@ -177,13 +183,13 @@ CLI (creates the variant deployment too — pass the model **name** for a public
 `Model ml_… not found` here):
 
 ```bash
-tg beta endpoints ab Qwen/Qwen2.5-7B-Instruct --control dep_control123 --percent 5 --name candidate-v1
+tg endpoints ab Qwen/Qwen2.5-7B-Instruct --control dep_control123 --percent 5 --name candidate-v1
 ```
 
 SDK (create the variant deployment first):
 
 ```python
-experiment = client.beta.endpoints.ab_experiments.create(
+experiment = client.endpoints.ab_experiments.create(
     "ep_abc123",
     project_id=project_id,
     name="sampling-tweak-v1",
@@ -201,9 +207,9 @@ enough) fails with a bare `400 Invalid Argument` that names no field; adding the
 fixes it (not isolated which of the two the server requires, so send both):
 
 ```python
-cur = client.beta.endpoints.ab_experiments.retrieve(
+cur = client.endpoints.ab_experiments.retrieve(
     "abx_abc123", project_id=project_id, endpoint_id="ep_abc123")
-client.beta.endpoints.ab_experiments.update(
+client.endpoints.ab_experiments.update(
     "abx_abc123", project_id=project_id, endpoint_id="ep_abc123",
     update_mask="members", etag=cur.etag,
     members=[
@@ -246,7 +252,7 @@ nested path. `target_qps` is an approximate throttle that can run higher and gro
 endpoint scales; use `uniform` when you need a predictable fraction.
 
 ```python
-experiment = client.beta.endpoints.shadow_experiments.create(
+experiment = client.endpoints.shadow_experiments.create(
     "ep_abc123",
     project_id=project_id,
     name="candidate-shadow",          # immutable, unique in project, <= 256 chars
@@ -268,8 +274,10 @@ Operating notes:
   by re-reading. Use `update_mask` (`"source"`, `"description"`).
 - Targets are sub-resources (`shadow_experiments.targets.create/list/retrieve/update/delete`).
   Removing the last target makes the experiment `INACTIVE` (mirroring stops, config kept).
-- If a target is provisioning/stopped/unhealthy, copies are silently dropped (visible only in
-  the target's shadow metrics) — callers are never affected, and mirroring self-recovers.
+- If a target is provisioning/stopped/unhealthy, copies are silently dropped — callers are
+  never affected, and mirroring self-recovers. A copy that never reaches the target does not
+  appear in its metrics. A copy that reaches it and fails appears there with a `5xx`
+  `status_code`.
 - Mirrored requests are never re-sampled; shadow loops are prevented automatically.
 - Delete the experiment (`rm exp_abc123`) to stop all mirroring (cascade-deletes targets).
   Remove a deployment from experiments before deleting the deployment.
@@ -278,6 +286,62 @@ Multiple experiments can run on one endpoint, each sampling independently (volum
 Prefer more targets in one experiment for apples-to-apples comparisons on identical sampled
 requests; prefer separate experiments when candidates need different rates, strategies, or
 lifetimes.
+
+## Confirm mirrored volume
+
+The experiment's `ACTIVE` state only means that it has a target. To confirm that copies reach
+the target, read the target deployment's request rate from the metrics endpoint. A shadow
+target serves no live traffic, so every inference request in its router series is a mirrored
+copy.
+
+1. Find the target's deployment ID (`dep_...`): `tg endpoints get ep_abc123`, or the experiment's
+   `targets[].target_deployment_id`.
+2. Get your organization ID (`org_...`): `tg whoami`, or `organization.id` in `GET /v3/whoami`.
+3. Query the metrics endpoint with your API key, keep the target's
+   `router_inference_requests_rate5m` series for your inference path, and sum them:
+
+```bash
+ORG_ID=$(curl -s -H "Authorization: Bearer $TOGETHER_API_KEY" \
+  https://api.together.ai/v3/whoami | jq -r .organization.id)
+
+curl -s -H "Authorization: Bearer $TOGETHER_API_KEY" \
+  "https://o11y-de2-metrics.cloud.together.ai/organizations/$ORG_ID/metrics" \
+  | grep '^router_inference_requests_rate5m{' \
+  | grep 'deployment_id="dep_target456"' \
+  | grep 'chat/completions"' \
+  | awk -F'} ' '{split($2, v, " "); sum += v[1]} END {printf "about %.0f copies in the last 5 minutes\n", sum * 300}'
+```
+
+Each line the three `grep` stages keep is `name{labels} value timestamp`: a per-second request
+rate over the last 5 minutes for one replica, status code, and request path. The `awk` stage adds
+the values and multiplies by 300 for the number of copies the target received in that window. A
+total rate of `0.0333` is about 10 copies. Drop the `awk` stage to see the lines themselves.
+
+The result is an estimate. After a short burst it reads about 5% high (12 requests showed as
+12.63 on 2026-11-18), so report it as approximate and do not treat a difference that small as
+lost or duplicated copies.
+
+The `path` label separates the inference APIs (`/v1/chat/completions`, `/v1/completions`,
+`/v1/messages`, and others) from health probes such as `/liveness` and `/readiness`, so match
+the path you send. Chat requests can appear as `/v1/chat/completions` or `/chat/completions`,
+and the pattern above matches both.
+
+What to expect and how to read it:
+
+- **Uniform sampling:** each target receives about the endpoint's request count times `rate`.
+  With 100 requests at `rate: 0.5`, expect about 50, with binomial noise. **Adaptive
+  sampling** roughly tracks `target_qps`, can run higher, and rises as the endpoint scales.
+- **Read it inside the window.** The value covers the trailing 5 minutes, so query within 5
+  minutes of sending traffic. A new experiment takes 30 to 60 seconds to start mirroring, and the
+  series can lag behind traffic. If the count is zero, wait and read it again before you report
+  that nothing was mirrored.
+- **Filter before you print.** The response holds every series for the organization and can be
+  hundreds of megabytes, so always pipe it through `grep` and never dump it.
+- **Compare with the live deployments** by reading the same series for their deployment IDs, or
+  in Prometheus:
+  `sum by (deployment_id) (router_inference_requests_rate5m{endpoint_id="<ENDPOINT_ID>", path=~".*/chat/completions"}) * 300`.
+- **Do not use the analytics API for this.** It returns organization-wide totals today, so it
+  cannot give a per-endpoint or per-deployment count (see api-reference.md, Monitoring).
 
 ## Choosing a strategy
 

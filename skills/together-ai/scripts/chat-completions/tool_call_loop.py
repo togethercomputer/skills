@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Together AI Function Calling — Complete Tool Call Loop (v2 SDK)
+Together AI Function Calling — Complete Tool Call Loop (SDK 3.x)
 
 Runs a multi-round tool loop: the model calls tools, the tools run, results go
 back, and the loop repeats until the model answers without calling a tool. It
@@ -13,7 +13,7 @@ Usage:
     python tool_call_loop.py
 
 Requires:
-    uv pip install "together>=2.0.0"
+    uv pip install "together>=3"
     export TOGETHER_API_KEY=your_key
 """
 

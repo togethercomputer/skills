@@ -12,7 +12,7 @@ Usage:
     python upload_custom_model.py deploy --model ml_abc123 --config cr_abc123 --endpoint my-custom-model
 
 Requires:
-    uv pip install --upgrade together   # a release with the beta DMI surface (client.beta.*)
+    uv pip install --upgrade "together>=3"
     export TOGETHER_API_KEY=your_key
 
 Upload requirements:
@@ -35,7 +35,20 @@ import time
 from together import Together
 
 client = Together()
-PROJECT_ID = client.whoami().project_id
+
+
+def resolve_project_id() -> str:
+    """TOGETHER_PROJECT_ID if set, else the project of a project-scoped API key."""
+    if client.project_id:
+        return client.project_id
+    identity = client.whoami()
+    project = getattr(identity, "project", None)
+    if project is None:
+        sys.exit(f"whoami returned {identity.type}, which has no project: set TOGETHER_PROJECT_ID.")
+    return project.id
+
+
+PROJECT_ID = resolve_project_id()
 
 
 def create_record(name: str, base_model_id: str, adapter: bool, description: str | None = None):
@@ -45,7 +58,7 @@ def create_record(name: str, base_model_id: str, adapter: bool, description: str
     """
     if "/" in name:
         print(f"WARNING: '{name}' looks org-prefixed; this produces an unrenamable doubled slug.")
-    model = client.beta.models.create(
+    model = client.models.create(
         project_id=PROJECT_ID,
         name=name,
         base_model_id=base_model_id,
@@ -58,7 +71,7 @@ def create_record(name: str, base_model_id: str, adapter: bool, description: str
 
 def start_remote_upload(model_id: str, remote_url: str, hf_token: str | None):
     """Stream weights server-side from Hugging Face or a presigned S3 URL."""
-    job = client.beta.models.remote_uploads.create(
+    job = client.models.remote_uploads.create(
         project_id=PROJECT_ID,
         model_id=model_id,
         remote_url=remote_url,
@@ -72,10 +85,10 @@ def poll_job(job_id: str, timeout: int = 7200, poll: int = 20):
     """Poll the upload job until REMOTE_UPLOAD_STATUS_SUCCEEDED."""
     elapsed = 0
     while elapsed < timeout:
-        job = client.beta.models.remote_uploads.retrieve(job_id, project_id=PROJECT_ID)
+        job = client.models.remote_uploads.retrieve(job_id, project_id=PROJECT_ID)
         print(f"  {job.status}  {job.status_message or ''}")
         if job.status == "REMOTE_UPLOAD_STATUS_SUCCEEDED":
-            print("Upload complete. Verify files with: tg beta models ls-files <model_id>")
+            print("Upload complete. Verify files with: tg models ls-files <model_id>")
             return job
         if "FAILED" in (job.status or ""):
             raise RuntimeError(f"Upload failed: {job.status_message}")
@@ -86,8 +99,8 @@ def poll_job(job_id: str, timeout: int = 7200, poll: int = 20):
 
 def deploy(model_id: str, config_id: str, config_project_id: str, endpoint_name: str):
     """Deploy the uploaded model like any other: endpoint + deployment + traffic."""
-    endpoint = client.beta.endpoints.create(project_id=PROJECT_ID, name=endpoint_name)
-    deployment = client.beta.endpoints.deployments.create(
+    endpoint = client.endpoints.create(project_id=PROJECT_ID, name=endpoint_name)
+    deployment = client.endpoints.deployments.create(
         endpoint.id,
         project_id=PROJECT_ID,
         name="prod",
@@ -95,7 +108,7 @@ def deploy(model_id: str, config_id: str, config_project_id: str, endpoint_name:
         config=f"projects/{config_project_id}/configs/{config_id}",
         autoscaling={"min_replicas": 1, "max_replicas": 1},
     )
-    client.beta.endpoints.update(
+    client.endpoints.update(
         endpoint.id,
         project_id=PROJECT_ID,
         traffic_split=[{"deployment_id": deployment.id, "weight": 1}],

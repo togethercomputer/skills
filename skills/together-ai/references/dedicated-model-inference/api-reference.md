@@ -25,17 +25,34 @@
   `/v2/projects/{project_id}/endpoints/{endpoint_id}/deployments`). Auth is
   `Authorization: Bearer $TOGETHER_API_KEY`.
 - **Inference API**: `https://api-inference.together.ai/v1` — same request shapes as serverless.
-- **SDK namespaces**: `client.beta.endpoints` (with `.deployments`,
-  `.ab_experiments`, `.shadow_experiments`) and `client.beta.models` (with `.configs`,
-  `.remote_uploads`). TypeScript uses the camelCase equivalents (`client.beta.endpoints`,
+- **SDK namespaces**: `client.endpoints` (with `.deployments`,
+  `.ab_experiments`, `.shadow_experiments`) and `client.models` (with `.configs`,
+  `.remote_uploads`). TypeScript uses the camelCase equivalents (`client.endpoints`,
   `abExperiments`, `shadowExperiments`, `remoteUploads`).
-- **Every SDK method requires `project_id`** (the CLI infers it from the API key):
+- **Every SDK method needs a project ID**: pass `project_id` (TypeScript: `projectId`), or set
+  `TOGETHER_PROJECT_ID` or `Together(project_id=...)` once. The CLI infers it from the API key.
+  With a project API key, `whoami()` returns it (SDK 3.x nests it under `project`; 2.x had a flat
+  `project_id`):
 
 ```python
 from together import Together
 
 client = Together()
-project_id = client.whoami().project_id
+identity = client.whoami()
+if identity.type != "project_api_key":
+    raise RuntimeError("Use a project API key, or set TOGETHER_PROJECT_ID")
+project_id = identity.project.id
+```
+
+```typescript
+import Together from "together-ai";
+
+const client = new Together();
+const identity = await client.whoami();
+if (identity.type !== "project_api_key") {
+  throw new Error("Use a project API key, or set TOGETHER_PROJECT_ID");
+}
+const projectId = identity.project.id;
 ```
 
 - Wire format is camelCase JSON; the Python SDK uses snake_case arguments and attributes.
@@ -71,7 +88,7 @@ The platform prepends your project slug: an endpoint named `my-endpoint` in proj
 `acme` gets the endpoint string `acme/my-endpoint`. Names are immutable.
 
 ```python
-endpoint = client.beta.endpoints.create(
+endpoint = client.endpoints.create(
     project_id=project_id,
     name="my-endpoint",
 )
@@ -79,13 +96,13 @@ print(endpoint.id, endpoint.name)  # ep_abc123  acme/my-endpoint
 ```
 
 ```typescript
-const endpoint = await client.beta.endpoints.create({
+const endpoint = await client.endpoints.create({
   projectId,
   name: 'my-endpoint',
 });
 ```
 
-There is no standalone create-endpoint CLI command — `tg beta endpoints deploy` creates
+There is no standalone create-endpoint CLI command — `tg endpoints deploy` creates
 the endpoint and its first deployment together.
 
 ## Create a Deployment
@@ -96,7 +113,7 @@ A deployment binds a model and config to an endpoint with an autoscaling policy.
 model = f"projects/{project_id}/models/ml_abc123"          # owning project's ID
 config = "projects/proj_platform/configs/cr_abc123"        # use the config's own projectId
 
-deployment = client.beta.endpoints.deployments.create(
+deployment = client.endpoints.deployments.create(
     "ep_abc123",
     project_id=project_id,
     name="my-deployment",
@@ -135,14 +152,14 @@ creation — it cannot be set on the deployment.
 
 ## Poll Deployment Status
 
-The CLI's `get` accepts an endpoint **or** deployment ID. `tg beta endpoints get ep_abc123`
-prints the endpoint with each deployment's state and replica counts; `tg beta endpoints get
+The CLI's `get` accepts an endpoint **or** deployment ID. `tg endpoints get ep_abc123`
+prints the endpoint with each deployment's state and replica counts; `tg endpoints get
 dep_abc123` resolves the parent endpoint and prints that deployment's detail —
-`tg beta endpoints get dep_abc123 --json | jq -r '.status.state'` gives a machine-readable
+`tg endpoints get dep_abc123 --json | jq -r '.status.state'` gives a machine-readable
 state for polling loops. The same fields via the SDK:
 
 ```python
-d = client.beta.endpoints.deployments.retrieve(
+d = client.endpoints.deployments.retrieve(
     "dep_abc123", project_id=project_id, endpoint_id="ep_abc123"
 )
 print(d.status.state, d.status.message)
@@ -185,7 +202,7 @@ Rules:
 - `0 / 0` — stops the deployment. `min 0` with a positive max is **rejected**.
 
 ```python
-client.beta.endpoints.deployments.update(
+client.endpoints.deployments.update(
     "dep_abc123",
     project_id=project_id,
     endpoint_id="ep_abc123",
@@ -193,12 +210,15 @@ client.beta.endpoints.deployments.update(
 )
 ```
 
-CLI equivalent: `tg beta endpoints update dep_abc123 --min-replicas 1 --max-replicas 4`.
+CLI equivalent: `tg endpoints update dep_abc123 --min-replicas 1 --max-replicas 4`.
 
 Optional windows (settable at deploy or update time via CLI flags): `scale_up_window` (metric must stay
-above target this long before adding replicas), `scale_down_window` (cooldown between
-scale-downs), `scale_to_zero_window` (idle time before scaling to zero). Scale-up reacts fast;
-scale-down is deliberately slow so bursty traffic doesn't pay a cold start on every trough.
+above target this long before adding replicas) and `scale_down_window` (cooldown between
+scale-downs). Scale-up reacts fast; scale-down is deliberately slow so bursty traffic doesn't
+pay a cold start on every trough. To stop an idle deployment, set `inactive_timeout` (see
+[Stop / Restart](#stop--restart)). Autoscaling never takes a running deployment to zero. The
+`scale_to_zero_window` field is still in the SDK's autoscaling type and the API accepts it, but
+it has no effect, so do not use it for idle shutdown.
 
 New replicas **cold start**: placement → image pull → weight load → engine load → warmup.
 Minutes even for small models (image pull on a cold node often dominates — up to several
@@ -230,7 +250,7 @@ Each `scaling_metrics` entry sets `name`, `type`, and `target`:
 | `e2e_latency` | `METRIC_TARGET_TYPE_VALUE` | End-to-end request latency, ms. |
 
 ```python
-client.beta.endpoints.deployments.update(
+client.endpoints.deployments.update(
     "dep_abc123",
     project_id=project_id,
     endpoint_id="ep_abc123",
@@ -249,7 +269,7 @@ CLI equivalent — the CLI takes one metric as flat flags (`--scaling-metric` /
 array the SDK/API uses:
 
 ```bash
-tg beta endpoints update dep_abc123 --min-replicas 1 --max-replicas 4 \
+tg endpoints update dep_abc123 --min-replicas 1 --max-replicas 4 \
   --scaling-metric gpu_utilization --scaling-target 70
 ```
 
@@ -270,24 +290,46 @@ Caveats:
 ## Stop / Restart
 
 Idle shutdown is off by default: a deployment runs and bills until you stop it, unless you set
-`inactive_timeout` (30–1440 minutes; `0` disables) on the deployment, which stops it after that
-long without requests. A deployment with an inactivity timeout cannot take part in a rollout.
+`inactive_timeout` on the deployment (`inactiveTimeout` in the REST API, `--inactive-timeout` in
+the CLI), which stops it after that many minutes without requests. A deployment with an
+inactivity timeout cannot take part in a rollout.
+
+```python
+client.endpoints.deployments.update(
+    "dep_abc123", project_id=project_id, endpoint_id="ep_abc123",
+    update_mask="inactiveTimeout",   # the same mask the CLI sends
+    inactive_timeout=30,             # minutes: 0 turns it off, otherwise 30 to 1440
+)
+```
+
+- **Accepted values are `0` or `30` to `1440`.** Anything else returns HTTP 400
+  `inactive_timeout (N minutes) must be within [30, 1440] minutes (0 disables)`. When a task asks
+  for less than 30 minutes, set `30`, report that it is the minimum, and verify the shutdown at
+  that value.
+- **The clock** starts when the deployment first reaches `READY`, resets on every inference
+  request, and resets when you change the timeout. The deployment bills for the whole idle
+  period.
+- **After an idle shutdown** the deployment is `DEPLOYMENT_STATE_STOPPED` and does not restart
+  on its own. The timeout stays set.
+- HTTP 400 `inactive_timeout is not available for this account` means idle shutdown is not
+  enabled for the organization. Tell the user that Together support has to enable it, deploy
+  without the timeout, and stop the deployment by hand (`0/0`) when it is no longer needed.
 
 ```python
 # Stop (drains, then STOPPED; billing stops)
-client.beta.endpoints.deployments.update(
+client.endpoints.deployments.update(
     "dep_abc123", project_id=project_id, endpoint_id="ep_abc123",
     autoscaling={"min_replicas": 0, "max_replicas": 0},
 )
 
 # Restart (first replica cold-starts)
-client.beta.endpoints.deployments.update(
+client.endpoints.deployments.update(
     "dep_abc123", project_id=project_id, endpoint_id="ep_abc123",
     autoscaling={"min_replicas": 1, "max_replicas": 2},
 )
 ```
 
-CLI equivalents: `tg beta endpoints update dep_abc123 --min-replicas 0 --max-replicas 0`
+CLI equivalents: `tg endpoints update dep_abc123 --min-replicas 0 --max-replicas 0`
 (stop), `--min-replicas 1 --max-replicas 2` (restart).
 
 A stopped deployment keeps its configuration and traffic-split weight (the weight reapplies
@@ -300,14 +342,14 @@ for the first deployment. To change one deployment's weight, use the CLI's upser
 the parent endpoint and preserves the other deployments' weights):
 
 ```bash
-tg beta endpoints update dep_abc123 --traffic-weight 30
-tg beta endpoints update dep_abc123 --traffic-weight 0   # out of rotation, no scale-down
+tg endpoints update dep_abc123 --traffic-weight 30
+tg endpoints update dep_abc123 --traffic-weight 0   # out of rotation, no scale-down
 ```
 
 To replace the whole split at once, update the endpoint from the SDK/API:
 
 ```python
-client.beta.endpoints.update(
+client.endpoints.update(
     "ep_abc123",
     project_id=project_id,
     traffic_split=[{"deployment_id": "dep_abc123", "weight": 1}],
@@ -320,9 +362,9 @@ cutovers, A/B tests, and shadow experiments, are in [traffic-routing.md](traffic
 ## List, Paginate, Filter
 
 ```python
-client.beta.endpoints.list(project_id=project_id)
-client.beta.endpoints.retrieve("ep_abc123", project_id=project_id)
-client.beta.endpoints.deployments.list("ep_abc123", project_id=project_id)
+client.endpoints.list(project_id=project_id)
+client.endpoints.retrieve("ep_abc123", project_id=project_id)
+client.endpoints.deployments.list("ep_abc123", project_id=project_id)
 ```
 
 | Parameter | Description |
@@ -338,7 +380,7 @@ deployment lists also support `state` (fully qualified enum) and `model` (resour
 matched regardless of revision):
 
 ```python
-client.beta.endpoints.deployments.list(
+client.endpoints.deployments.list(
     "ep_abc123",
     project_id=project_id,
     filter='state = "DEPLOYMENT_STATE_READY" AND created_at > "2026-01-01T00:00:00Z"',
@@ -358,19 +400,20 @@ Deletion is permanent, and a deployment must be stopped first. Order:
 4. Delete the endpoint once it has no deployments.
 
 ```python
-# You can't zero the split with an empty list: the SDK/API omits an empty `traffic_split`
-# from the PATCH body and returns "400 no fields to update". Send the split with this
-# deployment's entry removed (keeping any others):
-client.beta.endpoints.update("ep_abc123", project_id=project_id,
-                             traffic_split=[{"deployment_id": "dep_other", "weight": 1}])
-client.beta.endpoints.deployments.delete("dep_abc123", project_id=project_id, endpoint_id="ep_abc123")
-client.beta.endpoints.delete("ep_abc123", project_id=project_id)
+# Send the split with this deployment's entry removed (keeping any others), and pass
+# update_mask. Without the mask the API does not treat an empty list as a change and
+# returns "400 no fields to update".
+client.endpoints.update("ep_abc123", project_id=project_id,
+                        traffic_split=[{"deployment_id": "dep_other", "weight": 1}],
+                        update_mask="trafficSplit")
+client.endpoints.deployments.delete("dep_abc123", project_id=project_id, endpoint_id="ep_abc123")
+client.endpoints.delete("ep_abc123", project_id=project_id)
 ```
 
-When the deployment is the endpoint's **only** traffic entry there's nothing to route to, so
-the empty-split limitation above blocks the pure-SDK path — use the CLI's `rm ... --force`
-instead, which auto-detaches from the split and deletes the deployment and endpoint together
-(it smart-deletes by ID prefix; see [cli-reference.md](cli-reference.md)). The CLI now handles
+When the deployment is the endpoint's **only** traffic entry, send `traffic_split=[]` with
+`update_mask="trafficSplit"` to clear the split. The CLI's `rm ep_... --force` makes the same
+call, and it is the shorter path: it detaches from the split and deletes the deployment and
+endpoint together (it smart-deletes by ID prefix; see [cli-reference.md](cli-reference.md)). The CLI now handles
 running deployments: `rm ep_... --force` scales the endpoint's deployments to `0/0` itself as
 part of teardown, and a bare `rm dep_...` on a running deployment scales it to `0/0` and asks
 you to retry once it reaches `STOPPED` (the delete itself still requires a stopped
@@ -385,7 +428,8 @@ and deployment — the same series that drive autoscaling. Three surfaces:
   Use it to monitor at a glance and to compare deployments during a cutover or A/B test.
 - **Events feed** — the audit trail of lifecycle changes (below).
 - **Prometheus-compatible metrics endpoint** (beta) — org-scoped scrape target for your own
-  Prometheus/Grafana/Datadog stack (below).
+  Prometheus/Grafana/Datadog stack, and the source for per-endpoint and per-deployment request
+  counts (below).
 
 Note the autoscaling metric names (`gpu_utilization`, `inflight_requests`, ...) are their
 own catalog — not interchangeable with the raw Prometheus series below.
@@ -396,23 +440,69 @@ Org-scoped, bearer-authenticated scrape target (beta — host/path may change, a
 need enabling for your org):
 
 ```bash
-curl -H "Authorization: Bearer $TOGETHER_API_KEY" \
-  "https://o11y-de2-metrics.cloud.together.ai/organizations/$ORG_ID/metrics"
+curl -s -H "Authorization: Bearer $TOGETHER_API_KEY" \
+  "https://o11y-de2-metrics.cloud.together.ai/organizations/$ORG_ID/metrics" \
+  | grep '^router_inference_requests_rate5m{'
 ```
+
+`$ORG_ID` is your organization ID (`org_...`): run `tg whoami`, or read `organization.id` from
+`GET https://api.together.ai/v3/whoami` (the same response has `project.id`). The response holds
+every series for the organization and can be hundreds of megabytes, so filter it with `grep`
+as above and never print it whole.
 
 Works with any Prometheus-compatible scraper (set `metrics_path:
 /organizations/<ORG_ID>/metrics`, target `o11y-de2-metrics.cloud.together.ai`, bearer
-credentials). Series are grouped by request-path stage — edge (`edge_inference_requests_total`,
-`edge_inference_request_duration_ms`, `edge_inference_ttft_ms`, `edge_inference_inflight_requests`),
-router (`router_inference_request_duration_seconds`, `router_inference_ttft_seconds`,
-`router_pre_worker_duration_seconds`, `router_token_count`, ...), and worker
-(`worker_ttft_seconds`, `worker_generation_duration_seconds`, `worker_tpot_seconds`,
-`worker_token_total`, plus two engine-cache gauges — `worker_engine_kv_cache_utilization`
-(fraction of the engine's KV-cache capacity in use, 0–1) and `worker_engine_cache_hit_rate`
-(engine KV-cache hit rate, 0–1; higher means more prefix reuse across requests), ...). Labels
-include `endpoint_id`/`endpoint_name`,
-`deployment_id`/`deployment_name`, `replica_id`, `model`, `status_code`, `is_streaming`, and
-`token_type`.
+credentials).
+
+Most request, token, and latency metrics end in `_rate5m`. They are precomputed per-second rates
+over the last 5 minutes, exposed as gauges, so read or chart them directly and do not wrap them
+in `rate()`. Histograms are exposed as `_rate5m_bucket`, `_rate5m_sum`, and `_rate5m_count`.
+
+| Stage | Metrics |
+| --- | --- |
+| Edge | `edge_inference_requests_rate5m`, `edge_inference_request_duration_ms_rate5m`, `edge_inference_ttft_ms_rate5m`, `edge_inference_inflight_requests` (gauge) |
+| Router | `router_inference_requests_rate5m`, `router_inference_request_duration_seconds_rate5m`, `router_inference_ttft_seconds_rate5m`, `router_pre_worker_duration_seconds_rate5m`, `router_inference_inflight_requests` (gauge), `router_token_rate5m`, `router_tokens_per_request_rate5m` |
+| Worker | `worker_inference_request_total` (counter), `worker_ttft_seconds_rate5m`, `worker_generation_duration_seconds_rate5m`, `worker_tpot_seconds_rate5m`, `worker_token_rate5m`, `worker_tokens_per_request_rate5m`, `worker_engine_kv_cache_utilization` (gauge, 0–1), `worker_engine_cache_hit_rate` (gauge, 0–1) |
+
+The older names without `_rate5m` (`edge_inference_requests_total`,
+`router_inference_requests_total`, `router_token_count`, `worker_token_total`, and the plain
+histograms) are deprecated and due for removal. Their values reset when a replica restarts or
+scales down, so do not build on them.
+
+Labels include `endpoint_id`/`endpoint_name`, `deployment_id`/`deployment_name`, `replica_id`,
+`status_code`, `path`, `is_streaming`, and `token_type`. Not every label is on every metric. The
+router request series carry `endpoint_id`, `deployment_id`, `replica_id`, `status_code`, and
+`path`.
+
+### Count requests per endpoint or deployment
+
+To turn a `_rate5m` value into a count, multiply it by the 300 seconds it covers. Add up the
+`router_inference_requests_rate5m` lines that match a `deployment_id` (or an `endpoint_id`) and
+your inference `path`, then multiply by 300 for the requests received in the last 5 minutes. The
+result is an estimate: after a short burst it reads about 5% high. In Prometheus:
+
+```text
+sum by (deployment_id) (router_inference_requests_rate5m{endpoint_id="<ENDPOINT_ID>", path=~".*/chat/completions"}) * 300
+```
+
+For a longer period, add up the 5-minute windows:
+
+```text
+sum by (endpoint_id) (sum_over_time(router_inference_requests_rate5m{path=~".*/chat/completions"}[24h:5m])) * 300
+```
+
+The router series count every request a deployment receives, including the copies mirrored to a
+shadow target, which is how you confirm a shadow experiment is mirroring (see
+[traffic-routing.md](traffic-routing.md), Confirm mirrored volume). They are split by `path`, so
+match your inference path to leave out other APIs and health probes such as `/liveness` and
+`/readiness`. Chat requests appear as `/v1/chat/completions` or `/chat/completions`, which is why
+the queries above match `path=~".*/chat/completions"`. Each line of the raw response is
+`name{labels} value timestamp`, so the rate is the field after the closing brace.
+
+The analytics API (`client.endpoints.analytics`,
+`GET /v2/projects/{project_id}/endpoints/{id}/analytics`) returns organization-wide totals today,
+the same numbers for every endpoint, with an empty per-deployment breakdown. It cannot give
+per-endpoint or per-deployment counts, so use the metrics above for those.
 
 ## Events Feed
 
@@ -420,7 +510,7 @@ Each endpoint has an audit feed (newest first) merging endpoint- and deployment-
 scale-ups, traffic shifts, readiness changes.
 
 ```python
-events = client.beta.endpoints.list_events("ep_abc123", project_id=project_id, limit=50)
+events = client.endpoints.list_events("ep_abc123", project_id=project_id, limit=50)
 ```
 
 Optional filters: `types` (event-type strings), `since` / `until` (time range), `subject_id`
@@ -444,7 +534,7 @@ work if the underlying model supports them. Prompt caching is on by default.
 ```python
 from together import Together
 
-client = Together(base_url="https://api-inference.together.ai/v1")
+client = Together(base_url="https://api-inference.together.ai")   # SDK 3.x: no /v1
 
 response = client.chat.completions.create(
     model="your-project-slug/my-endpoint",   # endpoint string, not ep_ ID
@@ -457,13 +547,19 @@ To attribute a response to the deployment/replica that served it (e.g. verifying
 read the **response headers**, not the body: `x-cluster` is the per-deployment cluster ID and
 `worker_url` (in `x-i-router-log-event`) is the replica pod. The body's `model` field only
 echoes the endpoint name. Full method — including varying the sampling key so load spreads
-across the split — is in [traffic-routing.md](traffic-routing.md) (Observing routing).
+across the split — is in [traffic-routing.md](traffic-routing.md) (Observing routing). To count
+what each deployment received without reading headers, including a shadow target, see
+[Count requests per endpoint or deployment](#count-requests-per-endpoint-or-deployment).
 
 ## Troubleshooting
 
 - **HTTP 400 `endpoint_not_configured` on a `READY` deployment** — the deployment isn't in the
-  traffic split with a non-zero weight, or it has zero ready replicas. HTTP 400
-  `endpoint_not_ready` means every deployment behind the endpoint is stopped.
+  traffic split with a non-zero weight, or it has zero ready replicas.
+- **HTTP 409 `endpoint_not_ready` on an inference request** — no deployment on the endpoint is
+  ready to serve yet. Retry with a short backoff. The error can continue briefly after a
+  deployment reports `READY`.
+- **HTTP 400 `endpoint_not_ready` on an inference request** — every deployment on the endpoint
+  is stopped. Restart one (see [Stop / Restart](#stop--restart)).
 - **`DEGRADED` with `Cannot place replicas: insufficient GPU capacity`** — hardware for the
   config is constrained. The scheduler keeps retrying; compare `status.scheduledReplicas` to
   `desiredReplicas`. Request fewer replicas or pick a smaller-footprint config.

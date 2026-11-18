@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Together AI Image Generation -- Text-to-Image and FLUX.2 (v2 SDK)
+Together AI Image Generation -- Text-to-Image and FLUX.2 (SDK 3.x)
 
 Generate images from text prompts, save locally, create variations,
 and use FLUX.2 reference images.
@@ -9,7 +9,7 @@ Usage:
     python generate_image.py
 
 Requires:
-    uv pip install "together>=2.0.0"
+    uv pip install "together>=3"
     export TOGETHER_API_KEY=your_key
 """
 

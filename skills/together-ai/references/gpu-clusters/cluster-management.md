@@ -34,7 +34,7 @@
 
 ```shell
 # Get credentials
-together beta clusters get-credentials <CLUSTER_ID>
+together clusters get-credentials <CLUSTER_ID>
 export KUBECONFIG=$HOME/.kube/config
 
 # Verify
@@ -59,7 +59,7 @@ Two SSH methods are supported. On Slurm clusters with OIDC enabled, pick one fro
 
 | Method | How it works | Requirements |
 |--------|--------------|--------------|
-| **OIDC (Together CLI)** | Browser sign-in that mints a short-lived certificate, executed via `tg beta clusters ssh`. | Together CLI installed (`uv tool install "together[cli]"`, 2.20+, Python 3.10+). Choose a login name when prompted in the cluster UI. No SSH key required. |
+| **OIDC (Together CLI)** | Browser sign-in that mints a short-lived certificate, executed via `tg clusters ssh`. | Together CLI installed (`uv tool install "together[cli]>=3"`, Python 3.10+). Choose a login name when prompted in the cluster UI. No SSH key required. |
 | **Key-based** | Standard `ssh -J` proxy jump through the cluster's bastion. | SSH public key uploaded at `api.together.ai/settings/ssh-key` before cluster creation. |
 
 The cluster UI's **Copy SSH command** (worker/compute) and **Copy head node SSH command** (Slurm login) buttons emit a command shaped for the selected method.
@@ -78,14 +78,14 @@ ssh -J <LOGIN>@ssh.<CLUSTER_ID>.<REGION>.cloud.together.ai <LOGIN>@slurm-login
 
 ```shell
 # Worker node (Kubernetes) or Slurm compute node
-tg beta clusters ssh https://dex.<REGION>.cloud.together.ai/<CLUSTER_ID> \
+tg clusters ssh https://dex.<REGION>.cloud.together.ai/<CLUSTER_ID> \
   --login <LOGIN> --host <NODE_HOSTNAME>
 
 # Slurm login node (host defaults to the head node)
-tg beta clusters ssh https://dex.<REGION>.cloud.together.ai/<CLUSTER_ID> --login <LOGIN>
+tg clusters ssh https://dex.<REGION>.cloud.together.ai/<CLUSTER_ID> --login <LOGIN>
 ```
 
-If the CLI was previously installed with `pip`, migrate to the `uv`-managed install before using OIDC SSH: `pip uninstall together` and reinstall with `uv tool install "together[cli]"`.
+If the CLI was previously installed with `pip`, migrate to the `uv`-managed install before using OIDC SSH: `pip uninstall together` and reinstall with `uv tool install "together[cli]>=3"`.
 
 **Slurm hostnames:**
 
@@ -224,11 +224,11 @@ Scale via UI, CLI, or API at any time. GPU count must be a multiple of 8.
 from together import Together
 client = Together()
 
-cluster = client.beta.clusters.update("cluster-id", num_gpus=16)
+cluster = client.clusters.update("cluster-id", num_gpus=16)
 ```
 
 ```shell
-together beta clusters update <CLUSTER_ID> --num-gpus 16
+together clusters update <CLUSTER_ID> --num-gpus 16
 ```
 
 ### Autoscaling (Kubernetes)
@@ -543,7 +543,7 @@ Users require active Together AI accounts before they can be added.
 | Issue | Solution |
 |-------|----------|
 | Cluster stuck provisioning | Check the status for phases like `WaitingForControlPlaneNodes` or `RunningAcceptanceTests` |
-| 400 "cuda version and nvidia driver version are required" | Pass `cuda_version` and `nvidia_driver_version` as separate fields alongside `driver_version` |
+| 400 "cuda version and nvidia driver version are required" | Pass `cuda_version` and `nvidia_driver_version` (or `nvidia_version_id`); the API has no `driver_version` field |
 | 409 "Out of stock" | GPUs unavailable in the requested region. Call `list_regions()` and try another region |
 | "Shared volume does not exist in the datacenter" | Volume was created in a different datacenter partition. Use inline `shared_volume` at cluster creation instead of a separate `volume_id` |
 | Pods not scheduling | Verify node readiness with `kubectl get nodes` and inspect resource requests and taints |

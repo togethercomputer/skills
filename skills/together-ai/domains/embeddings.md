@@ -6,7 +6,7 @@
 - The deprecations page shows them removed: `intfloat/multilingual-e5-large-instruct` on
   2026-09-15 (not available on dedicated endpoints either), the BGE, GTE, and M2-BERT embedding
   models earlier, and the rerank model `mixedbread-ai/Mxbai-Rerank-Large-V2` on 2026-03-06.
-- The dedicated deployment catalog (`tg beta models public`) lists no embedding or rerank models.
+- The dedicated deployment catalog (`tg models public`) lists no embedding or rerank models.
 
 Calls to the old IDs fail with `Unable to access non-serverless model` or a 503
 `model_not_available`. Retrying, or trying other embedding IDs, will not help.
@@ -17,7 +17,7 @@ Calls to the old IDs fail with `Unable to access non-serverless model` or a 503
    pipeline that cannot run, and do not loop on the errors above.
 2. If the user already has a Together dedicated endpoint serving an embedding model, the scripts
    below work against it: set `EMBEDDING_MODEL` to the endpoint string. Dedicated inference uses
-   `Together(base_url="https://api-inference.together.ai/v1")`.
+   `Together(base_url="https://api-inference.together.ai")` (SDK 3.x: no `/v1`).
 3. Otherwise ask the user how to proceed (for example, another embedding provider). Do not pick
    one silently.
 4. Generation over retrieved text still works on Together: `domains/chat-completions.md`.

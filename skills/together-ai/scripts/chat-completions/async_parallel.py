@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Together AI Chat Completions — Async Parallel Requests (v2 SDK)
+Together AI Chat Completions — Async Parallel Requests (SDK 3.x)
 
 Demonstrates using AsyncTogether to run multiple independent
 chat completion requests in parallel.
@@ -9,7 +9,7 @@ Usage:
     python async_parallel.py
 
 Requires:
-    uv pip install "together>=2.0.0"
+    uv pip install "together>=3"
     export TOGETHER_API_KEY=your_key
 """
 
