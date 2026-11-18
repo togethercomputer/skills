@@ -5,10 +5,15 @@ Together AI GPU Clusters -- Create, Monitor, Scale, Delete (SDK 3.x)
 Full lifecycle: list regions, create cluster, wait for ready,
 check status, scale, then delete.
 
+Every cluster needs a shared volume, and the API rejects a create request without one. Pass
+--shared-volume-name with --shared-volume-size-tib to create one with the cluster, or --volume-id
+to attach an existing one. Deleting a cluster keeps its volume, which keeps billing until you
+delete it (see manage_storage.py).
+
 Usage:
     python manage_cluster.py list-regions
-    python manage_cluster.py create --name my-cluster --region us-central-8 --gpu-type H100_SXM --num-gpus 8 --driver-version CUDA_12_6_560
-    python manage_cluster.py demo
+    python manage_cluster.py create --name my-cluster --region us-central-8 --gpu-type H100_SXM --num-gpus 8 --driver-version CUDA_12_6_560 --shared-volume-name my-data --shared-volume-size-tib 1
+    python manage_cluster.py demo --shared-volume-name my-data --shared-volume-size-tib 1
 
 Requires:
     uv pip install "together>=3"
@@ -50,6 +55,42 @@ def parse_driver_version(driver_version: str) -> tuple[str, str]:
     return cuda_version, nvidia_driver
 
 
+def volume_kwargs(
+    region: str,
+    volume_id: str | None = None,
+    shared_volume_name: str | None = None,
+    shared_volume_size_tib: int | None = None,
+) -> dict:
+    """Return the volume part of a create request, or raise ValueError.
+
+    Every cluster needs a shared volume: one created with the cluster (``shared_volume``) or an
+    existing one (``volume_id``). The API rejects a create request that has neither.
+    """
+    inline = shared_volume_name is not None or shared_volume_size_tib is not None
+    if volume_id and inline:
+        raise ValueError(
+            "Pass either --volume-id or --shared-volume-name with --shared-volume-size-tib, not both."
+        )
+    if volume_id:
+        return {"volume_id": volume_id}
+    if not inline:
+        raise ValueError(
+            "A cluster needs a shared volume. Pass --shared-volume-name with --shared-volume-size-tib "
+            "to create one with the cluster, or --volume-id to attach an existing one."
+        )
+    if not shared_volume_name or shared_volume_size_tib is None:
+        raise ValueError("--shared-volume-name and --shared-volume-size-tib must be passed together.")
+    if shared_volume_size_tib < 1:
+        raise ValueError("--shared-volume-size-tib must be a whole number of TiB, 1 or more.")
+    return {
+        "shared_volume": {
+            "volume_name": shared_volume_name,
+            "size_tib": shared_volume_size_tib,
+            "region": region,
+        }
+    }
+
+
 def create_cluster(
     name: str,
     region: str,
@@ -64,9 +105,10 @@ def create_cluster(
 ):
     """Create a new GPU cluster.
 
-    For shared storage, prefer ``shared_volume_name`` + ``shared_volume_size_tib``
+    A shared volume is required. Prefer ``shared_volume_name`` + ``shared_volume_size_tib``
     (inline creation) over ``volume_id`` to avoid datacenter-mismatch errors.
     """
+    volume = volume_kwargs(region, volume_id, shared_volume_name, shared_volume_size_tib)
     cuda_ver, nvidia_ver = parse_driver_version(driver_version)
     kwargs: dict = {
         "cluster_name": name,
@@ -78,15 +120,8 @@ def create_cluster(
         "nvidia_driver_version": nvidia_ver,
         "billing_type": billing_type,
         "cluster_type": cluster_type,
+        **volume,
     }
-    if volume_id:
-        kwargs["volume_id"] = volume_id
-    elif shared_volume_name and shared_volume_size_tib:
-        kwargs["shared_volume"] = {
-            "volume_name": shared_volume_name,
-            "size_tib": shared_volume_size_tib,
-            "region": region,
-        }
 
     cluster = client.clusters.create(**kwargs)
     print(f"Created cluster: {cluster.cluster_id} (status: {cluster.status})")
@@ -139,9 +174,9 @@ def parse_args() -> argparse.Namespace:
     create_parser.add_argument("--driver-version", required=True, help="Driver version")
     create_parser.add_argument("--billing-type", default="ON_DEMAND", help="Billing type")
     create_parser.add_argument("--cluster-type", default="KUBERNETES", help="Cluster type")
-    create_parser.add_argument("--volume-id", help="Optional existing volume id (prefer --shared-volume-name)")
-    create_parser.add_argument("--shared-volume-name", help="Inline shared volume name (created with cluster)")
-    create_parser.add_argument("--shared-volume-size-tib", type=int, help="Inline shared volume size in TiB")
+    create_parser.add_argument("--volume-id", help="Existing volume id to attach (a volume is required; prefer --shared-volume-name)")
+    create_parser.add_argument("--shared-volume-name", help="Name of a shared volume to create with the cluster")
+    create_parser.add_argument("--shared-volume-size-tib", type=int, help="Size of that volume in whole TiB (1 or more)")
 
     wait_parser = subparsers.add_parser("wait", help="Wait for a cluster to become ready")
     wait_parser.add_argument("--cluster-id", required=True, help="Cluster id")
@@ -163,14 +198,21 @@ def parse_args() -> argparse.Namespace:
     demo_parser.add_argument("--driver-version", default="CUDA_12_6_560", help="Driver version")
     demo_parser.add_argument("--billing-type", default="ON_DEMAND", help="Billing type")
     demo_parser.add_argument("--cluster-type", default="KUBERNETES", help="Cluster type")
-    demo_parser.add_argument("--volume-id", help="Optional existing volume id (prefer --shared-volume-name)")
-    demo_parser.add_argument("--shared-volume-name", help="Inline shared volume name (created with cluster)")
-    demo_parser.add_argument("--shared-volume-size-tib", type=int, help="Inline shared volume size in TiB")
+    demo_parser.add_argument("--volume-id", help="Existing volume id to attach (a volume is required; prefer --shared-volume-name)")
+    demo_parser.add_argument("--shared-volume-name", help="Name of a shared volume to create with the cluster")
+    demo_parser.add_argument("--shared-volume-size-tib", type=int, help="Size of that volume in whole TiB (1 or more)")
     demo_parser.add_argument("--scale-to", type=int, default=16, help="GPU count to scale to after creation")
     demo_parser.add_argument("--timeout", type=int, default=1800, help="Maximum wait time in seconds")
     demo_parser.add_argument("--poll-interval", type=int, default=30, help="Seconds between polls")
     demo_parser.add_argument("--delete", action="store_true", help="Delete the cluster at the end")
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.command in ("create", "demo"):
+        # Fail before any API call: a create request without a volume is rejected.
+        try:
+            volume_kwargs(args.region, args.volume_id, args.shared_volume_name, args.shared_volume_size_tib)
+        except ValueError as error:
+            parser.error(str(error))
+    return args
 
 
 def main() -> None:

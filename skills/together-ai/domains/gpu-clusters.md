@@ -51,7 +51,7 @@ read just that section; long ones start with `## Contents`.
 | File | Lines | Contains | Open when |
 |---|---|---|---|
 | [references/gpu-clusters/pricing-and-discovery.md](references/gpu-clusters/pricing-and-discovery.md) | 113 | pricing, billing, and stock surfaces, read-only inventory commands, picking the cheapest live option, one-hour on-demand plan with its shared volume | pricing, availability, or a plan without provisioning |
-| [scripts/gpu-clusters/manage_cluster.py](scripts/gpu-clusters/manage_cluster.py) (.ts) | 235 | create, poll, credentials, scale, delete | provisioning or changing a cluster |
+| [scripts/gpu-clusters/manage_cluster.py](scripts/gpu-clusters/manage_cluster.py) (.ts) | 277 | create (requires `--shared-volume-name` with `--shared-volume-size-tib`, or `--volume-id`), poll, scale, delete | provisioning or changing a cluster |
 | [scripts/gpu-clusters/manage_storage.py](scripts/gpu-clusters/manage_storage.py) | 129 | create, list, resize, delete shared volumes | managing storage on its own |
 | [references/gpu-clusters/cli.md](references/gpu-clusters/cli.md) | 343 | `tg` cluster and storage commands, create flags (`--nvidia-version-id`, `--os`, shared-volume flags), global flags, instance types, driver versions | a CLI flag or driver version |
 | [references/gpu-clusters/api-reference.md](references/gpu-clusters/api-reference.md) | 477 | cluster and storage endpoints, request fields, regions, instance types | an API field the script does not set |

@@ -5,9 +5,16 @@
  * Full lifecycle: list regions, create cluster, wait for ready,
  * check status, scale, then delete.
  *
+ * Every cluster needs a shared volume, and the API rejects a create request without one. Pass
+ * --shared-volume-name with --shared-volume-size-tib to create one with the cluster, or --volume-id
+ * to attach an existing one. Deleting a cluster keeps its volume, which keeps billing until you
+ * delete it.
+ *
  * Usage:
  *   npx tsx manage_cluster.ts            # list regions and clusters only
- *   npx tsx manage_cluster.ts --create   # create an 8x H100 cluster (billed hourly) and scale it to 16
+ *   npx tsx manage_cluster.ts --create --shared-volume-name my-data --shared-volume-size-tib 1
+ *                                        # create an 8x H100 cluster (billed hourly) and scale it to 16
+ *   npx tsx manage_cluster.ts --create --volume-id <VOLUME_ID>
  *
  * Requires:
  *   npm install "together-ai@>=1"
@@ -26,6 +33,43 @@ type GPUType = ClusterCreateParams["gpu_type"];
 type DriverVersion = string;
 type BillingType = ClusterCreateParams["billing_type"];
 type ClusterType = NonNullable<ClusterCreateParams["cluster_type"]>;
+// The volume a new cluster uses: one created with the cluster, or an existing one.
+type VolumeChoice =
+  | { volumeId: string }
+  | { sharedVolumeName: string; sharedVolumeSizeTib: number };
+
+/** Read the volume flags, or throw. A create request without a volume is rejected by the API. */
+function parseVolumeArgs(argv: string[]): VolumeChoice {
+  const value = (flag: string): string | undefined => {
+    const i = argv.indexOf(flag);
+    if (i < 0) return undefined;
+    const next = argv[i + 1];
+    if (next === undefined || next.startsWith("--")) throw new Error(`${flag} needs a value.`);
+    return next;
+  };
+  const volumeId = value("--volume-id");
+  const name = value("--shared-volume-name");
+  const size = value("--shared-volume-size-tib");
+
+  if (volumeId && (name || size)) {
+    throw new Error("Pass either --volume-id or --shared-volume-name with --shared-volume-size-tib, not both.");
+  }
+  if (volumeId) return { volumeId };
+  if (!name && !size) {
+    throw new Error(
+      "A cluster needs a shared volume. Pass --shared-volume-name with --shared-volume-size-tib " +
+        "to create one with the cluster, or --volume-id to attach an existing one.",
+    );
+  }
+  if (!name || !size) {
+    throw new Error("--shared-volume-name and --shared-volume-size-tib must be passed together.");
+  }
+  const sizeTib = Number(size);
+  if (!Number.isInteger(sizeTib) || sizeTib < 1) {
+    throw new Error("--shared-volume-size-tib must be a whole number of TiB, 1 or more.");
+  }
+  return { sharedVolumeName: name, sharedVolumeSizeTib: sizeTib };
+}
 
 async function listRegions(): Promise<void> {
   console.log("=== Available Regions ===");
@@ -54,10 +98,23 @@ async function createCluster(
   gpuType: GPUType,
   numGpus: number,
   driverVersion: DriverVersion,
+  volume: VolumeChoice,
   billingType: BillingType = "ON_DEMAND",
   clusterType: ClusterType = "KUBERNETES",
 ): Promise<any> {
   const { cudaVersion, nvidiaDriver } = parseDriverVersion(driverVersion);
+  // Prefer a volume created with the cluster: one created separately can land in another
+  // datacenter of the region, and attaching it then fails.
+  const volumeParams =
+    "volumeId" in volume
+      ? { volume_id: volume.volumeId }
+      : {
+          shared_volume: {
+            volume_name: volume.sharedVolumeName,
+            size_tib: volume.sharedVolumeSizeTib,
+            region,
+          },
+        };
   const cluster = await client.clusters.create({
     cluster_name: name,
     region,
@@ -67,6 +124,7 @@ async function createCluster(
     nvidia_driver_version: nvidiaDriver,
     billing_type: billingType,
     cluster_type: clusterType,
+    ...volumeParams,
   });
   console.log(`Created cluster: ${cluster.cluster_id}  (status: ${cluster.status})`);
   return cluster;
@@ -113,6 +171,18 @@ async function main(): Promise<void> {
   const NUM_GPUS = 8;
   const DRIVER = "CUDA_12_6_560";
 
+  // Check the volume flags before any API call: a create request without a volume is rejected.
+  const create = process.argv.includes("--create");
+  let volume: VolumeChoice | undefined;
+  if (create) {
+    try {
+      volume = parseVolumeArgs(process.argv.slice(2));
+    } catch (error) {
+      console.error(`Error: ${(error as Error).message}`);
+      process.exit(1);
+    }
+  }
+
   // 1. List available regions
   await listRegions();
 
@@ -120,14 +190,17 @@ async function main(): Promise<void> {
   await listClusters();
 
   // Creating a cluster starts hourly GPU billing, so only continue when asked.
-  if (!process.argv.includes("--create")) {
-    console.log("\nListed only. Pass --create to create, scale, and keep a cluster (billed hourly).");
+  if (!create || !volume) {
+    console.log(
+      "\nListed only. Pass --create with --shared-volume-name and --shared-volume-size-tib " +
+        "(or --volume-id) to create, scale, and keep a cluster (billed hourly).",
+    );
     return;
   }
 
   // 3. Create a cluster
   const cluster = await createCluster(
-    CLUSTER_NAME, REGION, GPU_TYPE, NUM_GPUS, DRIVER,
+    CLUSTER_NAME, REGION, GPU_TYPE, NUM_GPUS, DRIVER, volume,
   );
 
   // 4. Wait for cluster to be ready
