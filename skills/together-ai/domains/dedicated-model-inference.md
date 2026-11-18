@@ -74,8 +74,12 @@ your own Docker runtime is `domains/dedicated-containers.md`; raw nodes are `dom
   `deploy` routes automatically; otherwise set a weight with `tg endpoints update <dep_id>
   --traffic-weight N` (upserts one entry) or replace the split via SDK
   `endpoints.update(traffic_split=[...])`. HTTP 400 `endpoint_not_configured` on a READY
-  deployment means it is missing from the split or has weight 0; 400 `endpoint_not_ready` means
-  no deployment behind the endpoint is running.
+  deployment means it is missing from the split or has weight 0.
+- **`endpoint_not_ready` on an inference request depends on the status code.** HTTP 409 means no
+  deployment on the endpoint is ready to serve yet: retry with a short backoff. It can continue
+  briefly after a deployment reports `READY`, so keep retrying for a short while before treating
+  it as a failure. HTTP 400 means every deployment on the endpoint is stopped: restart one by
+  raising both replica bounds to `1` or more.
 - **Management IDs vs endpoint string.** Management calls take IDs (`ep_`, `dep_`, `cr_`, `ml_`,
   `abx_`, `exp_`); inference takes the endpoint string `<project_slug>/<endpoint_name>`.
 - **The SDK needs a project ID** — pass `project_id=` per call, or set `TOGETHER_PROJECT_ID` (or

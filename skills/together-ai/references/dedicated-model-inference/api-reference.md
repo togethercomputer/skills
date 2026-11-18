@@ -527,8 +527,12 @@ what each deployment received without reading headers, including a shadow target
 ## Troubleshooting
 
 - **HTTP 400 `endpoint_not_configured` on a `READY` deployment** — the deployment isn't in the
-  traffic split with a non-zero weight, or it has zero ready replicas. HTTP 400
-  `endpoint_not_ready` means every deployment behind the endpoint is stopped.
+  traffic split with a non-zero weight, or it has zero ready replicas.
+- **HTTP 409 `endpoint_not_ready` on an inference request** — no deployment on the endpoint is
+  ready to serve yet. Retry with a short backoff. The error can continue briefly after a
+  deployment reports `READY`.
+- **HTTP 400 `endpoint_not_ready` on an inference request** — every deployment on the endpoint
+  is stopped. Restart one (see [Stop / Restart](#stop--restart)).
 - **`DEGRADED` with `Cannot place replicas: insufficient GPU capacity`** — hardware for the
   config is constrained. The scheduler keeps retrying; compare `status.scheduledReplicas` to
   `desiredReplicas`. Request fewer replicas or pick a smaller-footprint config.

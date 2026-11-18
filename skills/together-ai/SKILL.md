@@ -58,8 +58,8 @@ calling the API from the user's own code is `chat-completions` or `images`. A ta
 ## Rules for every area
 
 - **Model IDs go stale.** IDs in guides and scripts are examples, checked 2026-10-07. An error of
-  `Unable to access non-serverless model`, `model_not_available`, or `endpoint_not_ready` means the
-  model is not served serverless: do not retry it or try other IDs from memory. Choose from the
+  `Unable to access non-serverless model` or `model_not_available` means the model is not served
+  serverless: do not retry it or try other IDs from memory. Choose from the
   [serverless catalog](https://docs.together.ai/docs/serverless/models) and check the
   [deprecations page](https://docs.together.ai/docs/deprecations) for the named replacement; a chat
   request with `max_tokens=1` confirms a model in one call. `client.models.list()` and
@@ -70,6 +70,10 @@ calling the API from the user's own code is `chat-completions` or `images`. A ta
   input or a human. A 403 `third_party_data_sharing_blocked` means the organization must enable
   third-party data sharing for that partner-hosted model (for example FLUX.2 or Qwen Plus). Retry
   only 429 and 5xx, with backoff, a few times, then report.
+- **`endpoint_not_ready` is about a dedicated endpoint, and the status code decides.** HTTP 409
+  means no deployment on the endpoint is ready yet: retry with a short backoff. It can continue
+  briefly after a deployment reports `READY`. HTTP 400 means every deployment is stopped: restart
+  one (`domains/dedicated-model-inference.md`), because retrying will not help.
 - **No v1 SDK names.** They raise `AttributeError`: `create_batch` is `batches.create`, `get_batch`
   is `batches.retrieve`, `files.retrieve_content` is `files.content`, `evaluation.create` is
   `evals.create`, `file_id=` is `input_file_id=`.

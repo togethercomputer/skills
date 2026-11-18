@@ -133,8 +133,10 @@ Semantics that trip people up:
 - A deployment gets no traffic if its weight is 0, it's absent from the split, or it has zero
   ready replicas. Scaling to zero takes it out of rotation but its weight is remembered and
   reapplies on scale-up.
-- An endpoint whose deployments are all stopped returns HTTP 400 `endpoint_not_ready`; a READY
-  deployment that is missing from the split (or has weight 0) gets `endpoint_not_configured`.
+- An endpoint whose deployments are all stopped returns HTTP 400 `endpoint_not_ready`, and one
+  whose deployments are still starting returns HTTP 409 `endpoint_not_ready` (retry shortly). A
+  READY deployment that is missing from the split (or has weight 0) gets
+  `endpoint_not_configured`.
 
 ## Replace a deployment (gradual cutover)
 
