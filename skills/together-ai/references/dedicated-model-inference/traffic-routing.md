@@ -309,13 +309,17 @@ curl -s -H "Authorization: Bearer $TOGETHER_API_KEY" \
   | grep '^router_inference_requests_rate5m{' \
   | grep 'deployment_id="dep_target456"' \
   | grep 'chat/completions"' \
-  | awk -F'} ' '{split($2, v, " "); sum += v[1]} END {printf "%.0f copies in the last 5 minutes\n", sum * 300}'
+  | awk -F'} ' '{split($2, v, " "); sum += v[1]} END {printf "about %.0f copies in the last 5 minutes\n", sum * 300}'
 ```
 
 Each line the three `grep` stages keep is `name{labels} value timestamp`: a per-second request
 rate over the last 5 minutes for one replica, status code, and request path. The `awk` stage adds
 the values and multiplies by 300 for the number of copies the target received in that window. A
 total rate of `0.0333` is about 10 copies. Drop the `awk` stage to see the lines themselves.
+
+The result is an estimate. After a short burst it reads about 5% high (12 requests showed as
+12.63 on 2026-11-18), so report it as approximate and do not treat a difference that small as
+lost or duplicated copies.
 
 The `path` label separates the inference APIs (`/v1/chat/completions`, `/v1/completions`,
 `/v1/messages`, and others) from health probes such as `/liveness` and `/readiness`, so match

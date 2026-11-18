@@ -117,7 +117,8 @@ your own Docker runtime is `domains/dedicated-containers.md`; raw nodes are `dom
   from `tg whoami` (or `organization.id` in `GET /v3/whoami`), query
   `https://o11y-de2-metrics.cloud.together.ai/organizations/$ORG_ID/metrics` with the API key as a
   bearer token, `grep` the `router_inference_requests_rate5m` lines for a `deployment_id` and your
-  inference path, add the values, and multiply by 300 for the count over the last 5 minutes. This is how you confirm a
+  inference path, add the values, and multiply by 300 for the count over the last 5 minutes (an
+  estimate that reads about 5% high after a short burst). This is how you confirm a
   shadow target receives mirrored copies: it serves no live traffic, so every inference request
   in its series is a copy. The analytics API returns organization-wide totals today, so it cannot
   give per-endpoint or per-deployment counts. See traffic-routing.md (Confirm mirrored volume).
@@ -158,7 +159,7 @@ only for the detail named in its row, and read just that section; each starts wi
 | [scripts/dedicated-model-inference/upload_custom_model.py](scripts/dedicated-model-inference/upload_custom_model.py) | 158 | upload custom weights or a LoRA adapter, then deploy | serving your own weights |
 | [references/dedicated-model-inference/cli-reference.md](references/dedicated-model-inference/cli-reference.md) | 303 | every `tg endpoints` and `models` command and flag: deploy, get, update, rm, `ab`, `shadow`; what the CLI cannot do | a CLI flag or subcommand |
 | [references/dedicated-model-inference/api-reference.md](references/dedicated-model-inference/api-reference.md) | 574 | SDK and REST for endpoints and deployments: states, autoscaling and scaling metrics, stop/restart, routing, deletion, the metrics endpoint (`_rate5m` names, organization ID, request counts per endpoint or deployment), Events Feed | SDK calls, metrics, or the events feed |
-| [references/dedicated-model-inference/traffic-routing.md](references/dedicated-model-inference/traffic-routing.md) | 350 | how weights route, stickiness, observing routing via headers, gradual cutover, A/B tests, shadow experiments, confirming mirrored volume from metrics | traffic splits, A/B, or shadow |
+| [references/dedicated-model-inference/traffic-routing.md](references/dedicated-model-inference/traffic-routing.md) | 354 | how weights route, stickiness, observing routing via headers, gradual cutover, A/B tests, shadow experiments, confirming mirrored volume from metrics | traffic splits, A/B, or shadow |
 | [references/dedicated-model-inference/models-and-configs.md](references/dedicated-model-inference/models-and-configs.md) | 363 | choosing a model, deployment profiles, configs, hardware pricing, model and LoRA upload, upload troubleshooting | picking a profile or uploading weights |
 
 ## Docs

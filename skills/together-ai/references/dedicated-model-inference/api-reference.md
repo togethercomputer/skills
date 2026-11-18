@@ -478,8 +478,8 @@ router request series carry `endpoint_id`, `deployment_id`, `replica_id`, `statu
 
 To turn a `_rate5m` value into a count, multiply it by the 300 seconds it covers. Add up the
 `router_inference_requests_rate5m` lines that match a `deployment_id` (or an `endpoint_id`) and
-your inference `path`, then multiply by 300 for the requests received in the last 5 minutes. In
-Prometheus:
+your inference `path`, then multiply by 300 for the requests received in the last 5 minutes. The
+result is an estimate: after a short burst it reads about 5% high. In Prometheus:
 
 ```text
 sum by (deployment_id) (router_inference_requests_rate5m{endpoint_id="<ENDPOINT_ID>", path=~".*/chat/completions"}) * 300
