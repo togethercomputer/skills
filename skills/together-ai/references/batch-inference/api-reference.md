@@ -118,9 +118,9 @@ console.log(fileResp.id);
 ```
 
 ```shell
-curl -X POST "https://api.together.xyz/v1/files" \
+curl -X POST "https://api.together.xyz/v1/files/upload" \
   -H "Authorization: Bearer $TOGETHER_API_KEY" \
-  -F "purpose=batch-api" \
+  -F "purpose=batch-api" -F "file_name=batch_input.jsonl" \
   -F "file=@batch_input.jsonl"
 ```
 
