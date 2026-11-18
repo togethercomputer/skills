@@ -35,7 +35,7 @@ repeatable. To change a model rather than measure it, go to `domains/fine-tuning
 
 | File | Lines | Contains | Open when |
 |---|---|---|---|
-| [scripts/evaluations/run_evaluation.py](scripts/evaluations/run_evaluation.py) (.ts) | 458 | CLI for classify, score, and compare: upload, create, poll, `--download-results`; flags `--eval-column`, `--model-a-column`, `--model-b-column`, `--judge-model-source external` | running any evaluation |
+| [scripts/evaluations/run_evaluation.py](scripts/evaluations/run_evaluation.py) (.ts) | 463 | CLI for classify, score, and compare: upload, create, poll, `--download-results`; flags `--eval-column`, `--model-a-column`, `--model-b-column`, `--judge-model-source external` | running any evaluation |
 | [references/evaluations/api-reference.md](references/evaluations/api-reference.md) | 725 | request fields, judge and target config, result schemas, dataset format, image inputs, Jinja2 templates, external providers, retrieval endpoints | a field, template, or provider detail the script does not cover |
 
 ## Docs

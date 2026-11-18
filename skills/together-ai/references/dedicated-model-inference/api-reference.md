@@ -310,7 +310,8 @@ client.endpoints.deployments.update(
 - **After an idle shutdown** the deployment is `DEPLOYMENT_STATE_STOPPED` and does not restart
   on its own. The timeout stays set.
 - HTTP 400 `inactive_timeout is not available for this account` means idle shutdown is not
-  enabled for the organization.
+  enabled for the organization. Tell the user that Together support has to enable it, deploy
+  without the timeout, and stop the deployment by hand (`0/0`) when it is no longer needed.
 
 ```python
 # Stop (drains, then STOPPED; billing stops)
@@ -478,20 +479,21 @@ your inference `path`, then multiply by 300 for the requests received in the las
 Prometheus:
 
 ```text
-sum by (deployment_id) (router_inference_requests_rate5m{endpoint_id="<ENDPOINT_ID>"}) * 300
+sum by (deployment_id) (router_inference_requests_rate5m{endpoint_id="<ENDPOINT_ID>", path=~".*/chat/completions"}) * 300
 ```
 
 For a longer period, add up the 5-minute windows:
 
 ```text
-sum by (endpoint_id) (sum_over_time(router_inference_requests_rate5m[24h:5m])) * 300
+sum by (endpoint_id) (sum_over_time(router_inference_requests_rate5m{path=~".*/chat/completions"}[24h:5m])) * 300
 ```
 
 The router series count every request a deployment receives, including the copies mirrored to a
 shadow target, which is how you confirm a shadow experiment is mirroring (see
 [traffic-routing.md](traffic-routing.md), Confirm mirrored volume). They are split by `path`, so
-match your inference path, such as `path="/v1/chat/completions"`, to leave out other APIs and
-health probes such as `/liveness` and `/readiness`. Each line of the raw response is
+match your inference path to leave out other APIs and health probes such as `/liveness` and
+`/readiness`. Chat requests appear as `/v1/chat/completions` or `/chat/completions`, which is why
+the queries above match `path=~".*/chat/completions"`. Each line of the raw response is
 `name{labels} value timestamp`, so the rate is the field after the closing brace.
 
 The analytics API (`client.endpoints.analytics`,

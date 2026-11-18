@@ -69,7 +69,8 @@ calling the API from the user's own code is `chat-completions` or `images`. A ta
   `insufficient balance` (account-wide; another model will not help), 403, and 404 need a different
   input or a human. A 403 `third_party_data_sharing_blocked` means the organization must enable
   third-party data sharing for that partner-hosted model (for example FLUX.2 or Qwen Plus). Retry
-  only 429 and 5xx, with backoff, a few times, then report.
+  only 429, 5xx, and a 409 `endpoint_not_ready` (next rule), with backoff, a few times, then
+  report.
 - **`endpoint_not_ready` is about a dedicated endpoint, and the status code decides.** HTTP 409
   means no deployment on the endpoint is ready yet: retry with a short backoff. It can continue
   briefly after a deployment reports `READY`. HTTP 400 means every deployment is stopped: restart

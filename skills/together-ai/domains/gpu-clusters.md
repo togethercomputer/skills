@@ -38,20 +38,20 @@ gang scheduling on a running cluster is `domains/kueue.md` or `domains/volcano.m
   `--duration-days`, create the cluster only when authorized, then delete it
   after the intended runtime. If the user requests a command without
   provisioning, print it but do not run it.
-- Set the driver with `nvidia_version_id` (`--nvidia-version-id`, a driver version's `id` from `list_regions()`), or with `cuda_version` plus `nvidia_driver_version` from the same entry. They are ordinary SDK arguments and CLI flags; there is no `driver_version` argument or `--driver-version` flag.
+- Set the driver with `nvidia_version_id` (`--nvidia-version-id`, a driver version's `id` from `list_regions()`), or with `cuda_version` plus `nvidia_driver_version` from the same entry. A bare pair selects `ubuntu-22.04`, so for an entry with another `os` use its `id` (or add `--os` in the CLI). They are ordinary SDK arguments and CLI flags; there is no `driver_version` argument or `--driver-version` flag.
 - Credentials retrieval is part of provisioning. Do not stop at cluster creation if the user needs to run workloads immediately.
 - Slurm startup scripts (worker/login init, worker/controller prolog and epilog, extra `slurm.conf`) are **Slinky v1.0 only**. A non-zero exit from a worker prolog or epilog drains the node, and calling Slurm commands (`squeue`, `scontrol`, `sacctmgr`) inside any prolog/epilog can deadlock the scheduler.
 
 ## Open next
 
-For read-only questions (regions, GPU types, prices, a command to run later), the 112-line
+For read-only questions (regions, GPU types, prices, a command to run later), the 113-line
 `pricing-and-discovery.md` is all you need. Open the others only for the detail in their row, and
 read just that section; long ones start with `## Contents`.
 
 | File | Lines | Contains | Open when |
 |---|---|---|---|
-| [references/gpu-clusters/pricing-and-discovery.md](references/gpu-clusters/pricing-and-discovery.md) | 112 | pricing, billing, and stock surfaces, read-only inventory commands, picking the cheapest live option, one-hour on-demand plan with its shared volume | pricing, availability, or a plan without provisioning |
-| [scripts/gpu-clusters/manage_cluster.py](scripts/gpu-clusters/manage_cluster.py) (.ts) | 237 | create, poll, credentials, scale, delete | provisioning or changing a cluster |
+| [references/gpu-clusters/pricing-and-discovery.md](references/gpu-clusters/pricing-and-discovery.md) | 113 | pricing, billing, and stock surfaces, read-only inventory commands, picking the cheapest live option, one-hour on-demand plan with its shared volume | pricing, availability, or a plan without provisioning |
+| [scripts/gpu-clusters/manage_cluster.py](scripts/gpu-clusters/manage_cluster.py) (.ts) | 235 | create, poll, credentials, scale, delete | provisioning or changing a cluster |
 | [scripts/gpu-clusters/manage_storage.py](scripts/gpu-clusters/manage_storage.py) | 129 | create, list, resize, delete shared volumes | managing storage on its own |
 | [references/gpu-clusters/cli.md](references/gpu-clusters/cli.md) | 343 | `tg` cluster and storage commands, create flags (`--nvidia-version-id`, `--os`, shared-volume flags), global flags, instance types, driver versions | a CLI flag or driver version |
 | [references/gpu-clusters/api-reference.md](references/gpu-clusters/api-reference.md) | 477 | cluster and storage endpoints, request fields, regions, instance types | an API field the script does not set |

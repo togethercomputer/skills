@@ -106,7 +106,8 @@ tg clusters storage delete <VOLUME_ID> --non-interactive
 
 `<LIVE_NVIDIA_VERSION_ID>` is the `id` of a driver version listed for that
 region. `--nvidia-driver-version` with `--cuda-version` from the same entry
-works in its place.
+works in its place when that entry's `os` is `ubuntu-22.04`. For another `os`,
+keep the `id` or add `--os`.
 
 There is no cluster-create dry-run flag. A “dry run” in this context means
 rendering a complete command with live values and not invoking it.

@@ -66,7 +66,8 @@ print(resp.choices[0].message.content)
   Model), then confirm the change in `usage.completion_tokens_details.reasoning_tokens`.
 - Token usage: reasoning models nest counts OpenAI-style
   (`usage.completion_tokens_details.reasoning_tokens`, `usage.prompt_tokens_details.cached_tokens`)
-  but some models return `cached_tokens` flat on `usage`. Read both places.
+  but some models return `cached_tokens` flat on `usage`. Read both places. A few models report no
+  reasoning count, so compare `completion_tokens` for those.
 
 ## Open next
 
@@ -85,7 +86,7 @@ Open a file only for the detail its row names. References over 100 lines start w
 | [references/chat-completions/api-parameters.md](references/chat-completions/api-parameters.md) | 481 | every request parameter, message object, OpenAI-SDK compatibility, rate-limit tiers, HTTP status codes | a parameter or status code not covered above |
 | [references/chat-completions/function-calling-patterns.md](references/chat-completions/function-calling-patterns.md) | 841 | six calling patterns (parallel, multi-step, ...), `tool_choice`, tools plus structured output, best practices, supported models | a tool pattern the script does not show |
 | [references/chat-completions/structured-outputs.md](references/chat-completions/structured-outputs.md) | 541 | the three JSON modes, reasoning plus JSON, streaming JSON, troubleshooting | JSON output fails to parse or validate |
-| [references/chat-completions/reasoning-models.md](references/chat-completions/reasoning-models.md) | 549 | reasoning model table, measured per-model control matrix (off switches, `reasoning_effort`, trace field), effort levels, hybrid toggles, output format, token accounting | tuning reasoning depth or cost, or a reasoning setting that seems to do nothing |
+| [references/chat-completions/reasoning-models.md](references/chat-completions/reasoning-models.md) | 552 | reasoning model table, measured per-model control matrix (off switches, `reasoning_effort`, trace field), effort levels, hybrid toggles, output format, token accounting | tuning reasoning depth or cost, or a reasoning setting that seems to do nothing |
 
 ## Docs
 

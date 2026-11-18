@@ -297,8 +297,8 @@ copy.
 1. Find the target's deployment ID (`dep_...`): `tg endpoints get ep_abc123`, or the experiment's
    `targets[].target_deployment_id`.
 2. Get your organization ID (`org_...`): `tg whoami`, or `organization.id` in `GET /v3/whoami`.
-3. Query the metrics endpoint with your API key and keep the target's
-   `router_inference_requests_rate5m` series:
+3. Query the metrics endpoint with your API key, keep the target's
+   `router_inference_requests_rate5m` series for your inference path, and sum them:
 
 ```bash
 ORG_ID=$(curl -s -H "Authorization: Bearer $TOGETHER_API_KEY" \
@@ -307,18 +307,15 @@ ORG_ID=$(curl -s -H "Authorization: Bearer $TOGETHER_API_KEY" \
 curl -s -H "Authorization: Bearer $TOGETHER_API_KEY" \
   "https://o11y-de2-metrics.cloud.together.ai/organizations/$ORG_ID/metrics" \
   | grep '^router_inference_requests_rate5m{' \
-  | grep 'deployment_id="dep_target456"'
-```
-
-Each matching line is `name{labels} value timestamp`: a per-second request rate over the last 5
-minutes for one replica, status code, and request path. Add the values for your inference path
-and multiply by 300 for the number of copies the target received in that window. A total of
-`0.0333` is about 10 copies. To let the shell do the sum, append:
-
-```bash
+  | grep 'deployment_id="dep_target456"' \
   | grep 'chat/completions"' \
   | awk -F'} ' '{split($2, v, " "); sum += v[1]} END {printf "%.0f copies in the last 5 minutes\n", sum * 300}'
 ```
+
+Each line the three `grep` stages keep is `name{labels} value timestamp`: a per-second request
+rate over the last 5 minutes for one replica, status code, and request path. The `awk` stage adds
+the values and multiplies by 300 for the number of copies the target received in that window. A
+total rate of `0.0333` is about 10 copies. Drop the `awk` stage to see the lines themselves.
 
 The `path` label separates the inference APIs (`/v1/chat/completions`, `/v1/completions`,
 `/v1/messages`, and others) from health probes such as `/liveness` and `/readiness`, so match
@@ -337,7 +334,8 @@ What to expect and how to read it:
 - **Filter before you print.** The response holds every series for the organization and can be
   hundreds of megabytes, so always pipe it through `grep` and never dump it.
 - **Compare with the live deployments** by reading the same series for their deployment IDs, or
-  in Prometheus: `sum by (deployment_id) (router_inference_requests_rate5m{endpoint_id="<ENDPOINT_ID>"}) * 300`.
+  in Prometheus:
+  `sum by (deployment_id) (router_inference_requests_rate5m{endpoint_id="<ENDPOINT_ID>", path=~".*/chat/completions"}) * 300`.
 - **Do not use the analytics API for this.** It returns organization-wide totals today, so it
   cannot give a per-endpoint or per-deployment count (see api-reference.md, Monitoring).
 

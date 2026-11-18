@@ -4,7 +4,7 @@
 - [Full Model Table](#full-model-table)
 - [Reasoning Controls by Model](#reasoning-controls-by-model)
 - [Reasoning Effort Levels](#reasoning-effort-levels)
-- [Enabling and Disabling Reasoning (Hybrid Models)](#enabling-and-disabling-reasoning)
+- [Enabling and Disabling Reasoning (Hybrid Models)](#enabling-and-disabling-reasoning-hybrid-models)
 - [Controlling Reasoning Depth via Prompting](#controlling-reasoning-depth-via-prompting)
 - [Reasoning Output Format](#reasoning-output-format)
 - [Tracking Reasoning and Cached Token Usage](#tracking-reasoning-and-cached-token-usage)
@@ -26,7 +26,6 @@ read both.
 | Kimi K3 | `moonshotai/Kimi-K3` | Hybrid (on by default) | 1M | Yes |
 | DeepSeek V4 Pro 0813 | `deepseek-ai/DeepSeek-V4-Pro-0813` | Hybrid (on by default) | 1M | Yes |
 | GLM-5.2 | `zai-org/GLM-5.2` | Hybrid (on by default) | 512K | Yes |
-| MiniMax M3 | `MiniMaxAI/MiniMax-M3` | Hybrid (on by default) | 512K | Yes |
 | Qwen3.6 Plus | `Qwen/Qwen3.6-Plus` | Hybrid (on by default) | 1M | No |
 | Qwen3.5 9B | `Qwen/Qwen3.5-9B` | Hybrid (on by default) | 262K | Yes |
 | GPT-OSS 120B | `openai/gpt-oss-120b` | Adjustable effort | 128K | Yes |
@@ -38,7 +37,8 @@ read both.
 
 The types are the documented ones. What each model did with each control when measured is in the
 next section, and it does not always match the type. Checked 2026-11-18: `MiniMaxAI/MiniMax-M3`
-is no longer in the serverless model list, and `MiniMaxAI/MiniMax-M3.1-Flash` is.
+is no longer in the serverless model list, so its row is gone from the table above.
+`MiniMaxAI/MiniMax-M3.1-Flash` is in the list and is measured below.
 
 ## Reasoning Controls by Model
 
@@ -77,8 +77,8 @@ What the measurements say:
   Kimi K3, DeepSeek V4.1 Flash, GLM-5.2, and MiniMax M3.1 Flash. DeepSeek V4 Pro 0813 ignored it
   and went off only with `chat_template_kwargs` (`{"enable_thinking": false}` or
   `{"thinking": false}`). MiniMax M3.1 Flash is the reverse: it ignored both `chat_template_kwargs`
-  keys. GPT-OSS 120B, GLM-5.3, GLM-5.3 Flash, and Muse Glimmer 30B kept reasoning under every off
-  switch tried.
+  keys. GPT-OSS 120B, GLM-5.3, GLM-5.3 Flash, and Muse Glimmer 30B kept reasoning under
+  `reasoning: {"enabled": false}` and under both `chat_template_kwargs` keys.
 - **`reasoning_effort`.** `low` cut reasoning well below the default in both samples on GLM-5.3
   (55 and 57 against 853 and 946), GLM-5.3 Flash, Kimi K3, and MiniMax M3.1 Flash. On GPT-OSS 120B
   and Muse Glimmer 30B, `low` finished in a few hundred tokens where `high` hit the cap or came
@@ -169,7 +169,8 @@ curl -X POST "https://api.together.xyz/v1/chat/completions" \
 
 ## Enabling and Disabling Reasoning (Hybrid Models)
 
-Hybrid models support `reasoning={"enabled": True/False}` to toggle reasoning on or off.
+Most hybrid models take `reasoning={"enabled": True/False}` to toggle reasoning on or off. Not
+all of them honor it.
 
 **Models that honored `reasoning={"enabled": False}` when measured on 2026-11-18** (all reason by
 default):
@@ -400,8 +401,9 @@ for await (const chunk of stream) {
 ## Tracking Reasoning and Cached Token Usage
 
 Reasoning output is billed as completion tokens. The extra token counts (reasoning tokens, cached
-prompt tokens) always live somewhere on `response.usage`, but their **location varies by model**, so
-read both shapes defensively.
+prompt tokens) live on `response.usage` when a model reports them, but their **location varies by
+model**, so read both shapes defensively. A model can also report no reasoning count at all: Muse
+Glimmer 30B returned none on 2026-11-18. For such a model, compare `completion_tokens`.
 
 - **Reasoning models** (for example `deepseek-ai/DeepSeek-V4-Pro-0813`, `Qwen/Qwen3.6-Plus`,
   `zai-org/GLM-5.2`) nest them OpenAI-style:
