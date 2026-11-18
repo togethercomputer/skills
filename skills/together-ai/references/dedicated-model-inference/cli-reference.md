@@ -89,6 +89,10 @@ name/ID (adds a deployment to it).
 | `--placement.constraint` | — | `required` or `preferred` — how strictly to enforce inline placement regions. |
 | `--placement.hipaa` | off | Require HIPAA-eligible placement. |
 | `--inactive-timeout` | off | Minutes without requests before the deployment stops itself: `0` (off) or `30` to `1440`. |
+| `--max-concurrent-requests-per-replica` | platform default | Maximum in-flight inference requests per replica. `0` means unlimited when the config limit is 1 or less. |
+| `--traffic-weight` | — | Capacity weight for this deployment in the endpoint's traffic split, set at deploy time. Other deployments keep their weights. `0` deploys it with no live traffic. |
+| `--merge` | off | LoRA adapter models only. Creates a new deployment that serves the adapter merged into its base model. An adapter needs this or `--attach-adapter`. |
+| `--attach-adapter` | off | LoRA adapter models only. Attaches the adapter to a base-model deployment whose config has adapter mode dynamic or fixed, creating that deployment when none exists. An adapter needs this or `--merge`. |
 
 Without `--inactive-timeout`, a deployment runs and bills until you stop it. 30 minutes is the
 shortest idle timeout, and a value from 1 to 29 is rejected with HTTP 400. When a task asks for
@@ -158,7 +162,8 @@ tg endpoints update dep_abc123 --traffic-weight 0
 | `--scaling-metric` / `--scaling-target` / `--scaling-percentile` | Autoscale on one metric: metric name + target, plus an optional percentile (`p50`/`p90`/`p95`/`p99`, latency metrics only). The CLI takes a single metric this way; the JSON `scaling_metrics` array is SDK/API-only (see api-reference.md, Scaling Metrics). |
 | `--traffic-weight` | Capacity weight in the endpoint's traffic split. Upserts just this deployment's entry; `0` stops routing to it. |
 | `--ab-percent` | A/B traffic percent for this variant deployment. Takes from or returns to the control only. |
-| `--etag` | ETag for optimistic concurrency. |
+| `--max-concurrent-requests-per-replica` | Updated maximum in-flight inference requests per replica. `0` means unlimited when the config limit is 1 or less. |
+| `--etag` | ETag for optimistic concurrency. Does not apply to `--ab-percent` or `--traffic-weight`. |
 
 Notes:
 
