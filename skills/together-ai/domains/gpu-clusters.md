@@ -32,27 +32,28 @@ gang scheduling on a running cluster is `domains/kueue.md` or `domains/volcano.m
   guaranteed stock. Never infer the cheapest GPU from response order or
   hardware generation; open the [GPU Cluster pricing table](https://www.together.ai/pricing#gpu-clusters)
   and compare its numeric on-demand rates.
-- GPU clusters have an 8-GPU minimum. For an hourly estimate, multiply the displayed per-GPU-hour rate by at least 8.
+- Every cluster needs at least 8 GPUs, in multiples of 8. For an hourly estimate, multiply the displayed per-GPU-hour rate by at least 8.
+- Every create request needs a shared volume, and the API rejects one without it. Pass `--shared-volume-name` with `--shared-volume-size-tib` (CLI 3.2.0+) or `shared_volume` (SDK) to create one with the cluster, or `--volume` / `volume_id` to attach an existing one.
 - `ON_DEMAND` has no one-hour duration flag. For a one-hour plan, omit
   `--duration-days`, create the cluster only when authorized, then delete it
   after the intended runtime. If the user requests a command without
   provisioning, print it but do not run it.
-- Set the driver with `cuda_version` plus `nvidia_driver_version` (a pair from `list_regions()`), or `nvidia_version_id`. They are ordinary SDK arguments and CLI flags; there is no `driver_version` argument or `--driver-version` flag.
+- Set the driver with `nvidia_version_id` (`--nvidia-version-id`, a driver version's `id` from `list_regions()`), or with `cuda_version` plus `nvidia_driver_version` from the same entry. They are ordinary SDK arguments and CLI flags; there is no `driver_version` argument or `--driver-version` flag.
 - Credentials retrieval is part of provisioning. Do not stop at cluster creation if the user needs to run workloads immediately.
 - Slurm startup scripts (worker/login init, worker/controller prolog and epilog, extra `slurm.conf`) are **Slinky v1.0 only**. A non-zero exit from a worker prolog or epilog drains the node, and calling Slurm commands (`squeue`, `scontrol`, `sacctmgr`) inside any prolog/epilog can deadlock the scheduler.
 
 ## Open next
 
-For read-only questions (regions, GPU types, prices, a command to run later), the 82-line
+For read-only questions (regions, GPU types, prices, a command to run later), the 112-line
 `pricing-and-discovery.md` is all you need. Open the others only for the detail in their row, and
 read just that section; long ones start with `## Contents`.
 
 | File | Lines | Contains | Open when |
 |---|---|---|---|
-| [references/gpu-clusters/pricing-and-discovery.md](references/gpu-clusters/pricing-and-discovery.md) | 82 | authoritative pricing and stock surfaces, read-only inventory commands, picking the cheapest live option, one-hour on-demand plan | pricing, availability, or a plan without provisioning |
+| [references/gpu-clusters/pricing-and-discovery.md](references/gpu-clusters/pricing-and-discovery.md) | 112 | pricing, billing, and stock surfaces, read-only inventory commands, picking the cheapest live option, one-hour on-demand plan with its shared volume | pricing, availability, or a plan without provisioning |
 | [scripts/gpu-clusters/manage_cluster.py](scripts/gpu-clusters/manage_cluster.py) (.ts) | 237 | create, poll, credentials, scale, delete | provisioning or changing a cluster |
 | [scripts/gpu-clusters/manage_storage.py](scripts/gpu-clusters/manage_storage.py) | 129 | create, list, resize, delete shared volumes | managing storage on its own |
-| [references/gpu-clusters/cli.md](references/gpu-clusters/cli.md) | 305 | `tg` cluster and storage commands, global flags, instance types, driver versions | a CLI flag or driver version |
+| [references/gpu-clusters/cli.md](references/gpu-clusters/cli.md) | 343 | `tg` cluster and storage commands, create flags (`--nvidia-version-id`, `--os`, shared-volume flags), global flags, instance types, driver versions | a CLI flag or driver version |
 | [references/gpu-clusters/api-reference.md](references/gpu-clusters/api-reference.md) | 477 | cluster and storage endpoints, request fields, regions, instance types | an API field the script does not set |
 | [references/gpu-clusters/cluster-management.md](references/gpu-clusters/cluster-management.md) | 571 | architecture, access, Slurm config, GPU containers, scaling, storage, health checks, users, billing, troubleshooting, Terraform | operating or debugging a running cluster |
 
@@ -61,6 +62,7 @@ read just that section; long ones start with `## Contents`.
 - [GPU Clusters Overview](https://docs.together.ai/docs/gpu-clusters-overview)
 - [GPU Clusters Quickstart](https://docs.together.ai/docs/gpu-clusters-quickstart)
 - [Clusters API](https://docs.together.ai/reference/clusters-create)
-- [GPU Cluster Pricing](https://www.together.ai/pricing#gpu-clusters)
+- [GPU Cluster Pricing](https://www.together.ai/pricing#gpu-clusters) (rates)
+- [GPU Clusters Billing](https://docs.together.ai/docs/gpu-clusters-billing) (billing rules)
 - [Slurm Startup Scripts](https://docs.together.ai/docs/slurm-startup-scripts)
 - [Instant GPU Clusters](https://www.together.ai/instant-gpu-clusters)

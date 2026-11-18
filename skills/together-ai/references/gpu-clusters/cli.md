@@ -7,6 +7,7 @@
 - [Storage Commands](#storage-commands)
 - [Instance Types](#instance-types)
 - [Driver Versions](#driver-versions)
+- [Pricing and billing](#pricing-and-billing)
 
 
 The Together CLI (`tg`) is the supported command-line interface for managing GPU clusters. It ships with the Together Python SDK and replaces the legacy standalone `tcloud` binary.
@@ -68,52 +69,72 @@ Create a new GPU cluster. Run with no flags to launch an interactive prompt that
 tg clusters create [OPTIONS]
 ```
 
+Every cluster needs at least 8 GPUs, in multiples of 8, and a shared volume. The API rejects a
+create request that has no volume, so pass either `--volume` (attach an existing one) or
+`--shared-volume-name` with `--shared-volume-size-tib` (create one with the cluster).
+
 **Options:**
 
 | Flag | Type | Description |
 |------|------|-------------|
 | `--name` | string | Name of the cluster |
-| `--num-gpus` | number | Number of GPUs (must be a multiple of 8) |
-| `--gpu-type` | enum | `H100_SXM`, `H200_SXM`, `B200_SXM`, `H100_SXM_INF`, `L40_PCIE`, `RTX_6000_PCI` |
+| `--num-gpus` | number | Number of GPUs. At least 8, in multiples of 8. |
+| `--gpu-type` | string | `H100_SXM`, `H200_SXM`, `B200_SXM`, `B300_SXM`, `GB200_NVL`, `H100_SXM_INF`, `L40_PCIE`, `RTX_6000_PCI`. Availability varies by region (`clusters list-regions`). |
 | `--region` | string | Region (use `clusters list-regions` to find valid regions) |
-| `--billing-type` | enum | `ON_DEMAND` or `RESERVED` |
+| `--billing-type` | enum | `ON_DEMAND`, `RESERVED`, or `SCHEDULED_CAPACITY` |
 | `--duration-days` | number | Reservation length in days (only with `RESERVED` billing) |
-| `--nvidia-driver-version` | string | NVIDIA driver version (use `clusters list-regions` for options) |
-| `--cuda-version` | string | CUDA version (use `clusters list-regions` for options) |
+| `--nvidia-version-id` | string | NVIDIA version catalog ID: a driver version's `id` in `clusters list-regions` output. Selects an exact driver, CUDA, and OS combination. Do not combine with the three flags below. |
+| `--nvidia-driver-version` | string | NVIDIA driver version (use `clusters list-regions` for options). Pass together with `--cuda-version`. |
+| `--cuda-version` | string | CUDA version (use `clusters list-regions` for options). Pass together with `--nvidia-driver-version`. |
+| `--os` | string | Operating system for the driver and CUDA pair, for example `ubuntu-24.04`. Requires both version flags. When omitted, the API uses `ubuntu-22.04`. |
 | `--cluster-type` | enum | `KUBERNETES` or `SLURM` |
 | `--volume` | string | Existing storage volume ID to attach |
+| `--shared-volume-name` | string | Name of a shared volume to create with the cluster (CLI 3.2.0+). Requires `--shared-volume-size-tib`. Cannot be combined with `--volume`. |
+| `--shared-volume-size-tib` | number | Size of that volume in whole TiB, at least 1 (CLI 3.2.0+). Requires `--shared-volume-name`. |
 | `--non-interactive` | -- | Skip interactive prompts. Required in CI. |
 | `--json` | -- | Output in JSON format |
+
+In non-interactive mode (`--non-interactive` or `--json`), select the driver one of two ways: pass
+`--nvidia-version-id` alone, or pass `--nvidia-driver-version` and `--cuda-version` together,
+optionally with `--os`. Both come from the region's `driver_versions` in `clusters list-regions`.
+
+`tg clusters create --help` lists further flags for autoscaling, capacity pools, preemptible GPUs,
+scheduled capacity, and Slurm options.
 
 **Examples:**
 
 ```shell
-# On-demand Kubernetes cluster with H100s
+# On-demand Kubernetes cluster with H100s and a new 1 TiB shared volume
 tg clusters create \
   --name my-training-cluster \
   --num-gpus 8 \
   --gpu-type H100_SXM \
   --region us-central-8 \
-  --cuda-version 12.6 \
-  --nvidia-driver-version 560 \
+  --nvidia-version-id <NVIDIA_VERSION_ID> \
   --billing-type ON_DEMAND \
   --cluster-type KUBERNETES \
+  --shared-volume-name my-training-data \
+  --shared-volume-size-tib 1 \
   --non-interactive
 
-# Reserved Slurm cluster with H200s and attached storage
+# Reserved Slurm cluster with H200s and an existing volume
 tg clusters create \
   --name my-slurm-cluster \
   --num-gpus 16 \
   --gpu-type H200_SXM \
   --region us-central-8 \
-  --cuda-version 12.6 \
-  --nvidia-driver-version 560 \
+  --nvidia-driver-version <NVIDIA_DRIVER_VERSION> \
+  --cuda-version <CUDA_VERSION> \
   --billing-type RESERVED \
   --duration-days 30 \
   --cluster-type SLURM \
   --volume <VOLUME_ID> \
   --non-interactive
 ```
+
+Prefer creating the volume with the cluster. A volume created on its own with
+`clusters storage create` can land in a different datacenter of the region, and attaching it then
+fails with `Shared volume you selected does not exist in the datacenter`.
 
 ### `clusters list`
 
@@ -133,7 +154,7 @@ tg clusters retrieve [CLUSTER_ID]
 
 ### `clusters update`
 
-Update the configuration of an existing cluster (scale GPU count or change cluster type).
+Update the configuration of an existing cluster, for example to scale its GPU count.
 
 ```shell
 tg clusters update [CLUSTER_ID] [OPTIONS]
@@ -143,8 +164,8 @@ tg clusters update [CLUSTER_ID] [OPTIONS]
 
 | Flag | Type | Description |
 |------|------|-------------|
-| `--num-gpus` | number | New GPU count (must be a multiple of 8) |
-| `--cluster-type` | enum | `KUBERNETES` or `SLURM` |
+| `--num-gpus` | number | New GPU count. At least 8, in multiples of 8. |
+| `--cluster-type` | enum | `KUBERNETES` or `SLURM`. Accepted, but the API ignores it on update, so the cluster keeps the type it was created with. |
 | `--json` | -- | Output in JSON format |
 
 **Example:**
@@ -152,14 +173,13 @@ tg clusters update [CLUSTER_ID] [OPTIONS]
 ```shell
 # Scale up to 16 GPUs
 tg clusters update [CLUSTER_ID] --num-gpus 16
-
-# Switch to Slurm
-tg clusters update [CLUSTER_ID] --cluster-type SLURM
 ```
 
 ### `clusters delete`
 
-Delete a GPU cluster.
+Delete a GPU cluster. The command asks for confirmation unless you pass `--force`,
+`--non-interactive`, or `--json`. Deleting a cluster does not delete its shared volume, which
+keeps billing until you delete it with `clusters storage delete`.
 
 ```shell
 tg clusters delete [CLUSTER_ID]
@@ -167,22 +187,23 @@ tg clusters delete [CLUSTER_ID]
 
 ### `clusters list-regions`
 
-List available regions, supported GPU types, and driver versions.
+List available regions, supported GPU types, and driver versions. The response has no prices
+and does not show stock.
 
 ```shell
 tg clusters list-regions
 ```
 
-**Example output:**
+**Example output** (shape only; run the command for live values):
 
 ```json
 {
   "regions": [
     {
       "driver_versions": [
-        {"cuda_version": "12.9", "nvidia_driver_version": "575"},
-        {"cuda_version": "12.8", "nvidia_driver_version": "570"},
-        {"cuda_version": "12.6", "nvidia_driver_version": "560"}
+        {"id": "<NVIDIA_VERSION_ID>", "cuda_version": "13.0", "nvidia_driver_version": "580", "os": "ubuntu-24.04"},
+        {"id": "<NVIDIA_VERSION_ID>", "cuda_version": "13.0", "nvidia_driver_version": "580", "os": "ubuntu-22.04"},
+        {"id": "<NVIDIA_VERSION_ID>", "cuda_version": "12.8", "nvidia_driver_version": "570", "os": "ubuntu-22.04"}
       ],
       "name": "us-central-8",
       "supported_instance_types": [
@@ -193,6 +214,8 @@ tg clusters list-regions
   ]
 }
 ```
+
+Pass a driver version's `id` as `--nvidia-version-id`.
 
 ### `clusters get-credentials`
 
@@ -274,6 +297,14 @@ Get details for a specific volume.
 tg clusters storage retrieve [VOLUME_ID]
 ```
 
+### `clusters storage update`
+
+Grow a volume. Decreasing a volume's size requires contacting Together.
+
+```shell
+tg clusters storage update [VOLUME_ID] --size-tib 4
+```
+
 ### `clusters storage delete`
 
 Delete a shared storage volume. The volume must not be attached to any cluster.
@@ -290,16 +321,23 @@ tg clusters storage delete [VOLUME_ID]
 | `H100_SXM_INF` | NVIDIA H100 | 80GB | Inference-optimized, lower IB bandwidth |
 | `H200_SXM` | NVIDIA H200 | 141GB | InfiniBand networking |
 | `B200_SXM` | NVIDIA B200 | 192GB | InfiniBand networking |
+| `B300_SXM` | NVIDIA B300 | -- | Check `clusters list-regions` for regions |
+| `GB200_NVL` | NVIDIA GB200 NVL72 | -- | No public rate. Request capacity from Together. |
 | `L40_PCIE` | NVIDIA L40 | 48GB | PCIe |
 | `RTX_6000_PCI` | NVIDIA RTX 6000 | 24GB | PCIe |
 
 ## Driver Versions
 
-Available CUDA driver versions (check `clusters list-regions` for per-region availability):
+Driver versions are per region and change over time, so read them from `clusters list-regions`
+instead of a fixed list. Each entry in a region's `driver_versions` has an `id`, a `cuda_version`,
+an `nvidia_driver_version`, and an `os`. Pass the `id` as `--nvidia-version-id`, or pass the
+driver and CUDA versions as `--nvidia-driver-version` and `--cuda-version`, adding `--os` for an
+OS other than `ubuntu-22.04`.
 
-- `CUDA_12_4_550`
-- `CUDA_12_5_555`
-- `CUDA_12_6_560`
-- `CUDA_12_6_565`
-- `CUDA_12_8_570`
-- `CUDA_12_9_575`
+## Pricing and billing
+
+The CLI and the regions API return no prices. For current per-GPU-hour rates, open the
+[GPU cluster pricing table](https://www.together.ai/pricing#gpu-clusters). For how compute and
+storage bill, including reserved terms and what happens when credits run out, see
+[GPU clusters pricing and billing](https://docs.together.ai/docs/gpu-clusters-billing). The
+smallest cluster has 8 GPUs, so its hourly cost is eight times the per-GPU rate.
