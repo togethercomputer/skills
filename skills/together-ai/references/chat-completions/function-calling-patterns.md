@@ -820,7 +820,7 @@ tool-calling turn). Build the loop defensively:
 
 Strong descriptions and a focused tool set cover most cases. For higher accuracy across a large
 tool catalog or a difficult domain-specific task, fine-tune a model on your own tool-calling data.
-See the `together-fine-tuning` skill for the function-calling dataset format and training
+See `domains/fine-tuning.md` for the function-calling dataset format and training
 workflow.
 
 ## Supported Models
