@@ -20,9 +20,9 @@ These models are current in the latest speech-to-text guide and are not listed i
 | Model | API String | Access | Capabilities |
 |-------|-----------|--------|--------------|
 | Whisper Large v3 | `openai/whisper-large-v3` | Serverless | Realtime, translation, diarization |
-| Deepgram Flux | `deepgram/deepgram-flux` | Dedicated / Reserved | Realtime |
-| Deepgram Nova 3 | `deepgram/deepgram-nova-3` | Dedicated / Reserved | Transcription |
-| Deepgram Nova 3 Multilingual | `deepgram/deepgram-nova-3-multilingual` | Dedicated / Reserved | Transcription |
+| Deepgram Flux | `deepgram/flux` | Dedicated / Reserved | Realtime |
+| Deepgram Nova 3 (English) | `deepgram/nova-3-en` | Dedicated / Reserved | Transcription |
+| Deepgram Nova 3 Multilingual | `deepgram/nova-3-multi` | Dedicated / Reserved | Transcription |
 | Parakeet TDT 0.6B v3 | `nvidia/parakeet-tdt-0.6b-v3` | Serverless | Realtime, diarization |
 | Nemotron 3 ASR Streaming 0.6B | `nvidia/nemotron-3-asr-streaming-0.6b` | Serverless | Streaming transcription |
 | Nemotron 3.5 ASR Streaming 0.6B | `nvidia/nemotron-3.5-asr-streaming-0.6b` | Serverless | Streaming transcription |
@@ -40,6 +40,7 @@ The guide and reference both list:
 - `.m4a` (`audio/mp4`)
 - `.webm` (`audio/webm`)
 - `.flac` (`audio/flac`)
+- `.ogg`, `.opus`, `.aac`
 
 ## Limits
 
@@ -87,16 +88,18 @@ Language examples called out in the guide:
 
 ### Input Methods
 
-The guide shows all of these as valid Python inputs:
+Valid Python inputs are a `Path`, an open binary file, or bytes:
 
 ```python
 from pathlib import Path
 
-file="/path/to/audio.mp3"
 file=Path("recordings/interview.wav")
-file="https://example.com/audio.mp3"
 file=open("audio.mp3", "rb")
 ```
+
+The Python SDK (`together` 3.2.1) rejects a plain string for `file=`, whether a local path or a
+URL: it raises `RuntimeError` because it expects bytes, a file object, or a path-like. To
+transcribe from a URL, send it as the `file` form field over REST, or download the audio first.
 
 ## Audio Translations
 
