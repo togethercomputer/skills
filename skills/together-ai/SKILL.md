@@ -59,7 +59,9 @@ calling the API from the user's own code is `chat-completions` or `images`. A ta
 
 - **Model IDs go stale.** IDs in guides and scripts are examples, checked 2026-10-07. An error of
   `Unable to access non-serverless model` or `model_not_available` means the model is not served
-  serverless: do not retry it or try other IDs from memory. Choose from the
+  serverless. So does HTTP 400 `endpoint_not_configured` or `endpoint_not_ready` when `model` is a
+  catalog ID and not your own endpoint (a retired model ID returned `endpoint_not_configured` on
+  2026-11-18). Do not retry it or try other IDs from memory. Choose from the
   [serverless catalog](https://docs.together.ai/docs/serverless/models) and check the
   [deprecations page](https://docs.together.ai/docs/deprecations) for the named replacement; a chat
   request with `max_tokens=1` confirms a model in one call. `client.models.list()` and
@@ -71,7 +73,7 @@ calling the API from the user's own code is `chat-completions` or `images`. A ta
   third-party data sharing for that partner-hosted model (for example FLUX.2 or Qwen Plus). Retry
   only 429, 5xx, and a 409 `endpoint_not_ready` (next rule), with backoff, a few times, then
   report.
-- **`endpoint_not_ready` is about a dedicated endpoint, and the status code decides.** HTTP 409
+- **On your own dedicated endpoint, `endpoint_not_ready` depends on the status code.** HTTP 409
   means no deployment on the endpoint is ready yet: retry with a short backoff. It can continue
   briefly after a deployment reports `READY`. HTTP 400 means every deployment is stopped: restart
   one (`domains/dedicated-model-inference.md`), because retrying will not help.
