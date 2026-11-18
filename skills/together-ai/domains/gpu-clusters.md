@@ -6,9 +6,9 @@ inference, and HPC. Sizes are multiples of 8 GPUs. `ON_DEMAND` bills from creati
 delete the cluster; `RESERVED` is charged for the full reserved term. Shared storage bills
 separately and keeps billing after the cluster is deleted.
 
-Clusters left beta in SDK and CLI 2.40: `tg clusters ...` and `client.clusters` are the new
-names. `tg beta clusters` and `client.beta.clusters` remain identical aliases and are the only
-names before 2.40, so this skill's commands and scripts use them to work on every v2 version.
+This skill uses `tg clusters ...` and `client.clusters`, which work from SDK and CLI 2.40. The
+`tg beta clusters` and `client.beta.clusters` aliases were removed in 3.0 (2026-10-22); on an
+older SDK, upgrade rather than switching to them.
 
 Hand-offs: serving a model is `domains/dedicated-model-inference.md`; a custom inference container
 is `domains/dedicated-containers.md`; short remote Python is `domains/sandboxes.md`; queueing or
@@ -37,7 +37,7 @@ gang scheduling on a running cluster is `domains/kueue.md` or `domains/volcano.m
   `--duration-days`, create the cluster only when authorized, then delete it
   after the intended runtime. If the user requests a command without
   provisioning, print it but do not run it.
-- The API requires `cuda_version` and `nvidia_driver_version` as separate fields in addition to the combined `driver_version` string. Pass them via `extra_body` in the Python SDK.
+- Set the driver with `cuda_version` plus `nvidia_driver_version` (a pair from `list_regions()`), or `nvidia_version_id`. They are ordinary SDK arguments and CLI flags; there is no `driver_version` argument or `--driver-version` flag.
 - Credentials retrieval is part of provisioning. Do not stop at cluster creation if the user needs to run workloads immediately.
 - Slurm startup scripts (worker/login init, worker/controller prolog and epilog, extra `slurm.conf`) are **Slinky v1.0 only**. A non-zero exit from a worker prolog or epilog drains the node, and calling Slurm commands (`squeue`, `scontrol`, `sacctmgr`) inside any prolog/epilog can deadlock the scheduler.
 
@@ -53,7 +53,7 @@ read just that section; long ones start with `## Contents`.
 | [scripts/gpu-clusters/manage_cluster.py](scripts/gpu-clusters/manage_cluster.py) (.ts) | 237 | create, poll, credentials, scale, delete | provisioning or changing a cluster |
 | [scripts/gpu-clusters/manage_storage.py](scripts/gpu-clusters/manage_storage.py) | 129 | create, list, resize, delete shared volumes | managing storage on its own |
 | [references/gpu-clusters/cli.md](references/gpu-clusters/cli.md) | 305 | `tg` cluster and storage commands, global flags, instance types, driver versions | a CLI flag or driver version |
-| [references/gpu-clusters/api-reference.md](references/gpu-clusters/api-reference.md) | 478 | cluster and storage endpoints, request fields, regions, instance types | an API field the script does not set |
+| [references/gpu-clusters/api-reference.md](references/gpu-clusters/api-reference.md) | 477 | cluster and storage endpoints, request fields, regions, instance types | an API field the script does not set |
 | [references/gpu-clusters/cluster-management.md](references/gpu-clusters/cluster-management.md) | 571 | architecture, access, Slurm config, GPU containers, scaling, storage, health checks, users, billing, troubleshooting, Terraform | operating or debugging a running cluster |
 
 ## Docs

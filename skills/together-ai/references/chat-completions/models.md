@@ -4,7 +4,7 @@ Snapshot of the serverless catalog as of 2026-10-07. Serverless availability cha
 model that drops off returns `Unable to access non-serverless model`. To confirm a chat model,
 send one request with `max_tokens=1`; check the
 [deprecations page](https://docs.together.ai/docs/deprecations) for retired models and their
-replacements. `client.models.list()` and `tg beta models public` cannot confirm serverless
+replacements. `client.models.list()` and `tg models public` cannot confirm serverless
 availability.
 
 Qwen3.6 Plus, Qwen3.7 Plus, Qwen3.7 Max, and Qwen3.8 Flash return 403

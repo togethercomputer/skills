@@ -25,17 +25,34 @@
   `/v2/projects/{project_id}/endpoints/{endpoint_id}/deployments`). Auth is
   `Authorization: Bearer $TOGETHER_API_KEY`.
 - **Inference API**: `https://api-inference.together.ai/v1` — same request shapes as serverless.
-- **SDK namespaces**: `client.beta.endpoints` (with `.deployments`,
-  `.ab_experiments`, `.shadow_experiments`) and `client.beta.models` (with `.configs`,
-  `.remote_uploads`). TypeScript uses the camelCase equivalents (`client.beta.endpoints`,
+- **SDK namespaces**: `client.endpoints` (with `.deployments`,
+  `.ab_experiments`, `.shadow_experiments`) and `client.models` (with `.configs`,
+  `.remote_uploads`). TypeScript uses the camelCase equivalents (`client.endpoints`,
   `abExperiments`, `shadowExperiments`, `remoteUploads`).
-- **Every SDK method requires `project_id`** (the CLI infers it from the API key):
+- **Every SDK method needs a project ID**: pass `project_id` (TypeScript: `projectId`), or set
+  `TOGETHER_PROJECT_ID` or `Together(project_id=...)` once. The CLI infers it from the API key.
+  With a project API key, `whoami()` returns it (SDK 3.x nests it under `project`; 2.x had a flat
+  `project_id`):
 
 ```python
 from together import Together
 
 client = Together()
-project_id = client.whoami().project_id
+identity = client.whoami()
+if identity.type != "project_api_key":
+    raise RuntimeError("Use a project API key, or set TOGETHER_PROJECT_ID")
+project_id = identity.project.id
+```
+
+```typescript
+import Together from "together-ai";
+
+const client = new Together();
+const identity = await client.whoami();
+if (identity.type !== "project_api_key") {
+  throw new Error("Use a project API key, or set TOGETHER_PROJECT_ID");
+}
+const projectId = identity.project.id;
 ```
 
 - Wire format is camelCase JSON; the Python SDK uses snake_case arguments and attributes.
@@ -71,7 +88,7 @@ The platform prepends your project slug: an endpoint named `my-endpoint` in proj
 `acme` gets the endpoint string `acme/my-endpoint`. Names are immutable.
 
 ```python
-endpoint = client.beta.endpoints.create(
+endpoint = client.endpoints.create(
     project_id=project_id,
     name="my-endpoint",
 )
@@ -79,13 +96,13 @@ print(endpoint.id, endpoint.name)  # ep_abc123  acme/my-endpoint
 ```
 
 ```typescript
-const endpoint = await client.beta.endpoints.create({
+const endpoint = await client.endpoints.create({
   projectId,
   name: 'my-endpoint',
 });
 ```
 
-There is no standalone create-endpoint CLI command — `tg beta endpoints deploy` creates
+There is no standalone create-endpoint CLI command — `tg endpoints deploy` creates
 the endpoint and its first deployment together.
 
 ## Create a Deployment
@@ -96,7 +113,7 @@ A deployment binds a model and config to an endpoint with an autoscaling policy.
 model = f"projects/{project_id}/models/ml_abc123"          # owning project's ID
 config = "projects/proj_platform/configs/cr_abc123"        # use the config's own projectId
 
-deployment = client.beta.endpoints.deployments.create(
+deployment = client.endpoints.deployments.create(
     "ep_abc123",
     project_id=project_id,
     name="my-deployment",
@@ -135,14 +152,14 @@ creation — it cannot be set on the deployment.
 
 ## Poll Deployment Status
 
-The CLI's `get` accepts an endpoint **or** deployment ID. `tg beta endpoints get ep_abc123`
-prints the endpoint with each deployment's state and replica counts; `tg beta endpoints get
+The CLI's `get` accepts an endpoint **or** deployment ID. `tg endpoints get ep_abc123`
+prints the endpoint with each deployment's state and replica counts; `tg endpoints get
 dep_abc123` resolves the parent endpoint and prints that deployment's detail —
-`tg beta endpoints get dep_abc123 --json | jq -r '.status.state'` gives a machine-readable
+`tg endpoints get dep_abc123 --json | jq -r '.status.state'` gives a machine-readable
 state for polling loops. The same fields via the SDK:
 
 ```python
-d = client.beta.endpoints.deployments.retrieve(
+d = client.endpoints.deployments.retrieve(
     "dep_abc123", project_id=project_id, endpoint_id="ep_abc123"
 )
 print(d.status.state, d.status.message)
@@ -185,7 +202,7 @@ Rules:
 - `0 / 0` — stops the deployment. `min 0` with a positive max is **rejected**.
 
 ```python
-client.beta.endpoints.deployments.update(
+client.endpoints.deployments.update(
     "dep_abc123",
     project_id=project_id,
     endpoint_id="ep_abc123",
@@ -193,7 +210,7 @@ client.beta.endpoints.deployments.update(
 )
 ```
 
-CLI equivalent: `tg beta endpoints update dep_abc123 --min-replicas 1 --max-replicas 4`.
+CLI equivalent: `tg endpoints update dep_abc123 --min-replicas 1 --max-replicas 4`.
 
 Optional windows (settable at deploy or update time via CLI flags): `scale_up_window` (metric must stay
 above target this long before adding replicas), `scale_down_window` (cooldown between
@@ -230,7 +247,7 @@ Each `scaling_metrics` entry sets `name`, `type`, and `target`:
 | `e2e_latency` | `METRIC_TARGET_TYPE_VALUE` | End-to-end request latency, ms. |
 
 ```python
-client.beta.endpoints.deployments.update(
+client.endpoints.deployments.update(
     "dep_abc123",
     project_id=project_id,
     endpoint_id="ep_abc123",
@@ -249,7 +266,7 @@ CLI equivalent — the CLI takes one metric as flat flags (`--scaling-metric` /
 array the SDK/API uses:
 
 ```bash
-tg beta endpoints update dep_abc123 --min-replicas 1 --max-replicas 4 \
+tg endpoints update dep_abc123 --min-replicas 1 --max-replicas 4 \
   --scaling-metric gpu_utilization --scaling-target 70
 ```
 
@@ -275,19 +292,19 @@ long without requests. A deployment with an inactivity timeout cannot take part 
 
 ```python
 # Stop (drains, then STOPPED; billing stops)
-client.beta.endpoints.deployments.update(
+client.endpoints.deployments.update(
     "dep_abc123", project_id=project_id, endpoint_id="ep_abc123",
     autoscaling={"min_replicas": 0, "max_replicas": 0},
 )
 
 # Restart (first replica cold-starts)
-client.beta.endpoints.deployments.update(
+client.endpoints.deployments.update(
     "dep_abc123", project_id=project_id, endpoint_id="ep_abc123",
     autoscaling={"min_replicas": 1, "max_replicas": 2},
 )
 ```
 
-CLI equivalents: `tg beta endpoints update dep_abc123 --min-replicas 0 --max-replicas 0`
+CLI equivalents: `tg endpoints update dep_abc123 --min-replicas 0 --max-replicas 0`
 (stop), `--min-replicas 1 --max-replicas 2` (restart).
 
 A stopped deployment keeps its configuration and traffic-split weight (the weight reapplies
@@ -300,14 +317,14 @@ for the first deployment. To change one deployment's weight, use the CLI's upser
 the parent endpoint and preserves the other deployments' weights):
 
 ```bash
-tg beta endpoints update dep_abc123 --traffic-weight 30
-tg beta endpoints update dep_abc123 --traffic-weight 0   # out of rotation, no scale-down
+tg endpoints update dep_abc123 --traffic-weight 30
+tg endpoints update dep_abc123 --traffic-weight 0   # out of rotation, no scale-down
 ```
 
 To replace the whole split at once, update the endpoint from the SDK/API:
 
 ```python
-client.beta.endpoints.update(
+client.endpoints.update(
     "ep_abc123",
     project_id=project_id,
     traffic_split=[{"deployment_id": "dep_abc123", "weight": 1}],
@@ -320,9 +337,9 @@ cutovers, A/B tests, and shadow experiments, are in [traffic-routing.md](traffic
 ## List, Paginate, Filter
 
 ```python
-client.beta.endpoints.list(project_id=project_id)
-client.beta.endpoints.retrieve("ep_abc123", project_id=project_id)
-client.beta.endpoints.deployments.list("ep_abc123", project_id=project_id)
+client.endpoints.list(project_id=project_id)
+client.endpoints.retrieve("ep_abc123", project_id=project_id)
+client.endpoints.deployments.list("ep_abc123", project_id=project_id)
 ```
 
 | Parameter | Description |
@@ -338,7 +355,7 @@ deployment lists also support `state` (fully qualified enum) and `model` (resour
 matched regardless of revision):
 
 ```python
-client.beta.endpoints.deployments.list(
+client.endpoints.deployments.list(
     "ep_abc123",
     project_id=project_id,
     filter='state = "DEPLOYMENT_STATE_READY" AND created_at > "2026-01-01T00:00:00Z"',
@@ -361,10 +378,10 @@ Deletion is permanent, and a deployment must be stopped first. Order:
 # You can't zero the split with an empty list: the SDK/API omits an empty `traffic_split`
 # from the PATCH body and returns "400 no fields to update". Send the split with this
 # deployment's entry removed (keeping any others):
-client.beta.endpoints.update("ep_abc123", project_id=project_id,
+client.endpoints.update("ep_abc123", project_id=project_id,
                              traffic_split=[{"deployment_id": "dep_other", "weight": 1}])
-client.beta.endpoints.deployments.delete("dep_abc123", project_id=project_id, endpoint_id="ep_abc123")
-client.beta.endpoints.delete("ep_abc123", project_id=project_id)
+client.endpoints.deployments.delete("dep_abc123", project_id=project_id, endpoint_id="ep_abc123")
+client.endpoints.delete("ep_abc123", project_id=project_id)
 ```
 
 When the deployment is the endpoint's **only** traffic entry there's nothing to route to, so
@@ -420,7 +437,7 @@ Each endpoint has an audit feed (newest first) merging endpoint- and deployment-
 scale-ups, traffic shifts, readiness changes.
 
 ```python
-events = client.beta.endpoints.list_events("ep_abc123", project_id=project_id, limit=50)
+events = client.endpoints.list_events("ep_abc123", project_id=project_id, limit=50)
 ```
 
 Optional filters: `types` (event-type strings), `since` / `until` (time range), `subject_id`
@@ -444,7 +461,7 @@ work if the underlying model supports them. Prompt caching is on by default.
 ```python
 from together import Together
 
-client = Together(base_url="https://api-inference.together.ai/v1")
+client = Together(base_url="https://api-inference.together.ai")   # SDK 3.x: no /v1
 
 response = client.chat.completions.create(
     model="your-project-slug/my-endpoint",   # endpoint string, not ep_ ID

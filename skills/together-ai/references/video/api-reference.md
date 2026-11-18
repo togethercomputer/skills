@@ -76,16 +76,26 @@ curl -X POST "https://api.together.xyz/v2/videos" \
 | `guidance_scale` | float | No | varies | Prompt adherence (6.0-10.0, avoid >12) |
 | `seed` | integer | No | random | Random seed for reproducibility |
 | `negative_prompt` | string | No | - | Elements to exclude |
-| `frame_images` | array | No | - | Keyframe images: `[{input_image, frame}]` |
-| `reference_images` | array | No | - | Style reference image URLs |
+| `media` | object | No | - | Image, video, and audio inputs; see below. Accepted fields depend on the model |
 | `output_format` | string | No | `"MP4"` | `"MP4"` or `"WEBM"` |
 | `output_quality` | integer | No | 20 | Compression quality (lower = higher quality) |
 
 *Prompt not required for Kling 2.1 Standard/Pro and Kling 1.6 Pro.
 
-### frame_images Schema
+### media Schema
 
-Each element in the `frame_images` array:
+Pass keyframes and references inside `media`. SDK 3.x and `together-ai` 1.x reject top-level
+`frame_images` and `reference_images`.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `frame_images` | array | Keyframe images: `[{input_image, frame}]` |
+| `reference_images` | array | Style or character reference image URLs |
+| `reference_videos` | array | Reference videos: `[{video}]` |
+| `audio_inputs` | array | Audio URLs (or `{audio}`) for lip sync or beat-matched motion |
+| `source_video`, `frame_videos` | string or object, array | Edit or extend a clip (Wan 2.7 only) |
+
+Each element in `media.frame_images`:
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -138,10 +148,12 @@ job = client.videos.create(
     model="minimax/hailuo-02",
     width=1366,
     height=768,
-    frame_images=[{
-        "input_image": "https://cdn.pixabay.com/photo/2020/05/20/08/27/cat-5195431_1280.jpg",
-        "frame": "first",
-    }],
+    media={
+        "frame_images": [{
+            "input_image": "https://cdn.pixabay.com/photo/2020/05/20/08/27/cat-5195431_1280.jpg",
+            "frame": "first",
+        }],
+    },
 )
 ```
 
@@ -151,10 +163,12 @@ const job = await client.videos.create({
   model: "minimax/hailuo-02",
   width: 1366,
   height: 768,
-  frame_images: [{
-    input_image: "https://cdn.pixabay.com/photo/2020/05/20/08/27/cat-5195431_1280.jpg",
-    frame: "first",
-  }],
+  media: {
+    frame_images: [{
+      input_image: "https://cdn.pixabay.com/photo/2020/05/20/08/27/cat-5195431_1280.jpg",
+      frame: "first",
+    }],
+  },
 });
 ```
 
@@ -166,9 +180,11 @@ job = client.videos.create(
     model="minimax/hailuo-02",
     width=1366,
     height=768,
-    reference_images=[
-        "https://cdn.pixabay.com/photo/2020/05/20/08/27/cat-5195431_1280.jpg",
-    ],
+    media={
+        "reference_images": [
+            "https://cdn.pixabay.com/photo/2020/05/20/08/27/cat-5195431_1280.jpg",
+        ],
+    },
 )
 ```
 

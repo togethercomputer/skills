@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Together AI Video -- Image-to-Video with Keyframe Control (v2 SDK)
+Together AI Video -- Image-to-Video with Keyframe Control (SDK 3.x)
 
 Animate images using keyframe control, poll until completion, and download the MP4.
 Supports first frame, last frame, and first+last frame control depending on model.
@@ -9,7 +9,7 @@ Usage:
     python image_to_video.py <image_url_or_path> [--prompt "..."] [--output promo.mp4]
 
 Requires:
-    uv pip install "together>=2.0.0" requests
+    uv pip install "together>=3" requests
     export TOGETHER_API_KEY=your_key
 """
 
@@ -66,7 +66,7 @@ def image_to_video_url(
         model=model,
         width=width,
         height=height,
-        frame_images=[{"input_image": image_url, "frame": frame}],
+        media={"frame_images": [{"input_image": image_url, "frame": frame}]},
     )
     print(f"Submitted job: {job.id}")
     video_url = wait_for_video(job.id)
@@ -92,7 +92,7 @@ def image_to_video_base64(
         model=model,
         width=width,
         height=height,
-        frame_images=[{"input_image": img_b64, "frame": frame}],
+        media={"frame_images": [{"input_image": img_b64, "frame": frame}]},
     )
     print(f"Submitted job: {job.id}")
     video_url = wait_for_video(job.id)
@@ -114,10 +114,12 @@ def first_and_last_keyframes(
         model=model,
         width=width,
         height=height,
-        frame_images=[
-            {"input_image": first_image_url, "frame": "first"},
-            {"input_image": last_image_url, "frame": "last"},
-        ],
+        media={
+            "frame_images": [
+                {"input_image": first_image_url, "frame": "first"},
+                {"input_image": last_image_url, "frame": "last"},
+            ]
+        },
     )
     print(f"Submitted job: {job.id}")
     return wait_for_video(job.id)

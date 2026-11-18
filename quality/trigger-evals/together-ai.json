@@ -28,7 +28,7 @@
     "should_trigger": true
   },
   {
-    "query": "tg beta endpoints deploy finished and the deployment says DEPLOYMENT_STATE_READY but every request comes back routing_error 503. what am I missing",
+    "query": "tg endpoints deploy finished and the deployment says DEPLOYMENT_STATE_READY but every request comes back routing_error 503. what am I missing",
     "should_trigger": true
   },
   {

@@ -8,7 +8,9 @@ scale, stop, and delete.
 
 Usage:
     python deploy_model.py models [--search qwen]
-    python deploy_model.py configs --model ml_abc123
+    python deploy_model.py configs --model arch_abc123   # catalog model: its deployment profiles
+    python deploy_model.py configs --model ml_abc123     # a model in your project
+    python deploy_model.py deploy --model projects/p/models/ml_abc --config projects/p/configs/cr_abc --endpoint my-endpoint
     python deploy_model.py deploy --model ml_abc123 --config cr_abc123 --endpoint my-endpoint
     python deploy_model.py status --endpoint ep_abc123 --deployment dep_abc123
     python deploy_model.py infer --name your-project-slug/my-endpoint
@@ -17,7 +19,7 @@ Usage:
     python deploy_model.py rm --endpoint ep_abc123 --deployment dep_abc123
 
 Requires:
-    uv pip install --upgrade together   # a release with the beta DMI surface (client.beta.*)
+    uv pip install --upgrade "together>=3"
     export TOGETHER_API_KEY=your_key
 
 Billing note: replicas bill per minute while running and there is NO automatic
@@ -31,34 +33,66 @@ import time
 from together import Together
 
 client = Together()
-PROJECT_ID = client.whoami().project_id
 
-INFERENCE_BASE_URL = "https://api-inference.together.ai/v1"
+
+def resolve_project_id() -> str:
+    """TOGETHER_PROJECT_ID if set, else the project of a project-scoped API key."""
+    if client.project_id:
+        return client.project_id
+    identity = client.whoami()
+    project = getattr(identity, "project", None)
+    if project is None:
+        sys.exit(f"whoami returned {identity.type}, which has no project: set TOGETHER_PROJECT_ID.")
+    return project.id
+
+
+PROJECT_ID = resolve_project_id()
+
+# SDK 3.x base URLs omit /v1; each method adds its own version.
+INFERENCE_BASE_URL = "https://api-inference.together.ai"
 
 
 def list_supported_models(search: str | None = None) -> list:
     """List public base models deployable for dedicated inference."""
-    models = client.beta.models.list_supported(product="PRODUCT_DEDICATED")
-    rows = [m for m in models.data if not search or search.lower() in m.name.lower()]
+    models = client.models.list_supported(product="PRODUCT_DEDICATED")
+    # Iterate the page, not .data: iteration fetches every page (.data holds only the first 50).
+    rows = [m for m in models if not search or search.lower() in m.name.lower()]
     for m in rows:
         print(f"  {m.id}  {m.name}")
     return rows
 
 
+def resource_name(kind: str, value: str, project_id: str) -> str:
+    """Pass a resource name (projects/...) through; build one from a bare ml_ or cr_ ID."""
+    return value if value.startswith("projects/") else f"projects/{project_id}/{kind}/{value}"
+
+
 def list_configs(model_id: str) -> list:
-    """List published configs (hardware/engine/optimization) for a model."""
-    configs = client.beta.models.configs.list(
+    """List deployable configs for a model.
+
+    A catalog model (an arch_ ID from `models`) belongs to a platform project, so list its
+    deployment profiles: certified model and config resource names to pass to `deploy`.
+    """
+    if model_id.startswith("arch_"):
+        profiles = client.models.retrieve_supported(model_id).deployment_profiles or []
+        for p in profiles:
+            print(f"  {p.gpu_count}x {p.gpu_type}  {p.quantization}")
+            print(f"    --model {p.model}\n    --config {p.config}")
+        return profiles
+
+    configs = client.models.configs.list(
         project_id=PROJECT_ID,
-        reference_model=f"projects/{PROJECT_ID}/models/{model_id}",
+        reference_model=resource_name("models", model_id, PROJECT_ID),
     )
-    for c in configs.data:
+    rows = list(configs)  # every page
+    for c in rows:
         selectors = {s.key: s.value for s in (c.selectors or [])}
         print(
             f"  {c.id}  {selectors.get('accelerator_count', '?')}x "
             f"{selectors.get('accelerator_type', '?')}  "
             f"optimization={selectors.get('optimization', '?')}"
         )
-    return configs.data
+    return rows
 
 
 def deploy(
@@ -71,23 +105,23 @@ def deploy(
 ):
     """Create an endpoint, attach a deployment, and route 100% of traffic to it.
 
-    This is what the CLI's `tg beta endpoints deploy` does in one command.
+    This is what the CLI's `tg endpoints deploy` does in one command.
     """
-    endpoint = client.beta.endpoints.create(project_id=PROJECT_ID, name=endpoint_name)
+    endpoint = client.endpoints.create(project_id=PROJECT_ID, name=endpoint_name)
     print(f"Created endpoint: {endpoint.id} ({endpoint.name})")
 
-    deployment = client.beta.endpoints.deployments.create(
+    deployment = client.endpoints.deployments.create(
         endpoint.id,
         project_id=PROJECT_ID,
         name=f"{endpoint_name}-deployment",
-        model=f"projects/{PROJECT_ID}/models/{model_id}",
-        config=f"projects/{config_project_id}/configs/{config_id}",
+        model=resource_name("models", model_id, PROJECT_ID),
+        config=resource_name("configs", config_id, config_project_id),
         autoscaling={"min_replicas": min_replicas, "max_replicas": max_replicas},
     )
     print(f"Created deployment: {deployment.id}")
 
     # A READY deployment still serves nothing until it's in the traffic split.
-    client.beta.endpoints.update(
+    client.endpoints.update(
         endpoint.id,
         project_id=PROJECT_ID,
         traffic_split=[{"deployment_id": deployment.id, "weight": 1}],
@@ -103,7 +137,7 @@ def wait_for_ready(endpoint_id: str, deployment_id: str, timeout: int = 3600, po
     """Poll deployment status until READY (cold start can take minutes for large models)."""
     elapsed = 0
     while elapsed < timeout:
-        d = client.beta.endpoints.deployments.retrieve(
+        d = client.endpoints.deployments.retrieve(
             deployment_id, project_id=PROJECT_ID, endpoint_id=endpoint_id
         )
         state = d.status.state
@@ -122,7 +156,7 @@ def wait_for_ready(endpoint_id: str, deployment_id: str, timeout: int = 3600, po
 
 def show_status(endpoint_id: str, deployment_id: str):
     """Print the deployment's current state and replica counts."""
-    d = client.beta.endpoints.deployments.retrieve(
+    d = client.endpoints.deployments.retrieve(
         deployment_id, project_id=PROJECT_ID, endpoint_id=endpoint_id
     )
     print(f"  state:     {d.status.state}")
@@ -151,7 +185,7 @@ def infer(endpoint_string: str, prompt: str = "What is 2+2?"):
 
 def scale(endpoint_id: str, deployment_id: str, min_replicas: int, max_replicas: int):
     """Update replica bounds. 0/0 stops the deployment; min 0 with max > 0 is rejected."""
-    d = client.beta.endpoints.deployments.update(
+    d = client.endpoints.deployments.update(
         deployment_id,
         project_id=PROJECT_ID,
         endpoint_id=endpoint_id,
@@ -171,19 +205,19 @@ def delete(endpoint_id: str, deployment_id: str | None = None):
     if deployment_id:
         stop(endpoint_id, deployment_id)
         while True:
-            d = client.beta.endpoints.deployments.retrieve(
+            d = client.endpoints.deployments.retrieve(
                 deployment_id, project_id=PROJECT_ID, endpoint_id=endpoint_id
             )
             if d.status.state in ("DEPLOYMENT_STATE_STOPPED", "DEPLOYMENT_STATE_FAILED"):
                 break
             print(f"  waiting for STOPPED (now {d.status.state})")
             time.sleep(10)
-        client.beta.endpoints.update(endpoint_id, project_id=PROJECT_ID, traffic_split=[])
-        client.beta.endpoints.deployments.delete(
+        client.endpoints.update(endpoint_id, project_id=PROJECT_ID, traffic_split=[])
+        client.endpoints.deployments.delete(
             deployment_id, project_id=PROJECT_ID, endpoint_id=endpoint_id
         )
         print(f"Deleted deployment {deployment_id}")
-    client.beta.endpoints.delete(endpoint_id, project_id=PROJECT_ID)
+    client.endpoints.delete(endpoint_id, project_id=PROJECT_ID)
     print(f"Deleted endpoint {endpoint_id}")
 
 
@@ -195,12 +229,12 @@ def main() -> int:
     p.add_argument("--search", default=None)
 
     p = sub.add_parser("configs", help="List configs for a model")
-    p.add_argument("--model", required=True, help="Model ID (ml_...)")
+    p.add_argument("--model", required=True, help="Catalog arch_ ID, or ml_ ID in your project")
 
     p = sub.add_parser("deploy", help="Create endpoint + deployment, route traffic, wait for READY")
-    p.add_argument("--model", required=True, help="Model ID (ml_...)")
-    p.add_argument("--config", required=True, help="Config revision ID (cr_...)")
-    p.add_argument("--config-project", default=PROJECT_ID, help="Config's owning project (from configs list)")
+    p.add_argument("--model", required=True, help="Model resource name from `configs`, or ml_ ID in your project")
+    p.add_argument("--config", required=True, help="Config resource name from `configs`, or cr_ ID")
+    p.add_argument("--config-project", default=PROJECT_ID, help="Owning project for a bare cr_ ID")
     p.add_argument("--endpoint", required=True, help="New endpoint name")
     p.add_argument("--min", type=int, default=1, dest="min_replicas")
     p.add_argument("--max", type=int, default=1, dest="max_replicas")

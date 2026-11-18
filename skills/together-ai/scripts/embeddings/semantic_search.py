@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Together AI Semantic Search Pipeline (v2 SDK)
+Together AI Semantic Search Pipeline (SDK 3.x)
 
 Embed a product corpus, store vectors in memory, query by similarity,
 and optionally rerank results with a dedicated endpoint.
@@ -13,7 +13,7 @@ Usage:
     python semantic_search.py
 
 Requires:
-    uv pip install "together>=2.0.0"
+    uv pip install "together>=3"
     export TOGETHER_API_KEY=your_key
     export EMBEDDING_MODEL=your-project/your-embedding-endpoint  # dedicated endpoint string
 """
@@ -33,7 +33,7 @@ client = Together()
 EMBEDDING_MODEL = os.environ.get("EMBEDDING_MODEL", "")
 RERANK_MODEL: str | None = os.environ.get("RERANK_MODEL") or None
 dedicated_client = Together(
-    base_url=os.environ.get("DEDICATED_BASE_URL", "https://api-inference.together.ai/v1")
+    base_url=os.environ.get("DEDICATED_BASE_URL", "https://api-inference.together.ai")
 )
 
 

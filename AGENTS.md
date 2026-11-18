@@ -53,7 +53,7 @@ There are 15 domain guides under `skills/together-ai/domains/`:
 ## Skill registry
 
 <skills>
-- **together-ai**: Together AI platform skill covering every product area: chat completions and streaming text generation, tool calling, structured outputs, reasoning and vision models; image generation and editing (FLUX, Kontext); video generation; text-to-speech and speech-to-text; embeddings and reranking; fine-tuning (LoRA, full, DPO, VLM, BYOM); batch inference; LLM-as-a-judge evaluations; code sandboxes; dedicated model inference (tg beta endpoints, deployments, autoscaling, traffic splits, model and LoRA uploads); dedicated containers (Sprocket, Jig); GPU clusters (Kubernetes, Slurm) with Kueue or Volcano scheduling; and TogetherLink (tlink, tclaude) for running Claude Code, Codex, OpenCode, or desktop apps on Together models. Reach for it whenever the user builds, debugs, deploys, trains, evaluates, or operates anything on Together AI, or mentions the together SDK, the tg CLI, TogetherLink, api.together.ai, TOGETHER_API_KEY, or a Together-hosted model id. The skill body routes each request to the matching domain guide.
+- **together-ai**: Together AI platform skill covering every product area: chat completions and streaming text generation, tool calling, structured outputs, reasoning and vision models; image generation and editing (FLUX, Kontext); video generation; text-to-speech and speech-to-text; embeddings and reranking; fine-tuning (LoRA, full, DPO, VLM, BYOM); batch inference; LLM-as-a-judge evaluations; code sandboxes; dedicated model inference (tg endpoints, deployments, autoscaling, traffic splits, model and LoRA uploads); dedicated containers (Sprocket, Jig); GPU clusters (Kubernetes, Slurm) with Kueue or Volcano scheduling; and TogetherLink (tlink, tclaude) for running Claude Code, Codex, OpenCode, or desktop apps on Together models. Reach for it whenever the user builds, debugs, deploys, trains, evaluates, or operates anything on Together AI, or mentions the together SDK, the tg CLI, TogetherLink, api.together.ai, TOGETHER_API_KEY, or a Together-hosted model id. The skill body routes each request to the matching domain guide.
 
 </skills>
 
@@ -146,14 +146,14 @@ For reference files over ~100 lines, include a short `## Contents` section near 
 
 ### Scripts
 
-Files in `scripts/AREA/` are runnable examples demonstrating complete workflows. Python scripts use the **Together Python v2 SDK** (`together>=2.0.0`); several areas also ship TypeScript (`.ts`) equivalents using the `together-ai` npm package.
+Files in `scripts/AREA/` are runnable examples demonstrating complete workflows. Python scripts use the **Together Python SDK 3.x** (`together>=3`); several areas also ship TypeScript (`.ts`) equivalents using the `together-ai` npm package (1.x).
 
 ## Code conventions
 
 ### Python scripts
 
 - Target Python 3.10+
-- Use `together` v2 SDK with keyword-only arguments
+- Use the `together` 3.x SDK with keyword-only arguments
 - Every script must have a module docstring with: description, usage command, and requirements
 - Include `if __name__ == "__main__":` block with working examples
 - Use type hints (`list[str]`, `str | None`)
@@ -162,11 +162,11 @@ Files in `scripts/AREA/` are runnable examples demonstrating complete workflows.
 - Prefer reusable CLIs over hard-coded one-off demos for multi-step or billable workflows
 - No third-party dependencies beyond `together` unless absolutely necessary (note it in the docstring if so)
 
-### v2 SDK patterns
+### SDK patterns
 
-These are the correct v2 SDK method names. Do NOT use v1 patterns:
+These are the correct SDK 3.x method names. Do NOT use v1 or 2.x patterns (see the [v3 migration guide](https://docs.together.ai/docs/sdk-v3-migration-guide)):
 
-| Operation | v2 (correct) | v1 (wrong) |
+| Operation | 3.x (correct) | v1 or 2.x (wrong) |
 |-----------|-------------|------------|
 | Create batch | `client.batches.create()` | `client.create_batch()` |
 | Get batch | `client.batches.retrieve()` | `client.get_batch()` |
@@ -176,6 +176,10 @@ These are the correct v2 SDK method names. Do NOT use v1 patterns:
 | Batch input | `input_file_id=` | `file_id=` |
 | Audio files | `with open(path, "rb") as f:` then pass `f` | pass file path string |
 | Autoscaling | `autoscaling={"min_replicas": N, "max_replicas": M}` | `min_replicas=N, max_replicas=M` |
+| Dedicated inference, clusters | `client.endpoints`, `client.models`, `client.clusters` | `client.beta.endpoints`, `client.beta.models`, `client.beta.clusters` |
+| Project ID | `client.whoami().project.id` | `client.whoami().project_id` |
+| Custom base URL | `base_url="https://api-inference.together.ai"` | `base_url="https://api-inference.together.ai/v1"` |
+| Video keyframes | `media={"frame_images": [...]}` | `frame_images=[...]` |
 
 ### Quality expectations
 

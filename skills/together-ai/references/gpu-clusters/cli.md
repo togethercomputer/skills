@@ -18,20 +18,20 @@ The Together CLI (`tg`) is the supported command-line interface for managing GPU
 Install the CLI as a `uv` tool. The `[cli]` extra pulls in CLI-only dependencies without bloating the Python SDK:
 
 ```shell
-uv tool install "together[cli]"
+uv tool install "together[cli]>=3"
 tg --help
 ```
 
 Upgrade with:
 
 ```shell
-uv tool upgrade "together[cli]"
+uv tool upgrade "together[cli]>=3"
 ```
 
 For CI/CD, invoke the CLI directly with `uvx` to avoid a separate install step:
 
 ```shell
-uvx "together[cli]" beta clusters list
+uvx "together[cli]>=3" clusters list
 ```
 
 ## Authentication
@@ -65,7 +65,7 @@ Available on every command:
 Create a new GPU cluster. Run with no flags to launch an interactive prompt that walks through the required fields.
 
 ```shell
-tg beta clusters create [OPTIONS]
+tg clusters create [OPTIONS]
 ```
 
 **Options:**
@@ -89,7 +89,7 @@ tg beta clusters create [OPTIONS]
 
 ```shell
 # On-demand Kubernetes cluster with H100s
-tg beta clusters create \
+tg clusters create \
   --name my-training-cluster \
   --num-gpus 8 \
   --gpu-type H100_SXM \
@@ -101,7 +101,7 @@ tg beta clusters create \
   --non-interactive
 
 # Reserved Slurm cluster with H200s and attached storage
-tg beta clusters create \
+tg clusters create \
   --name my-slurm-cluster \
   --num-gpus 16 \
   --gpu-type H200_SXM \
@@ -120,7 +120,7 @@ tg beta clusters create \
 List all GPU clusters.
 
 ```shell
-tg beta clusters list
+tg clusters list
 ```
 
 ### `clusters retrieve`
@@ -128,7 +128,7 @@ tg beta clusters list
 Get details for a specific cluster.
 
 ```shell
-tg beta clusters retrieve [CLUSTER_ID]
+tg clusters retrieve [CLUSTER_ID]
 ```
 
 ### `clusters update`
@@ -136,7 +136,7 @@ tg beta clusters retrieve [CLUSTER_ID]
 Update the configuration of an existing cluster (scale GPU count or change cluster type).
 
 ```shell
-tg beta clusters update [CLUSTER_ID] [OPTIONS]
+tg clusters update [CLUSTER_ID] [OPTIONS]
 ```
 
 **Options:**
@@ -151,10 +151,10 @@ tg beta clusters update [CLUSTER_ID] [OPTIONS]
 
 ```shell
 # Scale up to 16 GPUs
-tg beta clusters update [CLUSTER_ID] --num-gpus 16
+tg clusters update [CLUSTER_ID] --num-gpus 16
 
 # Switch to Slurm
-tg beta clusters update [CLUSTER_ID] --cluster-type SLURM
+tg clusters update [CLUSTER_ID] --cluster-type SLURM
 ```
 
 ### `clusters delete`
@@ -162,7 +162,7 @@ tg beta clusters update [CLUSTER_ID] --cluster-type SLURM
 Delete a GPU cluster.
 
 ```shell
-tg beta clusters delete [CLUSTER_ID]
+tg clusters delete [CLUSTER_ID]
 ```
 
 ### `clusters list-regions`
@@ -170,7 +170,7 @@ tg beta clusters delete [CLUSTER_ID]
 List available regions, supported GPU types, and driver versions.
 
 ```shell
-tg beta clusters list-regions
+tg clusters list-regions
 ```
 
 **Example output:**
@@ -199,7 +199,7 @@ tg beta clusters list-regions
 Download Kubernetes credentials (kubeconfig) for a cluster.
 
 ```shell
-tg beta clusters get-credentials [CLUSTER_ID] [OPTIONS]
+tg clusters get-credentials [CLUSTER_ID] [OPTIONS]
 ```
 
 **Options:**
@@ -215,13 +215,13 @@ tg beta clusters get-credentials [CLUSTER_ID] [OPTIONS]
 
 ```shell
 # Merge into ~/.kube/config and switch the default context
-tg beta clusters get-credentials [CLUSTER_ID] --set-default-context
+tg clusters get-credentials [CLUSTER_ID] --set-default-context
 
 # Write to a specific file
-tg beta clusters get-credentials [CLUSTER_ID] --file ./kubeconfig.yaml
+tg clusters get-credentials [CLUSTER_ID] --file ./kubeconfig.yaml
 
 # Print to stdout
-tg beta clusters get-credentials [CLUSTER_ID] --file -
+tg clusters get-credentials [CLUSTER_ID] --file -
 
 # Use the cluster
 kubectl get nodes
@@ -237,7 +237,7 @@ bare metal paths. Volumes persist independently of cluster lifecycle.
 Create a new shared storage volume.
 
 ```shell
-tg beta clusters storage create [OPTIONS]
+tg clusters storage create [OPTIONS]
 ```
 
 **Options:**
@@ -252,7 +252,7 @@ tg beta clusters storage create [OPTIONS]
 **Example:**
 
 ```shell
-tg beta clusters storage create \
+tg clusters storage create \
   --volume-name my-training-data \
   --size-tib 2 \
   --region us-central-8
@@ -263,7 +263,7 @@ tg beta clusters storage create \
 List all shared storage volumes.
 
 ```shell
-tg beta clusters storage list
+tg clusters storage list
 ```
 
 ### `clusters storage retrieve`
@@ -271,7 +271,7 @@ tg beta clusters storage list
 Get details for a specific volume.
 
 ```shell
-tg beta clusters storage retrieve [VOLUME_ID]
+tg clusters storage retrieve [VOLUME_ID]
 ```
 
 ### `clusters storage delete`
@@ -279,7 +279,7 @@ tg beta clusters storage retrieve [VOLUME_ID]
 Delete a shared storage volume. The volume must not be attached to any cluster.
 
 ```shell
-tg beta clusters storage delete [VOLUME_ID]
+tg clusters storage delete [VOLUME_ID]
 ```
 
 ## Instance Types

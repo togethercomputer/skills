@@ -8,7 +8,7 @@
  *     npx tsx batch_workflow.ts
  *
  * Requires:
- *     npm install together-ai
+ *     npm install "together-ai@>=1"
  *     export TOGETHER_API_KEY=your_key
  */
 
@@ -51,7 +51,7 @@ async function main() {
   console.log(`Wrote ${requests.length} requests to ${inputPath}`);
 
   // --- 2. Upload input file ---
-  const fileResp = await client.files.upload(inputPath, "batch-api", false);
+  const fileResp = await client.files.upload(inputPath, "batch-api");
   const fileId = fileResp.id;
   console.log(`Uploaded file: ${fileId}`);
 

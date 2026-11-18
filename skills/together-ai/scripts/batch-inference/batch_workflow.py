@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Together AI Batch Inference — Full Workflow (v2 SDK)
+Together AI Batch Inference — Full Workflow (SDK 3.x)
 
 End-to-end: prepare JSONL -> upload -> create batch -> poll -> download results.
 
@@ -10,7 +10,7 @@ Usage:
     python batch_workflow.py --input-jsonl requests.jsonl --output-path results.jsonl
 
 Requires:
-    uv pip install "together>=2.0.0"
+    uv pip install "together>=3"
     export TOGETHER_API_KEY=your_key
 """
 
