@@ -268,7 +268,7 @@ curl https://api.together.ai/v1/deployment-request/my-deployment/health \
 | `model` | string | Deployment name |
 | `status` | string | `pending`, `running`, `done`, `failed`, `canceled` |
 | `outputs` | object | Model output (when done) |
-| `info` | object | Job metadata (including emit_info updates) |
+| `info` | object | Job metadata set at submit time, plus an `error` key the worker adds on failure |
 | `priority` | integer | Job priority |
 | `retries` | integer | Retry count (fails after 3) |
 | `created_at` | datetime | Submission time |

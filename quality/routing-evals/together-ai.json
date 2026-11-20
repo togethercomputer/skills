@@ -40,7 +40,7 @@
     "expected_domain": "domains/dedicated-containers.md"
   },
   {
-    "query": "Help me build a Together AI container worker that processes queue jobs and emits progress updates.",
+    "query": "Help me build a Together AI container worker that processes queue jobs and returns their results.",
     "expected_domain": "domains/dedicated-containers.md"
   },
   {

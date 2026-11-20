@@ -36,14 +36,7 @@ def submit_and_poll(payload: dict, priority: int = 1) -> dict:
             request_id=job.request_id,
             model=DEPLOYMENT,
         )
-        print(f"  Status: {status.status}", end="")
-
-        # Show progress if available
-        if hasattr(status, "info") and status.info:
-            progress = status.info.get("progress")
-            if progress is not None:
-                print(f" | Progress: {progress:.0%}", end="")
-        print()
+        print(f"  Status: {status.status}")
 
         if status.status == "done":
             print(f"  Outputs: {status.outputs}")
