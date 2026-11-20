@@ -8,7 +8,7 @@
 - [Batch Job Object (Response)](#batch-job-object)
 - [Batch Job Status](#batch-job-status)
 - [Workflow](#workflow)
-- [Models with 50% Discount](#models-with-50-discount)
+- [Discounted Models](#discounted-models)
 - [Rate Limits](#rate-limits)
 - [Error Handling](#error-handling)
 - [Best Practices](#best-practices)
@@ -236,15 +236,19 @@ curl -X GET "https://api.together.xyz/v1/batches" \
   -H "Authorization: Bearer $TOGETHER_API_KEY"
 ```
 
-## Models with 50% Discount
+## Discounted Models
 
-- `meta-llama/Llama-3.3-70B-Instruct-Turbo`
+These serverless models cost 50% less in a batch job than in a real-time request (checked
+2026-11-06):
+
 - `openai/whisper-large-v3` (audio batches through `/v1/audio/transcriptions` and
   `/v1/audio/translations`)
+- `nvidia/parakeet-tdt-0.6b-v3` (audio batches through `/v1/audio/transcriptions`)
 
-Most serverless models support batch processing through `/v1/chat/completions`; models not
-listed above run at standard rates. Batches can also target a dedicated endpoint, but the
-discount does not apply to dedicated usage. Source:
+Every other model, including all chat models, bills at its real-time rate. For chat models, the
+benefit of batch is the separate rate limit pool (see [Rate Limits](#rate-limits)), not price.
+Most serverless models support batch processing through `/v1/chat/completions`. Batches can also
+target a dedicated endpoint, but the discount does not apply to dedicated usage. Source:
 [Batch overview](https://docs.together.ai/docs/inference/batch/overview).
 
 ## Rate Limits

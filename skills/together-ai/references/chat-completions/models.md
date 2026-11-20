@@ -23,7 +23,8 @@ Source pages: [Serverless models](https://docs.together.ai/docs/serverless/model
 | Small and fast | Qwen3.5 9B | `Qwen/Qwen3.5-9B` | `Qwen/Qwen3.8-Flash` |
 | Mid-size general | DeepSeek V4.1 Flash | `deepseek-ai/DeepSeek-V4.1-Flash` | `zai-org/GLM-5.3-Flash` |
 | Function calling | GLM-5.3 Flash | `zai-org/GLM-5.3-Flash` | `deepseek-ai/DeepSeek-V4-Flash-0731` |
-| Batch (50% discount) | Llama 3.3 70B Turbo | `meta-llama/Llama-3.3-70B-Instruct-Turbo` | - |
+
+No chat model gets a batch discount, so pick a batch model by use case from this table.
 
 Kimi K3 thinks by default (`reasoning_effort="max"`) and returns its trace on
 `reasoning_content`; give it generous `max_tokens`, or pass `reasoning={"enabled": False}` for
