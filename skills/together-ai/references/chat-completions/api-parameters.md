@@ -11,7 +11,7 @@
 - [Context Handling](#context-handling)
 - [Message Object](#message-object)
 - [OpenAI Compatibility](#openai-compatibility)
-- [Rate Limits & Build Tiers](#rate-limits-build-tiers)
+- [Rate Limits](#rate-limits)
 - [Debug Mode](#debug-mode)
 - [HTTP Status Codes](#http-status-codes)
 
@@ -362,38 +362,23 @@ print(response.choices[0].message.content)
 Use the native Together SDK when you need Together-only helpers such as `.with_raw_response`,
 typed reasoning fields, or other platform-specific workflows already covered by this skill.
 
-## Rate Limits & Build Tiers
+## Rate Limits
 
-Serverless rate limits are model-specific and can change based on capacity. Treat response headers
-as the source of truth for the current limit on the model you are calling.
+Serverless has no published per-account request limits. Build Tiers 1 to 5 and their RPM table
+were retired in April 2026, and the dynamic limits that replaced them were retired in October
+2026. Most requests are not rate limited. During high demand Together may limit requests to
+protect performance, and a model in especially high demand can get its own limit.
 
-Current account-level LLM baselines from the official Together AI billing docs:
+- **429 Too Many Requests:** reduce the request rate, spread requests out, and retry with
+  exponential backoff.
+- **503 Service Unavailable:** wait briefly, then retry with backoff.
 
-| Build Tier | Lifetime Spend | LLM Rate Limit |
-|------------|----------------|----------------|
-| Build Tier 1 | $5 | 600 RPM |
-| Build Tier 2 | $50 | 1,800 RPM |
-| Build Tier 3 | $100 | 3,000 RPM |
-| Build Tier 4 | $250 | 4,500 RPM |
-| Build Tier 5 | $1,000 | 6,000 RPM |
-
-Rate-limit headers returned on serverless responses:
-
-| Header | Description |
-|--------|-------------|
-| `x-ratelimit-limit` | Maximum request rate currently allowed |
-| `x-ratelimit-remaining` | Remaining request capacity in the current window |
-| `x-ratelimit-reset` | Time until the request window resets |
-| `x-tokenlimit-limit` | Maximum token rate currently allowed |
-| `x-tokenlimit-remaining` | Remaining token capacity in the current window |
-| `x-ratelimit-limit-dynamic` | Dynamic request-rate allowance when enabled |
-| `x-ratelimit-remaining-dynamic` | Remaining dynamic request capacity |
-| `x-tokenlimit-limit-dynamic` | Dynamic token-rate allowance when enabled |
-| `x-tokenlimit-remaining-dynamic` | Remaining dynamic token capacity |
+Do not plan against rate-limit response headers. On 2026-11-18, successful serverless chat
+responses from three models (`Qwen/Qwen3.5-9B`, `openai/gpt-oss-120b`, `moonshotai/Kimi-K3`)
+carried no `x-ratelimit-*` or `x-tokenlimit-*` headers.
 
 Best practices:
 
-- plan against the latest headers instead of a hard-coded RPM table
 - keep traffic steady instead of bursty
 - use batch inference for high-volume offline jobs
 - for strict capacity or SLA requirements, use provisioned throughput (reserved capacity on supported stock models with a defined throughput and reliability SLA, contact sales) or dedicated endpoints (single-tenant GPUs, self-serve)
@@ -470,12 +455,15 @@ Common debug headers:
 | Code | Description |
 |------|-------------|
 | 200 | Success |
-| 400 | Bad request (invalid params) |
+| 400 | Bad request: invalid params, or input tokens plus `max_tokens` exceed the model's context length |
 | 401 | Unauthorized (invalid API key) |
 | 402 | Payment required (spending limit reached) |
-| 403 | Input token count + max_tokens exceeds model context length |
+| 403 | Forbidden: the account cannot use the model or feature (plan, credit card on file, or an organization setting such as third-party data sharing) |
 | 404 | Model not found |
+| 413 | Request body too large. Pass large images or audio as a URL instead of inline base64 |
 | 429 | Rate limit exceeded |
 | 500 | Server error |
 | 503 | Service overloaded |
 | 504 | Request timeout |
+| 524 | Timeout at the network edge. Wait briefly, then retry |
+| 529 | Model at its maximum replica count. Retry with exponential backoff |

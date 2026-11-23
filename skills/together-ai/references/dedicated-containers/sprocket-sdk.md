@@ -145,7 +145,7 @@ class CustomProcessor(sprocket.InputOutputProcessor):
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `TOGETHER_API_KEY` | Required | API key |
+| `TOGETHER_API_KEY` | None | Queue auth fallback. Sprocket 0.1.8+ uses the deployment's service token (`TOGETHER_DCI_SERVICE_TOKEN_FILE`, set by the platform) |
 | `TOGETHER_API_BASE_URL` | `https://api.together.ai` | API base URL |
 | `TERMINATION_GRACE_PERIOD_SECONDS` | 300 | Shutdown + prediction timeout |
 | `WORLD_SIZE` | 1 | GPU processes (set by torchrun) |

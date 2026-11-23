@@ -431,7 +431,7 @@ Detection coverage is expanding, and automated recommendations are enabled per c
 
 ### Node Repair
 
-Auto repair uses three repair actions, ordered lightest to heaviest, plus a warning-only tier. If a lighter action does not clear the issue, it escalates. Every recommendation is reviewed and accepted by the user before a repair runs; training jobs must checkpoint first.
+Auto repair uses three repair actions, ordered lightest to heaviest, plus a warning-only tier. If a lighter action does not clear the issue, it escalates. Whether a repair waits for approval depends on the cluster's confirmation policy: under **Approve before repair** each recommendation waits for you, and under **Fully automatic** the faults you scoped for it are repaired with no approval. Check the policy on the cluster's **Repairs** tab, and have training jobs checkpoint either way. `tg clusters remediations` lists, creates, approves, rejects, and cancels repairs from the CLI.
 
 - **Reboot**: Restart the node in place. Fastest recovery; used for recoverable software or transient GPU faults.
 - **Quick Reprovision**: VM recreated on a random physical node (for software issues that persist across reboot).
@@ -550,7 +550,7 @@ Users require active Together AI accounts before they can be added.
 | GPU not accessible in container | Use a CUDA-enabled image such as `pytorch/pytorch` or `nvidia/cuda` |
 | Storage PVC not binding | Confirm the volume name matches the shared volume and inspect `kubectl get pvc` |
 | Slurm job failures | Run `sinfo` to inspect partitions and `scontrol show job <jobid>` for details |
-| Node health issues | Check `nvidia-smi`, inspect Xid errors in `dmesg`, and trigger repair from the UI if needed |
+| Node health issues | Check `nvidia-smi`, inspect Xid errors in `dmesg`, and trigger repair from the UI or with `tg clusters remediations create` if needed |
 
 ## Terraform
 
