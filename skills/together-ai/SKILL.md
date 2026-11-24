@@ -43,7 +43,7 @@ only when it holds a detail you need. Paths are relative to this skill's directo
 | `domains/sandboxes.md` | run code in isolated sandboxes with `together-sandbox`, which replaces the retired Code Interpreter (`code_interpreter`) |
 | `domains/dedicated-model-inference.md` | dedicated endpoints (`tg endpoints`, `client.endpoints`): deploy, autoscale, traffic split, A/B, shadow, metrics, model/LoRA upload, v1 migration (HTTP 403 `endpoints_v1_create_access_disabled`) |
 | `domains/dedicated-containers.md` | your own Docker inference worker: Sprocket, Jig, queue jobs |
-| `domains/gpu-clusters.md` | H100/H200/B200 clusters, Kubernetes or Slurm, shared storage, credentials |
+| `domains/gpu-clusters.md` | H100/H200/B200 clusters, Kubernetes or Slurm, shared storage, preemptible compute, credentials |
 | `domains/kueue.md` | quota-gated job queueing on a Together Kubernetes cluster |
 | `domains/volcano.md` | all-or-nothing gang scheduling on a Together Kubernetes cluster |
 | `domains/togetherlink.md` | TogetherLink (`tlink`, `tclaude`): run Claude Code, Codex, OpenCode, Pi Code, Claude Desktop, or ChatGPT Desktop on Together models; install, keys, `--main` pinning, headless runs, usage |

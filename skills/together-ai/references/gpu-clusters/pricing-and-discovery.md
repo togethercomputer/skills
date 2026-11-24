@@ -21,9 +21,11 @@ The two required surfaces answer different questions:
 2. Open the [GPU Cluster pricing table](https://www.together.ai/pricing#gpu-clusters)
    for current on-demand and reserved rates. Prices are per GPU per hour.
 
-For billing rules (how reserved, on-demand, and storage charges accrue, and the
-credits a create request needs), see
+For billing rules (how reserved, on-demand, preemptible, and storage charges
+accrue, and the credits a create request needs), see
 [GPU clusters pricing and billing](https://docs.together.ai/docs/gpu-clusters-billing).
+Preemptible nodes bill at a flat discounted rate, metered sub-hourly; see
+[Preemptible compute](https://docs.together.ai/docs/preemptible-compute).
 
 The regions response does **not** include pricing or prove that capacity is in
 stock. Do not infer price from GPU generation, response order, or a static
@@ -58,8 +60,10 @@ command, use one driver version from the selected region: its `id` as
    as no public numeric rate; never invent a number.
 4. Report the selected per-GPU-hour rate and the total hourly cluster cost.
 
-Every cluster needs at least 8 GPUs, in multiples of 8. The minimum hourly
-compute estimate is therefore:
+Standard and preemptible GPU counts are multiples of 8. A standard-capacity
+cluster needs at least 8 GPUs; a preemptible-only cluster uses `--num-gpus 0`
+plus a positive `--num-preemptible-gpus`. The minimum hourly estimate for
+standard on-demand capacity is:
 
 ```text
 8 × selected on-demand price per GPU-hour
