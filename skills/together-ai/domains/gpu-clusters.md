@@ -17,7 +17,8 @@ gang scheduling on a running cluster is `domains/kueue.md` or `domains/volcano.m
 ## Workflow
 
 1. Decide whether the workload really needs cluster-level control.
-2. Choose on-demand vs reserved billing based on run duration and baseline utilization.
+2. Choose on-demand vs reserved billing based on run duration and baseline utilization. Add
+   preemptible capacity when the workload can checkpoint and tolerate a five-minute reclaim.
 3. Choose Kubernetes vs Slurm based on orchestration requirements and team tooling.
 4. Select region, GPU type, driver version, and shared storage plan.
 5. Provision first, then layer in access credentials, workload deployment, scaling, and health checks.
@@ -32,7 +33,18 @@ gang scheduling on a running cluster is `domains/kueue.md` or `domains/volcano.m
   guaranteed stock. Never infer the cheapest GPU from response order or
   hardware generation; open the [GPU Cluster pricing table](https://www.together.ai/pricing#gpu-clusters)
   and compare its numeric on-demand rates.
-- Every cluster needs at least 8 GPUs, in multiples of 8. For an hourly estimate, multiply the displayed per-GPU-hour rate by at least 8.
+- Standard GPU count (`num_gpus` / `--num-gpus`) is a multiple of 8 and may be `0` for a
+  preemptible-only cluster. Preemptible targets (`num_preemptible_gpus` /
+  `--num-preemptible-gpus`) are also multiples of 8. At least one of those counts must be greater
+  than 0. For an hourly estimate of standard on-demand capacity, multiply the displayed
+  per-GPU-hour rate by at least 8.
+- Preemptible compute is generally available on Kubernetes and Slurm. Set
+  `num_preemptible_gpus` / `--num-preemptible-gpus` (requires a project) to add discounted,
+  interruptible nodes, or pass `num_gpus` / `--num-gpus` `0` for a preemptible-only cluster.
+  Together can reclaim preemptible nodes after a five-minute drain; the cluster and shared
+  volumes stay. On Kubernetes, target interruptible pods with
+  `together.ai/compute-class=preemptible` (and keep coordinators on `non-preemptible`). Slurm
+  cannot pin jobs away from preemptible nodes; use `--requeue` and shared-storage checkpoints.
 - Every create request needs a shared volume, and the API rejects one without it. Pass `--shared-volume-name` with `--shared-volume-size-tib` (CLI 3.2.0+) or `shared_volume` (SDK) to create one with the cluster, or `--volume` / `volume_id` to attach an existing one.
 - `ON_DEMAND` has no one-hour duration flag. For a one-hour plan, omit
   `--duration-days`, create the cluster only when authorized, then delete it
@@ -44,18 +56,18 @@ gang scheduling on a running cluster is `domains/kueue.md` or `domains/volcano.m
 
 ## Open next
 
-For read-only questions (regions, GPU types, prices, a command to run later), the 113-line
+For read-only questions (regions, GPU types, prices, a command to run later), the 117-line
 `pricing-and-discovery.md` is all you need. Open the others only for the detail in their row, and
 read just that section; long ones start with `## Contents`.
 
 | File | Lines | Contains | Open when |
 |---|---|---|---|
-| [references/gpu-clusters/pricing-and-discovery.md](references/gpu-clusters/pricing-and-discovery.md) | 113 | pricing, billing, and stock surfaces, read-only inventory commands, picking the cheapest live option, one-hour on-demand plan with its shared volume | pricing, availability, or a plan without provisioning |
+| [references/gpu-clusters/pricing-and-discovery.md](references/gpu-clusters/pricing-and-discovery.md) | 117 | pricing, billing (including preemptible), and stock surfaces, read-only inventory commands, picking the cheapest live option, one-hour on-demand plan with its shared volume | pricing, availability, or a plan without provisioning |
 | [scripts/gpu-clusters/manage_cluster.py](scripts/gpu-clusters/manage_cluster.py) (.ts) | 330 | create (requires `--shared-volume-name` with `--shared-volume-size-tib`, or `--volume-id`; takes the driver from the region's list unless you pass `--nvidia-version-id` or `--driver-version`), poll, scale, delete | provisioning or changing a cluster |
 | [scripts/gpu-clusters/manage_storage.py](scripts/gpu-clusters/manage_storage.py) | 129 | create, list, resize, delete shared volumes | managing storage on its own |
-| [references/gpu-clusters/cli.md](references/gpu-clusters/cli.md) | 343 | `tg` cluster and storage commands, create flags (`--nvidia-version-id`, `--os`, shared-volume flags), global flags, instance types, driver versions | a CLI flag or driver version |
-| [references/gpu-clusters/api-reference.md](references/gpu-clusters/api-reference.md) | 477 | cluster and storage endpoints, request fields, regions, instance types | an API field the script does not set |
-| [references/gpu-clusters/cluster-management.md](references/gpu-clusters/cluster-management.md) | 571 | architecture, access, Slurm config, GPU containers, scaling, storage, health checks, users, billing, troubleshooting, Terraform | operating or debugging a running cluster |
+| [references/gpu-clusters/cli.md](references/gpu-clusters/cli.md) | 365 | `tg` cluster and storage commands, create flags (`--nvidia-version-id`, `--os`, `--num-preemptible-gpus`, shared-volume flags), global flags, instance types, driver versions | a CLI flag or driver version |
+| [references/gpu-clusters/api-reference.md](references/gpu-clusters/api-reference.md) | 484 | cluster and storage endpoints, request fields (`num_preemptible_gpus`), regions, instance types | an API field the script does not set |
+| [references/gpu-clusters/cluster-management.md](references/gpu-clusters/cluster-management.md) | 602 | architecture, access, Slurm config, GPU containers, scaling, preemptible compute, storage, health checks, users, billing, troubleshooting, Terraform | operating or debugging a running cluster |
 
 ## Docs
 
@@ -64,5 +76,6 @@ read just that section; long ones start with `## Contents`.
 - [Clusters API](https://docs.together.ai/reference/clusters-create)
 - [GPU Cluster Pricing](https://www.together.ai/pricing#gpu-clusters) (rates)
 - [GPU Clusters Billing](https://docs.together.ai/docs/gpu-clusters-billing) (billing rules)
+- [Preemptible compute](https://docs.together.ai/docs/preemptible-compute)
 - [Slurm Startup Scripts](https://docs.together.ai/docs/slurm-startup-scripts)
 - [Instant GPU Clusters](https://www.together.ai/instant-gpu-clusters)

@@ -122,7 +122,8 @@ together clusters create \
 | `cluster_name` | string | Yes | Name of the cluster |
 | `region` | string | Yes | Region (use `list_regions()` in Python or `listRegions()` in TypeScript to find valid regions) |
 | `gpu_type` | string | Yes | GPU type (see Instance Types below) |
-| `num_gpus` | integer | Yes | Number of GPUs (must be a multiple of 8) |
+| `num_gpus` | integer | Yes | Standard GPU count (multiple of 8). Use `0` for a preemptible-only cluster. |
+| `num_preemptible_gpus` | integer | No | Preemptible GPU target (multiple of 8). `project_id` is required when greater than 0. |
 | `cuda_version` | string | Yes* | CUDA version, e.g. `"12.6"` |
 | `nvidia_driver_version` | string | Yes* | NVIDIA driver version, e.g. `"560"` |
 | `nvidia_version_id` | string | Yes* | Catalog NVIDIA version ID, instead of the pair above |
@@ -133,6 +134,9 @@ together clusters create \
 | `shared_volume` | object | No | Inline volume: `{volume_name, size_tib, region}` |
 
 *Pass either `cuda_version` with `nvidia_driver_version`, or `nvidia_version_id`.
+
+Response fields for preemptible progress (read-only): `desired_preemptible_gpus` (current target)
+and `allocated_preemptible_gpus` (currently allocated, including nodes still starting).
 
 ## List Clusters
 
@@ -215,7 +219,8 @@ together clusters update <CLUSTER_ID> --num-gpus 16 --cluster-type KUBERNETES
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `num_gpus` | integer | New GPU count (must be a multiple of 8) |
+| `num_gpus` | integer | New standard GPU count (multiple of 8; `0` allowed for preemptible-only) |
+| `num_preemptible_gpus` | integer | New preemptible GPU target (multiple of 8). Omit to keep the current value. |
 | `cluster_type` | string | `KUBERNETES` or `SLURM` |
 
 ## Delete Cluster
@@ -466,6 +471,8 @@ Some tools write the pair as one string, `CUDA_{major}_{minor}_{nvidia}` (the sc
   "region": "us-central-8",
   "gpu_type": "H100_SXM",
   "num_gpus": 8,
+  "desired_preemptible_gpus": 8,
+  "allocated_preemptible_gpus": 0,
   "driver_version": "CUDA_12_6_560",
   "duration_hours": 720,
   "status": "Ready",

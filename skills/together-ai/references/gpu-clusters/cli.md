@@ -69,16 +69,19 @@ Create a new GPU cluster. Run with no flags to launch an interactive prompt that
 tg clusters create [OPTIONS]
 ```
 
-Every cluster needs at least 8 GPUs, in multiples of 8, and a shared volume. The API rejects a
-create request that has no volume, so pass either `--volume` (attach an existing one) or
-`--shared-volume-name` with `--shared-volume-size-tib` (create one with the cluster).
+Standard GPU count is a multiple of 8 (`0` for a preemptible-only cluster). Preemptible targets
+are also multiples of 8. At least one of those counts must be greater than 0. Every create also
+needs a shared volume. The API rejects a create request that has no volume, so pass either
+`--volume` (attach an existing one) or `--shared-volume-name` with `--shared-volume-size-tib`
+(create one with the cluster).
 
 **Options:**
 
 | Flag | Type | Description |
 |------|------|-------------|
 | `--name` | string | Name of the cluster |
-| `--num-gpus` | number | Number of GPUs. At least 8, in multiples of 8. |
+| `--num-gpus` | number | Standard GPU count. Multiple of 8; `0` for a preemptible-only cluster. |
+| `--num-preemptible-gpus` | number | Preemptible GPU target. Multiple of 8. Requires `--project` or `TOGETHER_PROJECT_ID`. |
 | `--gpu-type` | string | `H100_SXM`, `H200_SXM`, `B200_SXM`, `B300_SXM`, `GB200_NVL`, `H100_SXM_INF`, `L40_PCIE`, `RTX_6000_PCI`. Availability varies by region (`clusters list-regions`). |
 | `--region` | string | Region (use `clusters list-regions` to find valid regions) |
 | `--billing-type` | enum | `ON_DEMAND`, `RESERVED`, or `SCHEDULED_CAPACITY` |
@@ -98,7 +101,7 @@ In non-interactive mode (`--non-interactive` or `--json`), select the driver one
 `--nvidia-version-id` alone, or pass `--nvidia-driver-version` and `--cuda-version` together,
 optionally with `--os`. Both come from the region's `driver_versions` in `clusters list-regions`.
 
-`tg clusters create --help` lists further flags for autoscaling, capacity pools, preemptible GPUs,
+`tg clusters create --help` lists further flags for autoscaling, capacity pools,
 scheduled capacity, and Slurm options.
 
 **Examples:**
@@ -116,6 +119,21 @@ tg clusters create \
   --shared-volume-name my-training-data \
   --shared-volume-size-tib 1 \
   --non-interactive
+
+# Preemptible-only cluster (standard count 0); requires a project
+tg clusters create \
+  --name preemptible-workers \
+  --num-gpus 0 \
+  --num-preemptible-gpus 8 \
+  --gpu-type H100_SXM \
+  --region us-central-8 \
+  --nvidia-version-id <NVIDIA_VERSION_ID> \
+  --billing-type ON_DEMAND \
+  --cluster-type KUBERNETES \
+  --shared-volume-name preemptible-workers-data \
+  --shared-volume-size-tib 1 \
+  --project <PROJECT_ID> \
+  --non-interactive --json
 
 # Reserved Slurm cluster with H200s and an existing volume
 tg clusters create \
@@ -164,15 +182,19 @@ tg clusters update [CLUSTER_ID] [OPTIONS]
 
 | Flag | Type | Description |
 |------|------|-------------|
-| `--num-gpus` | number | New GPU count. At least 8, in multiples of 8. |
+| `--num-gpus` | number | New standard GPU count. Multiple of 8; `0` allowed for preemptible-only. |
+| `--num-preemptible-gpus` | number | New preemptible GPU target. Multiple of 8. Omit to keep the current value. |
 | `--cluster-type` | enum | `KUBERNETES` or `SLURM`. Accepted, but the API ignores it on update, so the cluster keeps the type it was created with. |
 | `--json` | -- | Output in JSON format |
 
-**Example:**
+**Examples:**
 
 ```shell
-# Scale up to 16 GPUs
+# Scale up to 16 standard GPUs
 tg clusters update [CLUSTER_ID] --num-gpus 16
+
+# Raise the preemptible target
+tg clusters update [CLUSTER_ID] --num-preemptible-gpus 16
 ```
 
 ### `clusters delete`

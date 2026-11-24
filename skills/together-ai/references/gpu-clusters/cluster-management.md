@@ -7,6 +7,7 @@
   - [Startup Scripts (Slinky v1.0 only)](#startup-scripts-slinky-v10-only)
 - [GPU Access in Containers](#gpu-access-in-containers)
 - [Scaling](#scaling)
+- [Preemptible compute](#preemptible-compute)
 - [Storage](#storage)
 - [Health Checks](#health-checks)
 - [User Management](#user-management)
@@ -251,6 +252,34 @@ sudo scontrol update NodeName=<node_name> State=drain Reason="scaling down"
 ### Combining Capacity
 
 Use reserved for baseline + on-demand for bursts.
+
+## Preemptible compute
+
+Preemptible compute is generally available on Kubernetes and Slurm GPU clusters. Preemptible
+nodes are discounted at a flat rate (not a bid), metered every one to two minutes, and fill in
+asynchronously toward a target. Together can reclaim them at any time after a five-minute drain.
+
+- **Mixed cluster:** set a standard count (`num_gpus`) and a preemptible target
+  (`num_preemptible_gpus`). Preemptible nodes join the same cluster; you cannot convert a node
+  between standard and preemptible in place.
+- **Preemptible-only:** create with `num_gpus=0` and a positive `num_preemptible_gpus`. If Together
+  reclaims every node, the cluster and shared volumes stay; nodes return as capacity appears.
+  Shared volumes and the Slurm control plane stay reachable only in some regions, best-effort,
+  while no nodes remain.
+- **API fields:** request `num_preemptible_gpus` (multiple of 8; `project_id` required when > 0).
+  Response: `desired_preemptible_gpus`, `allocated_preemptible_gpus`.
+- **Kubernetes:** label `together.ai/compute-class=preemptible` (standard nodes use
+  `non-preemptible`). Node names: `gpu-preemptible-dp` vs `gpu-dp`. Pin interruptible workers with
+  a `nodeSelector` on `preemptible`; keep coordinators and serving replicas on `non-preemptible`.
+  Watch `TogetherPreemptionNotified` events or `node_lifecycle_events` on the cluster retrieve
+  response. Claim up to 300s with `terminationGracePeriodSeconds` and checkpoint on SIGTERM.
+- **Slurm:** preemptible nodes share partitions and the `slinky` feature with standard nodes, so
+  any job can land on one. Submit checkpointed jobs with `#SBATCH --requeue` and resume when
+  `SLURM_RESTART_COUNT` is above 0.
+- **Fit:** checkpointed training, evals, batch inference, sweeps. Avoid as the only copy of a
+  multi-day run, or for user-facing serving with no fallback.
+
+Docs: [Preemptible compute](https://docs.together.ai/docs/preemptible-compute).
 
 ## Storage
 
@@ -524,6 +553,8 @@ Users require active Together AI accounts before they can be added.
 
 - **Reserved**: Upfront payment, 1-90 days, discounted. Non-refundable, non-cancellable.
 - **On-demand**: Hourly billing, no commitment. Can terminate anytime.
+- **Preemptible**: Flat rate discounted from on-demand; metered every one to two minutes. Can run
+  alongside standard capacity or as a preemptible-only cluster.
 - **Hybrid**: Reserved for baseline + on-demand for burst.
 
 ### Storage
