@@ -227,7 +227,7 @@ const response = await together.chat.completions.create({
 
 | Parameter | Type | Values | Description |
 |-----------|------|--------|-------------|
-| `reasoning_effort` | string | `"low"`, `"medium"`, `"high"` | Control reasoning depth (GPT-OSS only) |
+| `reasoning_effort` | string | `"low"`, `"medium"`, `"high"` | Control reasoning depth (model-dependent) |
 | `reasoning` | object | `{"enabled": true/false}` | Toggle reasoning for hybrid models |
 | `chat_template_kwargs` | object | `{"thinking": true}` | Alternative reasoning toggle |
 
@@ -235,7 +235,7 @@ const response = await together.chat.completions.create({
 
 ```python
 stream = client.chat.completions.create(
-    model="openai/gpt-oss-120b",
+    model="zai-org/GLM-5.3-Flash",
     messages=[{"role": "user", "content": "Prove the infinitude of primes"}],
     temperature=1.0,
     top_p=1.0,
@@ -253,7 +253,7 @@ for chunk in stream:
 
 ```typescript
 const stream = await together.chat.completions.create({
-  model: "openai/gpt-oss-120b",
+  model: "zai-org/GLM-5.3-Flash",
   messages: [{ role: "user", content: "Prove the infinitude of primes" }],
   temperature: 1.0,
   top_p: 1.0,
@@ -353,7 +353,7 @@ client = OpenAI(
     api_key="YOUR_TOGETHER_API_KEY",
 )
 response = client.chat.completions.create(
-    model="openai/gpt-oss-120b",
+    model="zai-org/GLM-5.3-Flash",
     messages=[{"role": "user", "content": "Hello!"}],
 )
 print(response.choices[0].message.content)
@@ -411,7 +411,7 @@ import json
 client = Together()
 
 response = client.chat.completions.with_raw_response.create(
-    model="openai/gpt-oss-120b",
+    model="zai-org/GLM-5.3-Flash",
     messages=[{"role": "user", "content": "Say hello"}],
     extra_headers={"x-together-debug": "1"},
 )
@@ -430,7 +430,7 @@ const client = new Together();
 
 const response = await client.chat.completions.create(
   {
-    model: "openai/gpt-oss-120b",
+    model: "zai-org/GLM-5.3-Flash",
     messages: [{ role: "user", content: "Say hello" }],
   },
   { headers: { "x-together-debug": "1" } }
@@ -449,7 +449,7 @@ curl -s -D - -X POST "https://api.together.xyz/v1/chat/completions" \
   -H "Authorization: Bearer $TOGETHER_API_KEY" \
   -H "Content-Type: application/json" \
   -H "x-together-debug: 1" \
-  -d '{"model":"openai/gpt-oss-120b","messages":[{"role":"user","content":"Say hello"}]}'
+  -d '{"model":"zai-org/GLM-5.3-Flash","messages":[{"role":"user","content":"Say hello"}]}'
 ```
 
 Common debug headers:

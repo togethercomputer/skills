@@ -25,10 +25,11 @@ print(resp.choices[0].message.content)
 ```
 
 - Serverless models that support tools and JSON output today include
-  `meta-llama/Llama-3.3-70B-Instruct-Turbo`, `openai/gpt-oss-120b` (reasoning), `Qwen/Qwen3.5-9B`
-  (small, also takes images), and `zai-org/GLM-5.3-Flash`. The catalog changes; see the model rule
-  in `SKILL.md`. `Qwen/Qwen3.6-Plus`, `Qwen3.7-Plus`, `Qwen3.7-Max`, and `Qwen3.8-Flash` return 403
-  `third_party_data_sharing_blocked` unless the organization enables third-party data sharing.
+  `meta-llama/Llama-3.3-70B-Instruct-Turbo`, `zai-org/GLM-5.3-Flash` (reasoning),
+  `deepseek-ai/DeepSeek-V4.1-Flash`, and `Qwen/Qwen3.5-9B` (small, also takes images). The catalog
+  changes; see the model rule in `SKILL.md`. `Qwen/Qwen3.6-Plus`, `Qwen3.7-Plus`, `Qwen3.7-Max`,
+  and `Qwen3.8-Flash` return 403 `third_party_data_sharing_blocked` unless the organization
+  enables third-party data sharing.
 - Image input: put `{"type": "image_url", "image_url": {"url": ...}}` parts in the user message's
   `content` list and use a vision model (`Qwen/Qwen3.5-9B`,
   `nvidia/NVIDIA-Nemotron-3.5-Super-VL`, `moonshotai/Kimi-K3`; each answered an image request on
@@ -37,8 +38,8 @@ print(resp.choices[0].message.content)
 ## Rules
 
 - Keep the full `messages` history across turns; do not rebuild context from final text only.
-- Streams can end with a usage-only chunk whose `choices` list is empty (GPT-OSS always sends
-  one). Check `chunk.choices` before reading `chunk.choices[0]`.
+- Streams can end with a usage-only chunk whose `choices` list is empty. Check `chunk.choices`
+  before reading `chunk.choices[0]`.
 - Tool calling is a loop, not one round trip: execute every tool call, append each result as a
   `tool` message, call the model again, and repeat until it answers without tool calls.
 - **Ground the final answer in tool results.** When the user asked for an action (create a
@@ -60,9 +61,9 @@ print(resp.choices[0].message.content)
   `max_tokens` on the trace first, so give them headroom or the answer comes back empty. Use
   reasoning models only when the task benefits; they cost more and are slower.
 - Reasoning controls differ per model, and the API returns HTTP 200 for a control the model
-  ignores. `reasoning={"enabled": False}` turns thinking off on some models, DeepSeek V4 Pro 0813
-  needs `chat_template_kwargs={"enable_thinking": False}`, and GLM-5.3 and GPT-OSS cannot be
-  turned off but honor `reasoning_effort="low"`. Check the per-model table in
+  ignores. `reasoning={"enabled": False}` turns thinking off on some models (for example
+  DeepSeek V4.1 Flash and Kimi K3). GLM-5.3 and GLM-5.3 Flash keep reasoning under that switch
+  but honor `reasoning_effort="low"`. Check the per-model table in
   [reasoning-models.md](references/chat-completions/reasoning-models.md) (Reasoning Controls by
   Model), then confirm the change in `usage.completion_tokens_details.reasoning_tokens`.
 - Token usage: reasoning models nest counts OpenAI-style
@@ -83,11 +84,11 @@ Open a file only for the detail its row names. References over 100 lines start w
 | [scripts/chat-completions/reasoning_models.py](scripts/chat-completions/reasoning_models.py) (.ts) | 162 | reasoning field, effort levels, hybrid on/off toggles | using a reasoning model |
 | [scripts/chat-completions/async_parallel.py](scripts/chat-completions/async_parallel.py) | 50 | asyncio fan-out of independent requests | many requests and a user is waiting |
 | [scripts/chat-completions/debug_headers.py](scripts/chat-completions/debug_headers.py) (.ts) | 57 | raw response, rate-limit and routing headers | debugging latency, 429s, or routing |
-| [references/chat-completions/models.md](references/chat-completions/models.md) | 78 | model picks by use case, context lengths, vision and moderation models | choosing a model (verify it is live) |
+| [references/chat-completions/models.md](references/chat-completions/models.md) | 74 | model picks by use case, context lengths, vision and moderation models | choosing a model (verify it is live) |
 | [references/chat-completions/api-parameters.md](references/chat-completions/api-parameters.md) | 481 | every request parameter, message object, OpenAI-SDK compatibility, rate-limit tiers, HTTP status codes | a parameter or status code not covered above |
-| [references/chat-completions/function-calling-patterns.md](references/chat-completions/function-calling-patterns.md) | 841 | six calling patterns (parallel, multi-step, ...), `tool_choice`, tools plus structured output, best practices, supported models | a tool pattern the script does not show |
-| [references/chat-completions/structured-outputs.md](references/chat-completions/structured-outputs.md) | 541 | the three JSON modes, reasoning plus JSON, streaming JSON, troubleshooting | JSON output fails to parse or validate |
-| [references/chat-completions/reasoning-models.md](references/chat-completions/reasoning-models.md) | 552 | reasoning model table, measured per-model control matrix (off switches, `reasoning_effort`, trace field), effort levels, hybrid toggles, output format, token accounting | tuning reasoning depth or cost, or a reasoning setting that seems to do nothing |
+| [references/chat-completions/function-calling-patterns.md](references/chat-completions/function-calling-patterns.md) | 838 | six calling patterns (parallel, multi-step, ...), `tool_choice`, tools plus structured output, best practices, supported models | a tool pattern the script does not show |
+| [references/chat-completions/structured-outputs.md](references/chat-completions/structured-outputs.md) | 538 | the three JSON modes, reasoning plus JSON, streaming JSON, troubleshooting | JSON output fails to parse or validate |
+| [references/chat-completions/reasoning-models.md](references/chat-completions/reasoning-models.md) | 543 | reasoning model table, measured per-model control matrix (off switches, `reasoning_effort`, trace field), effort levels, hybrid toggles, output format, token accounting | tuning reasoning depth or cost, or a reasoning setting that seems to do nothing |
 
 ## Docs
 
