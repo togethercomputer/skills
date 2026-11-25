@@ -80,13 +80,13 @@ function thinkTagsExample(): void {
   console.log();
 }
 
-// --- 3. Reasoning effort (GPT-OSS) ---
+// --- 3. Reasoning effort (GLM-5.3 Flash) ---
 async function reasoningEffortExample(): Promise<void> {
-  console.log("=== Reasoning Effort (GPT-OSS) ===");
+  console.log("=== Reasoning Effort (GLM-5.3 Flash) ===");
 
   for (const effort of ["low", "medium", "high"] as const) {
     const stream = await client.chat.completions.create({
-      model: "openai/gpt-oss-120b",
+      model: "zai-org/GLM-5.3-Flash",
       messages: [{ role: "user", content: "Is 17 a prime number?" }],
       temperature: 1.0,
       top_p: 1.0,

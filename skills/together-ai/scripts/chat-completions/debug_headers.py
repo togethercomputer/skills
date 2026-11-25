@@ -21,7 +21,7 @@ client = Together()
 def main() -> None:
     """Print a parsed chat response together with selected response headers."""
     response = client.chat.completions.with_raw_response.create(
-        model="openai/gpt-oss-120b",
+        model="zai-org/GLM-5.3-Flash",
         messages=[{"role": "user", "content": "Say hello in one sentence."}],
         extra_headers={"x-together-debug": "1"},
     )

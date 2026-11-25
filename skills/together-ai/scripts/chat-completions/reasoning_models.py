@@ -91,11 +91,11 @@ def think_tags_example() -> None:
 
 
 def reasoning_effort_example() -> None:
-    """Control reasoning depth with reasoning_effort (GPT-OSS)."""
-    print("=== Reasoning Effort (GPT-OSS) ===")
+    """Control reasoning depth with reasoning_effort (GLM-5.3 Flash)."""
+    print("=== Reasoning Effort (GLM-5.3 Flash) ===")
     for effort in ["low", "medium", "high"]:
         stream = client.chat.completions.create(
-            model="openai/gpt-oss-120b",
+            model="zai-org/GLM-5.3-Flash",
             messages=[{"role": "user", "content": "Is 17 a prime number?"}],
             temperature=1.0,
             top_p=1.0,
@@ -105,7 +105,7 @@ def reasoning_effort_example() -> None:
 
         content = ""
         for chunk in stream:
-            if not chunk.choices:  # GPT-OSS ends every stream with a usage-only chunk
+            if not chunk.choices:  # some models end streams with a usage-only chunk
                 continue
             content += chunk.choices[0].delta.content or ""
 
